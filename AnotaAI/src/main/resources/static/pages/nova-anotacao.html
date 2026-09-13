@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <link href="../css/global.css" rel="stylesheet"/>
+  <link href="../css/sidebar.css" rel="stylesheet"/>
+  <link href="../css/editor.css" rel="stylesheet"/>
+  <title>Editar anotação - AnotaAI</title>
+ </head>
+ <body data-page="editor">
+  <div class="app-shell">
+   <aside class="sidebar" id="sidebar">
+    <div class="brand">
+     <a aria-label="Página inicial do AnotaAI" class="brand-link" href="anotacoes.html">
+      <img alt="AnotaAI" class="brand-logo" src="../assets/images/logo-anotaai.png"/>
+     </a>
+    </div>
+    <nav aria-label="Navegação principal" class="sidebar-nav">
+     <a class="nav-item active" href="anotacoes.html">
+      <svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24">
+       <path d="M6 3.5h10a2 2 0 0 1 2 2V20l-4-2-4 2-4-2-2 1V5.5a2 2 0 0 1 2-2Z"></path>
+       <path d="M8 8h7M8 12h7"></path>
+      </svg>
+      <span>Minhas anotações</span>
+     </a>
+
+    </nav>
+   </aside>
+   <header class="mobile-topbar">
+    <a aria-label="AnotaAI" class="mobile-brand" href="anotacoes.html">
+     <img alt="AnotaAI" class="mobile-brand-logo" src="../assets/images/logo-anotaai.png"/>
+    </a>
+    <button aria-label="Abrir menu" class="icon-button" data-action="toggle-menu" type="button">
+     <svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24">
+      <path d="M4 7h16M4 12h16M4 17h16"></path>
+     </svg>
+    </button>
+   </header>
+   <main class="app-main">
+    <section class="page page-narrow" data-current-page="Editar anotação">
+     <div class="editor-topline">
+      <a class="back-link" href="anotacoes.html">
+       <svg aria-hidden="true" class="simple-svg small" viewbox="0 0 24 24">
+        <path d="M19 12H5M11 6l-6 6 6 6"></path>
+       </svg>
+       Minhas anotações
+      </a>
+      <span class="save-state" id="save-state">Rascunho local</span>
+     </div>
+     <div class="title-field">
+      <label for="note-title">Título da anotação</label>
+      <input id="note-title" maxlength="120" placeholder="Título"/>
+     </div>
+     <div class="editor-tools">
+
+      <button class="button button-primary" id="save-note">
+       <svg aria-hidden="true" class="simple-svg small" viewbox="0 0 24 24">
+        <path d="M5 4h12l2 2v14H5V4Z"></path>
+        <path d="M8 4v6h8V4M8 20v-6h8v6"></path>
+       </svg>
+       Salvar anotação
+      </button>
+     </div>
+     <section class="editor-surface">
+      <div class="editor-status">
+       <span id="version-badge">Anotação</span>
+       <span id="char-count">0 caracteres</span>
+      </div>
+      <textarea aria-label="Conteúdo da anotação" id="note-content" placeholder="Escreva sua anotação aqui."></textarea>
+     </section>
+   </section>
+  </main>
+ </div>
+  <script src="../js/api.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/editor.js"></script>
+ </body>
+</html>
