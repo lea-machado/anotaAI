@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <link href="../css/global.css" rel="stylesheet"/>
+  <link href="../css/sidebar.css" rel="stylesheet"/>
+  <link href="../css/desempenho.css" rel="stylesheet"/>
+  <title>Meu desempenho - AnotaAI</title>
+ </head>
+ <body data-page="desempenho">
+  <div class="app-shell">
+   <aside class="sidebar" id="sidebar">
+    <div class="brand">
+     <a aria-label="Página inicial do AnotaAI" class="brand-link" href="anotacoes.html">
+      <img alt="AnotaAI" class="brand-logo" src="../assets/images/logo-anotaai.png"/>
+     </a>
+    </div>
+    <nav aria-label="Navegação principal" class="sidebar-nav">
+     <a class="nav-item" href="anotacoes.html">
+      <svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24">
+       <path d="M6 3.5h10a2 2 0 0 1 2 2V20l-4-2-4 2-4-2-2 1V5.5a2 2 0 0 1 2-2Z"></path>
+       <path d="M8 8h7M8 12h7"></path>
+      </svg>
+      <span>Minhas anotações</span>
+     </a>
+     <a class="nav-item active" href="desempenho.html">
+      <svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24">
+       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path>
+      </svg>
+      <span>Meu desempenho</span>
+     </a>
+    </nav>
+   </aside>
+   <header class="mobile-topbar">
+    <a aria-label="AnotaAI" class="mobile-brand" href="anotacoes.html">
+     <img alt="AnotaAI" class="mobile-brand-logo" src="../assets/images/logo-anotaai.png"/>
+    </a>
+    <button aria-label="Abrir menu" class="icon-button" data-action="toggle-menu" type="button">
+     <svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24">
+      <path d="M4 7h16M4 12h16M4 17h16"></path>
+     </svg>
+    </button>
+   </header>
+   <main class="app-main">
+    <section class="page" data-current-page="Meu desempenho">
+     <header class="page-header">
+      <div>
+       <p class="page-kicker">Ritmo de estudo</p>
+       <h1>Meu desempenho</h1>
+       <p class="page-subtitle">Indicadores calculados a partir das anotações salvas no banco.</p>
+      </div>
+     </header>
+     <section class="performance-grid">
+      <article class="metric-card">
+       <span>Anotações criadas</span>
+       <strong id="metric-notes">0</strong>
+      </article>
+      <article class="metric-card">
+       <span>Total de caracteres</span>
+       <strong id="metric-chars">0</strong>
+      </article>
+      <article class="metric-card">
+       <span>Média por anotação</span>
+       <strong id="metric-average">0</strong>
+      </article>
+      <article class="metric-card">
+       <span>Última atualização</span>
+       <strong id="metric-last">-</strong>
+      </article>
+     </section>
+    </section>
+   </main>
+  </div>
+  <script src="../js/api.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/desempenho.js"></script>
+ </body>
+</html>

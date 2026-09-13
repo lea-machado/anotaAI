@@ -19,6 +19,8 @@
     getNote: id => request(`/anotacoes/${id}`),
     createNote: data => request('/anotacoes', { method: 'POST', body: JSON.stringify(data) }),
     updateNote: (id, data) => request(`/anotacoes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    deleteNote: id => request(`/anotacoes/${id}`, { method: 'DELETE' })
+    deleteNote: id => request(`/anotacoes/${id}`, { method: 'DELETE' }),
+    getVersions: id => request(`/anotacoes/${id}/versoes`),
+    getPerformance: () => request('/desempenho')
   };
 })();

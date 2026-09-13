@@ -1,7 +1,9 @@
 package br.com.anotaai.service;
 
 import br.com.anotaai.model.Anotacao;
+import br.com.anotaai.model.VersaoAnotacao;
 import br.com.anotaai.repository.AnotacaoRepository;
+import br.com.anotaai.repository.VersaoAnotacaoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,9 +12,11 @@ import java.util.List;
 @Service
 public class AnotacaoService {
     private final AnotacaoRepository anotacaoRepository;
+    private final VersaoAnotacaoRepository versaoAnotacaoRepository;
 
-    public AnotacaoService(AnotacaoRepository anotacaoRepository) {
+    public AnotacaoService(AnotacaoRepository anotacaoRepository, VersaoAnotacaoRepository versaoAnotacaoRepository) {
         this.anotacaoRepository = anotacaoRepository;
+        this.versaoAnotacaoRepository = versaoAnotacaoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -34,7 +38,9 @@ public class AnotacaoService {
         var anotacao = new Anotacao();
         anotacao.setTitulo(validarTexto(dados.getTitulo(), "Titulo"));
         anotacao.setConteudo(validarTexto(dados.getConteudo(), "Conteudo"));
-        return anotacaoRepository.save(anotacao);
+        var salva = anotacaoRepository.save(anotacao);
+        salvarVersaoOriginal(salva);
+        return salva;
     }
 
     @Transactional
@@ -42,12 +48,27 @@ public class AnotacaoService {
         var anotacao = buscar(id);
         anotacao.setTitulo(validarTexto(dados.getTitulo(), "Titulo"));
         anotacao.setConteudo(validarTexto(dados.getConteudo(), "Conteudo"));
+        salvarVersaoOriginal(anotacao);
         return anotacao;
     }
 
     @Transactional
     public void excluir(Long id) {
         anotacaoRepository.delete(buscar(id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<VersaoAnotacao> listarVersoes(Long anotacaoId) {
+        buscar(anotacaoId);
+        return versaoAnotacaoRepository.findByAnotacaoIdOrderByCriadoEmAsc(anotacaoId);
+    }
+
+    private void salvarVersaoOriginal(Anotacao anotacao) {
+        var versao = new VersaoAnotacao();
+        versao.setAnotacao(anotacao);
+        versao.setTipo("ORIGINAL");
+        versao.setConteudo(anotacao.getConteudo());
+        versaoAnotacaoRepository.save(versao);
     }
 
     private String validarTexto(String valor, String campo) {

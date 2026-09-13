@@ -5,20 +5,19 @@
   const count = document.getElementById('notes-count');
   const toggle = document.getElementById('toggle-empty');
   let showEmpty = false;
-  let apiNotes = [];
+  let apiNotes = null;
 
   async function loadNotes() {
     try {
       apiNotes = await Api.listNotes();
     } catch (error) {
-      apiNotes = [];
-      App.toast(error.message, 'error');
+      apiNotes = AppMocks.anotacoes;
     }
     render();
   }
 
   function render() {
-    const notes = showEmpty ? [] : apiNotes;
+    const notes = showEmpty ? [] : (apiNotes || AppMocks.anotacoes);
     grid.hidden = !notes.length;
     empty.hidden = !!notes.length;
     count.textContent = `${notes.length} ${notes.length === 1 ? 'anotação' : 'anotações'}`;

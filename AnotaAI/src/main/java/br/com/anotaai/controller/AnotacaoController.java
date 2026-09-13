@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/anotacoes")
@@ -50,5 +51,17 @@ public class AnotacaoController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void excluir(@PathVariable Long id) {
         anotacaoService.excluir(id);
+    }
+
+    @GetMapping("/{id}/versoes")
+    public List<Map<String, Object>> versoes(@PathVariable Long id) {
+        return anotacaoService.listarVersoes(id).stream()
+                .map(versao -> Map.<String, Object>of(
+                        "id", versao.getId(),
+                        "tipo", versao.getTipo(),
+                        "conteudo", versao.getConteudo(),
+                        "criadoEm", versao.getCriadoEm()
+                ))
+                .toList();
     }
 }
