@@ -91,6 +91,5 @@ http://localhost:8080/
 *Não abra os arquivos HTML diretamente com file:///.... O frontend utiliza caminhos relativos para a API (/api) e deve ser acessado conforme link acima*
 
 ## Observação
-Este README será atualizado conforme a evolução do projeto.
 
 Este README será atualizado conforme a evolução do projeto.
