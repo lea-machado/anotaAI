@@ -11,14 +11,16 @@ import java.util.Map;
 @Service
 public class DesempenhoService {
     private final AnotacaoRepository anotacaoRepository;
+    private final UsuarioAtualService usuarioAtualService;
 
-    public DesempenhoService(AnotacaoRepository anotacaoRepository) {
+    public DesempenhoService(AnotacaoRepository anotacaoRepository, UsuarioAtualService usuarioAtualService) {
         this.anotacaoRepository = anotacaoRepository;
+        this.usuarioAtualService = usuarioAtualService;
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> obter() {
-        var anotacoes = anotacaoRepository.findAll();
+        var anotacoes = anotacaoRepository.findByUsuarioIdOrderByAtualizadoEmDesc(usuarioAtualService.obter().getId());
         var totalAnotacoes = anotacoes.size();
         var totalCaracteres = anotacoes.stream()
                 .map(Anotacao::getConteudo)

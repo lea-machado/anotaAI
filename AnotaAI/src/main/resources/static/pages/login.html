@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <link href="../css/global.css" rel="stylesheet"/>
+  <link href="../css/auth.css" rel="stylesheet"/>
+  <title>Login - AnotaAI</title>
+ </head>
+ <body>
+  <main class="auth-page">
+   <section class="auth-hero auth-hero-login">
+    <a aria-label="AnotaAI" href="login.html">
+     <img alt="AnotaAI" class="auth-logo" src="../assets/images/logo-anotaai.png"/>
+    </a>
+    <div class="auth-copy">
+     <p class="page-kicker">Área do estudante</p>
+     <h1>Entre para continuar suas anotações</h1>
+     <p>Organize conteúdos, acompanhe seu desempenho e mantenha seu histórico de versões em um só lugar.</p>
+    </div>
+   </section>
+   <section class="auth-panel-wrap">
+    <div class="panel auth-panel">
+     <h2 id="auth-title">Acessar conta</h2>
+     <p id="auth-description">Use seu e-mail e senha cadastrados para entrar no AnotaAI.</p>
+     <form class="auth-form" id="login-form">
+      <div class="field">
+       <label for="email">E-mail</label>
+       <input autocomplete="username" class="input" id="email" name="email" placeholder="seuemail@exemplo.com" required type="email"/>
+      </div>
+      <div class="field">
+       <label for="senha">Senha</label>
+       <input autocomplete="current-password" class="input" id="senha" minlength="8" name="senha" placeholder="Digite sua senha" required type="password"/>
+      </div>
+      <div class="auth-options">
+       <span class="auth-security" style="visibility: hidden;" aria-hidden="true">Sessão protegida e senha criptografada com BCrypt</span>
+      </div>
+      <p class="auth-feedback" hidden id="login-feedback" role="alert"></p>
+      <button class="button button-primary" id="login-button" type="submit">Entrar</button>
+     </form>
+     <form class="auth-form" hidden id="two-factor-form">
+      <div class="field">
+       <label for="verification-code">Código de 6 dígitos</label>
+       <input autocomplete="one-time-code" class="input auth-code" id="verification-code" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" placeholder="000000" required type="text"/>
+      </div>
+      <p class="auth-expiration" id="code-expiration"></p>
+      <p class="auth-feedback" hidden id="two-factor-feedback" role="alert"></p>
+      <button class="button button-primary" id="verify-button" type="submit">Verificar código</button>
+      <button class="button button-secondary" id="back-to-login" type="button">Voltar</button>
+     </form>
+     <div id="login-links">
+      <p class="auth-footer-text"><a class="auth-link" href="recuperar-senha.html">Esqueci minha senha</a></p>
+      <p class="auth-footer-text">Ainda não tem conta? <a class="auth-link" href="cadastro.html">Criar conta</a></p>
+     </div>
+    </div>
+   </section>
+  </main>
+  <script src="../js/login.js"></script>
+ </body>
+</html>
