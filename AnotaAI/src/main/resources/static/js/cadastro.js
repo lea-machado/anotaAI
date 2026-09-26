@@ -1,4 +1,11 @@
 (function () {
+  const TERMS_VERSION = '2026-09-25';
+  const TERMS_ACCEPTANCE_KEY = 'anotaai.termosCadastroAceitos';
+
+  if (sessionStorage.getItem(TERMS_ACCEPTANCE_KEY) !== TERMS_VERSION) {
+    window.location.replace('/pages/privacidade.html?cadastro=1');
+    return;
+  }
 
   const form = document.getElementById('register-form');
   const feedback = document.getElementById('register-feedback');
@@ -45,12 +52,16 @@
           email: document.getElementById('email').value,
           dataNascimento: birthDateInput.value,
           escolaridade: document.getElementById('escolaridade').value,
-          senha
+          senha,
+          aceitouTermos: true,
+          declarouMaioridade: true,
+          versaoTermos: TERMS_VERSION
         })
       });
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.mensagem || 'Não foi possível criar a conta.');
+      sessionStorage.removeItem(TERMS_ACCEPTANCE_KEY);
       window.location.replace('/pages/login.html?cadastro=sucesso');
     } catch (error) {
       showFeedback(error.message);

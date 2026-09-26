@@ -3,6 +3,7 @@ package br.com.anotaai.controller;
 import br.com.anotaai.service.AuditoriaService;
 import br.com.anotaai.service.AutenticacaoDoisFatoresService;
 import br.com.anotaai.service.UsuarioAtualService;
+import br.com.anotaai.service.UsuarioService;
 import br.com.anotaai.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -16,6 +17,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,17 +33,20 @@ public class AutenticacaoController {
     private final AuditoriaService auditoriaService;
     private final AutenticacaoDoisFatoresService doisFatoresService;
     private final UsuarioRepository usuarioRepository;
+    private final UsuarioService usuarioService;
 
     public AutenticacaoController(AuthenticationManager authenticationManager,
                                   UsuarioAtualService usuarioAtualService,
                                   AuditoriaService auditoriaService,
                                   AutenticacaoDoisFatoresService doisFatoresService,
-                                  UsuarioRepository usuarioRepository) {
+                                  UsuarioRepository usuarioRepository,
+                                  UsuarioService usuarioService) {
         this.authenticationManager = authenticationManager;
         this.usuarioAtualService = usuarioAtualService;
         this.auditoriaService = auditoriaService;
         this.doisFatoresService = doisFatoresService;
         this.usuarioRepository = usuarioRepository;
+        this.usuarioService = usuarioService;
     }
 
     @GetMapping("/csrf")
@@ -128,6 +133,40 @@ public class AutenticacaoController {
         );
     }
 
+    @PutMapping("/me")
+    public ResponseEntity<?> atualizarUsuarioAtual(@RequestBody AtualizarPerfilRequest dados, HttpServletRequest request) {
+        var usuarioAtual = usuarioAtualService.obter();
+        try {
+            var usuario = usuarioService.atualizarPerfil(
+                    usuarioAtual, dados.nome(), dados.email(), dados.escolaridade());
+            atualizarAutenticacaoDaSessao(usuario, request);
+            auditoriaService.registrar(usuario.getEmail(), "PERFIL_ATUALIZADO", "/api/auth/me", true,
+                    "Dados do perfil atualizados.", request);
+            return ResponseEntity.ok(Map.of(
+                    "id", usuario.getId(),
+                    "nome", usuario.getNome(),
+                    "email", usuario.getEmail(),
+                    "perfil", usuario.getPerfil(),
+                    "escolaridade", usuario.getEscolaridade(),
+                    "criadoEm", usuario.getCriadoEm()
+            ));
+        } catch (IllegalArgumentException exception) {
+            auditoriaService.registrar(usuarioAtual.getEmail(), "PERFIL_ATUALIZACAO_FALHA", "/api/auth/me", false,
+                    exception.getMessage(), request);
+            return ResponseEntity.badRequest().body(Map.of("mensagem", exception.getMessage()));
+        }
+    }
+
+    private void atualizarAutenticacaoDaSessao(br.com.anotaai.model.Usuario usuario, HttpServletRequest request) {
+        var principal = org.springframework.security.core.userdetails.User
+                .withUsername(usuario.getEmail())
+                .password(usuario.getSenha())
+                .roles(usuario.getPerfil())
+                .build();
+        var authentication = new UsernamePasswordAuthenticationToken(
+                principal, null, principal.getAuthorities());
+        criarSessaoAutenticada(authentication, request);
+    }
 
     @PostMapping("/logout")
     public Map<String, String> logout(HttpServletRequest request) {
@@ -142,4 +181,5 @@ public class AutenticacaoController {
 
     public record LoginRequest(String email, String senha) {}
     public record VerificacaoRequest(UUID desafioId, String codigo) {}
+    public record AtualizarPerfilRequest(String nome, String email, String escolaridade) {}
 }

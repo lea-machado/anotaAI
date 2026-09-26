@@ -41,8 +41,14 @@ public class Usuario {
     @Column(length = 40)
     private String escolaridade;
 
+    @Column(name = "termos_aceitos_em")
+    private LocalDateTime termosAceitosEm;
 
+    @Column(name = "maioridade_declarada_em")
+    private LocalDateTime maioridadeDeclaradaEm;
 
+    @Column(name = "versao_termos", length = 20)
+    private String versaoTermos;
 
     @PrePersist
     void prePersist() {
@@ -63,4 +69,10 @@ public class Usuario {
     public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }
     public String getEscolaridade() { return escolaridade; }
     public void setEscolaridade(String escolaridade) { this.escolaridade = escolaridade; }
+    public LocalDateTime getTermosAceitosEm() { return termosAceitosEm; }
+    public void setTermosAceitosEm(LocalDateTime termosAceitosEm) { this.termosAceitosEm = termosAceitosEm; }
+    public LocalDateTime getMaioridadeDeclaradaEm() { return maioridadeDeclaradaEm; }
+    public void setMaioridadeDeclaradaEm(LocalDateTime maioridadeDeclaradaEm) { this.maioridadeDeclaradaEm = maioridadeDeclaradaEm; }
+    public String getVersaoTermos() { return versaoTermos; }
+    public void setVersaoTermos(String versaoTermos) { this.versaoTermos = versaoTermos; }
 }

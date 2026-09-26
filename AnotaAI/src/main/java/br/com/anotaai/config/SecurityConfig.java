@@ -24,8 +24,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/pages/login.html", "/pages/cadastro.html",
-                                "/css/**", "/assets/**", "/js/login.js", "/js/cadastro.js",
+                                "/pages/login.html", "/pages/cadastro.html", "/pages/termos.html", "/pages/privacidade.html",
+                                "/css/**", "/assets/**", "/js/login.js", "/js/cadastro.js", "/js/termos.js",
                                 "/api/auth/login", "/api/auth/2fa/verify", "/api/auth/cadastro", "/api/auth/csrf", "/error",
                                 "/api/auth/recuperacao/solicitar", "/api/auth/recuperacao/redefinir",
                                 "/pages/recuperar-senha.html", "/js/recuperar-senha.js"

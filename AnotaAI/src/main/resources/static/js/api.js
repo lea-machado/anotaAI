@@ -43,6 +43,7 @@
     getVersions: id => request(`/anotacoes/${id}/versoes`),
     getPerformance: () => request('/desempenho'),
     getCurrentUser: () => request('/auth/me'),
+    updateCurrentUser: data => request('/auth/me', { method: 'PUT', body: JSON.stringify(data) }),
     getAudit: () => request('/auditoria'),
     getAdminSummary: () => request('/admin/resumo'),
     getAdminUsers: () => request('/admin/usuarios'),

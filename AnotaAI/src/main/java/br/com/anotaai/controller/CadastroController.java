@@ -30,7 +30,8 @@ public class CadastroController {
         var emailInformado = dados.email() == null ? "" : dados.email().trim().toLowerCase();
         try {
             var usuario = usuarioService.criarUsuarioComum(
-                    dados.nome(), dados.email(), dados.senha(), dados.dataNascimento(), dados.escolaridade());
+                    dados.nome(), dados.email(), dados.senha(), dados.dataNascimento(), dados.escolaridade(),
+                    dados.aceitouTermos(), dados.declarouMaioridade(), dados.versaoTermos());
             auditoriaService.registrar(usuario.getEmail(), "CADASTRO_USUARIO", "/api/auth/cadastro",
                     true, "Conta de usuario criada.", request);
             return Map.of(
@@ -52,6 +53,9 @@ public class CadastroController {
             String email,
             String senha,
             LocalDate dataNascimento,
-            String escolaridade
+            String escolaridade,
+            Boolean aceitouTermos,
+            Boolean declarouMaioridade,
+            String versaoTermos
     ) {}
 }

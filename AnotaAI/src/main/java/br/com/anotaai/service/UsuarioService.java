@@ -8,12 +8,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 
 @Service
 public class UsuarioService {
+    public static final String VERSAO_ATUAL_TERMOS = "2026-09-25";
     private static final Pattern EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private static final Set<String> ESCOLARIDADES_VALIDAS = Set.of(
             "Ensino Fundamental Incompleto",
@@ -41,13 +43,18 @@ public class UsuarioService {
             String email,
             String senha,
             LocalDate dataNascimento,
-            String escolaridade
+            String escolaridade,
+            Boolean aceitouTermos,
+            Boolean declarouMaioridade,
+            String versaoTermos
     ) {
         var nomeValidado = validarNome(nome);
         var emailNormalizado = validarEmail(email);
         validarSenha(senha);
         validarDataNascimento(dataNascimento);
         var escolaridadeValidada = validarEscolaridade(escolaridade);
+        validarAceiteTermos(aceitouTermos, versaoTermos);
+        validarDeclaracaoMaioridade(declarouMaioridade);
 
         if (usuarioRepository.existsByEmailIgnoreCase(emailNormalizado)) {
             throw new IllegalArgumentException("Ja existe uma conta cadastrada com este e-mail.");
@@ -60,6 +67,27 @@ public class UsuarioService {
         usuario.setEscolaridade(escolaridadeValidada);
         usuario.setSenha(passwordEncoder.encode(senha));
         usuario.setPerfil("USER");
+        usuario.setTermosAceitosEm(LocalDateTime.now());
+        usuario.setMaioridadeDeclaradaEm(LocalDateTime.now());
+        usuario.setVersaoTermos(versaoTermos);
+        return usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public Usuario atualizarPerfil(Usuario usuario, String nome, String email, String escolaridade) {
+        var nomeValidado = validarNome(nome);
+        var emailNormalizado = validarEmail(email);
+        var escolaridadeValidada = validarEscolaridade(escolaridade);
+
+        usuarioRepository.findByEmailIgnoreCase(emailNormalizado)
+                .filter(outro -> !outro.getId().equals(usuario.getId()))
+                .ifPresent(outro -> {
+                    throw new IllegalArgumentException("Ja existe uma conta cadastrada com este e-mail.");
+                });
+
+        usuario.setNome(nomeValidado);
+        usuario.setEmail(emailNormalizado);
+        usuario.setEscolaridade(escolaridadeValidada);
         return usuarioRepository.save(usuario);
     }
 
@@ -105,6 +133,11 @@ public class UsuarioService {
         return valor;
     }
 
+    private void validarAceiteTermos(Boolean aceitouTermos, String versaoTermos) {
+        if (!Boolean.TRUE.equals(aceitouTermos) || !VERSAO_ATUAL_TERMOS.equals(versaoTermos)) {
+            throw new IllegalArgumentException("E necessario ler e aceitar os Termos de Uso para criar a conta.");
+        }
+    }
 
     private void validarDataNascimento(LocalDate dataNascimento) {
         if (dataNascimento == null) {
@@ -115,4 +148,9 @@ public class UsuarioService {
         }
     }
 
+    private void validarDeclaracaoMaioridade(Boolean declarouMaioridade) {
+        if (!Boolean.TRUE.equals(declarouMaioridade)) {
+            throw new IllegalArgumentException("E necessario declarar que possui 18 anos ou mais.");
+        }
+    }
 }
