@@ -4,25 +4,16 @@
 
 O AnotaAI consistirá em uma aplicação web que tem como objetivo auxiliar estudantes em seu dia a dia com as anotações feitas em aula.
 
-<<<<<<< HEAD
-O principal problema dos alunos se encontra principalmente na dificuldade de revisar o que foi escrito por ele durante o fluxo das aulas, sendo muito vezes confuso e mal organizado. Pensando nisso, o AnotaAI vem com a proposta de utilizar a inteligência artificial para sanar essa situação, criando resumos, títulos, organizando em principais tópicos e flashcards a partir da própria anotação.
-O principal diferencial desse sistema é que ele atua apenas como uma ferramenta de apoio e o estudante que possui a decisão final sobre as sugestões apresentadas, garantindo o protagonismo no aprendizado.
-
-Este projeto está em fase inicial.
-=======
 O principal problema dos alunos se encontra na dificuldade de revisar o que foi escrito por ele durante o fluxo das aulas, sendo muito vezes confuso e mal organizado. Pensando nisso, o AnotaAI vem com a proposta de utilizar a inteligência artificial para sanar essa situação, criando resumos, títulos, organizando em principais tópicos e flashcards a partir da própria anotação.
 O principal diferencial desse sistema é que ele atua apenas como uma ferramenta de apoio e o estudante que possui a decisão final sobre as sugestões apresentadas, garantindo o protagonismo no aprendizado.
 
 Na fase atual do projeto é possível criar, editar, excluir e visualizar anotações. Além disso, há também a funcionalidade relacionada às métricas de anotações, exibindo quantidade de notas, quantidade de caracteres e última atualização dos dados.
->>>>>>> entrega1409
 
 ## Equipe
 
 - Carlos Henrique Costa França Junior
 - Letícia de Souza Machado
 
-<<<<<<< HEAD
-=======
 ## Funcionalidades implementadas em 14/09
 ### Anotação:
 - Cadastro
@@ -41,18 +32,12 @@ Na fase atual do projeto é possível criar, editar, excluir e visualizar anota�
 - Versionamento de banco de dados
 - Interface do usuário para criação de anotações e visualização de suas métricas
 
->>>>>>> entrega1409
 ## Tech Stack
 ### Front End
 - HTML5
 - CSS3
 - JavaScript
-<<<<<<< HEAD
-- Bootstrap
-- Thymeleaf
-=======
 - Fetch API
->>>>>>> entrega1409
 
 ### Backend
 - Java 21
@@ -66,8 +51,6 @@ Na fase atual do projeto é possível criar, editar, excluir e visualizar anota�
 ### Inteligência Artificial
 - Google Gemini API 
 
-<<<<<<< HEAD
-=======
 ## Como executar o projeto:
 ### 1. Pré-requisitos:
 - Java 21
@@ -107,7 +90,6 @@ http://localhost:8080/
 
 *Não abra os arquivos HTML diretamente com file:///.... O frontend utiliza caminhos relativos para a API (/api) e deve ser acessado conforme link acima*
 
->>>>>>> entrega1409
 ## Observação
 
 Este README será atualizado conforme a evolução do projeto.
