@@ -64,7 +64,10 @@ class RecuperacaoSenhaServiceTest {
     void rejeitaCodigoExpirado() {
         var registro = registro();
         registro.setExpiraEm(LocalDateTime.now().minusSeconds(1));
-        assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "123456", "novaSenha123"));
+
+       IllegalArgumentException excecao = assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "123456", "novaSenha123"));
+
+        assertNotNull(excecao.getMessage());
         verify(usuarios, never()).save(any());
     }
 

@@ -27,7 +27,7 @@ class AutenticacaoDoisFatoresServiceTest {
             repository, new BCryptPasswordEncoder(4), emailService);
 
     @Test
-    void deveGerarEnviarEValidarCodigoDeSeisDigitos() {
+    void gerarEnviarEValidarCodigoDeSeisDigitos() {
         var usuario = usuario();
         when(repository.findTopByUsuarioIdOrderByCriadoEmDesc(any())).thenReturn(Optional.empty());
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -52,7 +52,7 @@ class AutenticacaoDoisFatoresServiceTest {
     }
 
     @Test
-    void deveContabilizarCodigoIncorreto() {
+    void contabilizarCodigoIncorreto() {
         var registro = new CodigoAutenticacao();
         registro.setDesafioId(UUID.randomUUID());
         registro.setUsuario(usuario());
@@ -61,10 +61,26 @@ class AutenticacaoDoisFatoresServiceTest {
         registro.setExpiraEm(LocalDateTime.now().plusMinutes(5));
         when(repository.findByDesafioId(registro.getDesafioId())).thenReturn(Optional.of(registro));
 
-        assertThrows(IllegalArgumentException.class,
-                () -> service.validar(registro.getDesafioId(), "654321"));
+        IllegalArgumentException excecao = assertThrows(IllegalArgumentException.class, () -> service.validar(registro.getDesafioId(), "654321"));
+        assertEquals("Codigo de verificacao invalido.", excecao.getMessage());
         assertEquals(1, registro.getTentativas());
         verify(repository).save(registro);
+    }
+
+    @Test
+    void bloquearQuandoAtingirCincoTentativas(){
+        var registro = new CodigoAutenticacao();
+        registro.setDesafioId(UUID.randomUUID());
+        registro.setUsuario(usuario());
+        registro.setCodigoHash(new BCryptPasswordEncoder(4).encode("123456"));
+        registro.setTentativas(5);
+        registro.setCriadoEm(LocalDateTime.now());
+        registro.setExpiraEm(LocalDateTime.now().plusMinutes(5));
+        when(repository.findByDesafioId(registro.getDesafioId())).thenReturn(Optional.of(registro));
+
+        IllegalArgumentException excecao = assertThrows(IllegalArgumentException.class, () -> service.validar(registro.getDesafioId(), "123456"));
+
+        assertEquals("Limite de tentativas excedido. Inicie o login novamente.", excecao.getMessage());
     }
 
     private Usuario usuario() {
