@@ -1,6 +1,7 @@
 package br.com.anotaai.controller;
 
 import br.com.anotaai.service.RecursoNaoEncontradoException;
+import br.com.anotaai.service.ServicoEmailException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -20,6 +21,12 @@ public class ApiExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     Map<String, Object> badRequest(IllegalArgumentException exception) {
+        return erro(exception.getMessage());
+    }
+
+    @ExceptionHandler(ServicoEmailException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    Map<String, Object> emailIndisponivel(ServicoEmailException exception) {
         return erro(exception.getMessage());
     }
 

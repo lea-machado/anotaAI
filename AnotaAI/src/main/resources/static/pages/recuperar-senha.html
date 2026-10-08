@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+ <meta charset="utf-8"/>
+ <meta name="viewport" content="width=device-width, initial-scale=1"/>
+ <link href="../css/global.css" rel="stylesheet"/>
+ <link href="../css/auth.css" rel="stylesheet"/>
+ <title>Recuperar senha - AnotaAI</title>
+</head>
+<body>
+ <main class="auth-page">
+  <section class="auth-hero auth-hero-login">
+   <a href="login.html" aria-label="AnotaAI"><img class="auth-logo" alt="AnotaAI" src="../assets/images/logo-anotaai.png"/></a>
+   <div class="auth-copy">
+    <p class="page-kicker">Recuperação de acesso</p>
+    <h1>Volte às suas anotações</h1>
+    <p>Receba um código no seu e-mail e escolha uma nova senha para acessar sua conta.</p>
+   </div>
+  </section>
+  <section class="auth-panel-wrap">
+   <div class="panel auth-panel">
+    <h2 id="recovery-title">Esqueci minha senha</h2>
+    <p id="recovery-description">Informe o e-mail cadastrado na sua conta.</p>
+    <form class="auth-form" id="request-form">
+     <div class="field">
+      <label for="recovery-email">E-mail</label>
+      <input class="input" id="recovery-email" type="email" autocomplete="email" maxlength="180" placeholder="seuemail@exemplo.com" required/>
+     </div>
+     <button class="button button-primary" id="request-button" type="submit">Enviar código</button>
+    </form>
+    <form class="auth-form" id="reset-form" hidden>
+     <div class="field">
+      <label for="recovery-code">Código recebido por e-mail</label>
+      <input class="input auth-code" id="recovery-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000" required/>
+     </div>
+     <div class="field">
+      <label for="new-password">Nova senha</label>
+      <input class="input" id="new-password" type="password" autocomplete="new-password" minlength="8" placeholder="Pelo menos 8 caracteres" required/>
+     </div>
+     <div class="field">
+      <label for="confirm-password">Confirme a nova senha</label>
+      <input class="input" id="confirm-password" type="password" autocomplete="new-password" minlength="8" required/>
+     </div>
+     <button class="button button-primary" id="reset-button" type="submit">Salvar nova senha</button>
+     <button class="button button-secondary" id="resend-button" type="button">Solicitar outro código</button>
+    </form>
+    <p class="auth-feedback" id="recovery-feedback" role="alert" hidden></p>
+    <p class="auth-footer-text"><a class="auth-link" href="login.html">Voltar ao login</a></p>
+   </div>
+  </section>
+ </main>
+ <script src="../js/recuperar-senha.js"></script>
+</body>
+</html>

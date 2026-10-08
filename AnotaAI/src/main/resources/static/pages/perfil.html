@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <link href="../css/global.css" rel="stylesheet"/>
+  <link href="../css/sidebar.css" rel="stylesheet"/>
+  <link href="../css/perfil.css" rel="stylesheet"/>
+  <title>Perfil - AnotaAI</title>
+ </head>
+ <body data-page="perfil">
+  <div class="app-shell">
+   <aside class="sidebar" id="sidebar">
+    <div class="brand">
+     <a aria-label="Página inicial do AnotaAI" class="brand-link" href="anotacoes.html">
+      <img alt="AnotaAI" class="brand-logo" src="../assets/images/logo-anotaai.png"/>
+     </a>
+    </div>
+    <nav aria-label="Navegação principal" class="sidebar-nav">
+     <a class="nav-item" href="anotacoes.html">
+      <svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24">
+       <path d="M6 3.5h10a2 2 0 0 1 2 2V20l-4-2-4 2-4-2-2 1V5.5a2 2 0 0 1 2-2Z"></path>
+       <path d="M8 8h7M8 12h7"></path>
+      </svg>
+      <span>Minhas anotações</span>
+     </a>
+     <a class="nav-item" href="desempenho.html">
+      <svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24">
+       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path>
+      </svg>
+      <span>Meu desempenho</span>
+     </a>
+     <a class="nav-item active" href="perfil.html">
+      <svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24">
+       <path d="M20 21a8 8 0 0 0-16 0"></path>
+       <path d="M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"></path>
+      </svg>
+      <span>Meu perfil</span>
+     </a>
+    </nav>
+    <div class="sidebar-footer">
+     <button class="nav-item nav-button" data-action="logout" type="button">
+      <svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24">
+       <path d="M10 17l5-5-5-5"></path>
+       <path d="M15 12H3"></path>
+       <path d="M21 4v16"></path>
+      </svg>
+      <span>Sair</span>
+     </button>
+    </div>
+   </aside>
+   <header class="mobile-topbar">
+    <a aria-label="AnotaAI" class="mobile-brand" href="anotacoes.html">
+     <img alt="AnotaAI" class="mobile-brand-logo" src="../assets/images/logo-anotaai.png"/>
+    </a>
+    <button aria-label="Abrir menu" class="icon-button" data-action="toggle-menu" type="button">
+     <svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24">
+      <path d="M4 7h16M4 12h16M4 17h16"></path>
+     </svg>
+    </button>
+   </header>
+   <main class="app-main">
+    <section class="page" data-current-page="Meu perfil">
+     <header class="page-header">
+      <div>
+       <p class="page-kicker">Conta do estudante</p>
+       <h1>Meu perfil</h1>
+       <p class="page-subtitle">Dados básicos da conta usada para acessar e organizar suas anotações.</p>
+      </div>
+     </header>
+     <div class="profile-layout">
+      <section class="panel profile-card">
+       <div class="profile-head">
+        <div class="profile-avatar" id="profile-avatar">EA</div>
+        <div>
+         <h2 id="profile-name">Estudante AnotaAI</h2>
+         <p id="member-since">Carregando dados da conta...</p>
+        </div>
+       </div>
+       <form class="profile-form" id="profile-form">
+        <div class="field">
+         <label for="nome">Nome</label>
+         <input class="input" id="nome" name="nome" maxlength="120" required value=""/>
+        </div>
+        <div class="field">
+         <label for="email">E-mail</label>
+         <input class="input" id="email" name="email" maxlength="180" required type="email" value=""/>
+        </div>
+        <div class="field full">
+         <label for="escolaridade">Escolaridade</label>
+         <select class="input" id="escolaridade" name="escolaridade" required>
+          <option value="">Selecione</option>
+          <option>Ensino Fundamental Incompleto</option>
+          <option>Ensino Fundamental Completo</option>
+          <option>Ensino Médio Incompleto</option>
+          <option>Ensino Médio Completo</option>
+          <option>Ensino Superior Incompleto</option>
+          <option>Ensino Superior Completo</option>
+          <option>Pós-graduação</option>
+          <option>Mestrado</option>
+          <option>Doutorado</option>
+         </select>
+        </div>
+        <p class="profile-feedback full" id="profile-feedback" role="status" aria-live="polite"></p>
+        <div class="profile-actions">
+         <button class="button button-primary" id="save-profile" type="submit">Salvar alterações</button>
+        </div>
+       </form>
+      </section>
+      <aside class="profile-summary">
+       <article class="panel summary-card">
+        <span>Anotações salvas</span>
+        <strong id="profile-notes-count">0</strong>
+        <p>Total de conteúdos criados no caderno de estudos.</p>
+       </article>
+       <article class="panel summary-card audit-card">
+        <span>Auditoria de segurança</span>
+        <h2>Acessos e ações recentes</h2>
+        <ul class="audit-list" id="audit-list"><li><div><strong>Carregando...</strong></div></li></ul>
+       </article>
+       <article class="panel summary-card">
+        <span>Privacidade e LGPD</span>
+        <div class="legal-links">
+         <a href="privacidade.html">Termos de Uso</a>
+         <a href="privacidade.html">Política de Privacidade</a>
+        </div>
+       </article>
+       <article class="panel summary-card">
+        <span>Último acesso</span>
+        <strong>Hoje</strong>
+        <p>Perfil pronto para continuar editando suas anotações.</p>
+       </article>
+       <article class="panel summary-card">
+        <span>Preferências</span>
+        <div class="preference-list">
+         <div class="preference-item">
+          <div>
+           <strong>Salvar histórico</strong>
+           <span>Mantém versões originais das anotações.</span>
+          </div>
+          <button aria-label="Salvar histórico ativado" class="switch" type="button"></button>
+         </div>
+         <div class="preference-item">
+          <div>
+           <strong>Resumo de desempenho</strong>
+           <span>Exibe métricas a partir do banco de dados.</span>
+          </div>
+          <button aria-label="Resumo de desempenho ativado" class="switch" type="button"></button>
+         </div>
+        </div>
+       </article>
+      </aside>
+     </div>
+    </section>
+   </main>
+  </div>
+  <script src="../js/api.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/perfil.js"></script>
+ </body>
+</html>
