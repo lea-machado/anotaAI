@@ -137,3 +137,5 @@ body.modal-open { overflow: hidden; }
 
 .toast-marker { width:20px; height:20px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:700; background:var(--blue-50); color:var(--blue-700); }
 .toast.error .toast-marker { background:var(--danger-bg); color:var(--danger); }
+
+.empty-state[hidden] { display: none; }

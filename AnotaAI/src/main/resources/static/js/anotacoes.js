@@ -3,21 +3,20 @@
   if (!grid) return;
   const empty = document.getElementById('empty-state');
   const count = document.getElementById('notes-count');
-  const toggle = document.getElementById('toggle-empty');
-  let showEmpty = false;
   let apiNotes = null;
 
   async function loadNotes() {
     try {
       apiNotes = await Api.listNotes();
     } catch (error) {
-      apiNotes = AppMocks.anotacoes;
+      apiNotes = [];
+      App.toast(error.message || 'Não foi possível carregar suas anotações.', 'error');
     }
     render();
   }
 
   function render() {
-    const notes = showEmpty ? [] : (apiNotes || AppMocks.anotacoes);
+    const notes = apiNotes || [];
     grid.hidden = !notes.length;
     empty.hidden = !!notes.length;
     count.textContent = `${notes.length} ${notes.length === 1 ? 'anotação' : 'anotações'}`;
@@ -42,7 +41,6 @@
           <span>Excluir</span>
         </button>
       </article>`).join('');
-    toggle.textContent = showEmpty ? 'Voltar às anotações' : 'Visualizar estado vazio';
   }
 
   async function deleteNote(button) {
@@ -74,6 +72,5 @@
     deleteNote(deleteButton);
   });
 
-  toggle.addEventListener('click', () => { showEmpty = !showEmpty; render(); });
   loadNotes();
 })();

@@ -13,29 +13,34 @@ import java.util.List;
 public class AnotacaoService {
     private final AnotacaoRepository anotacaoRepository;
     private final VersaoAnotacaoRepository versaoAnotacaoRepository;
+    private final UsuarioAtualService usuarioAtualService;
 
-    public AnotacaoService(AnotacaoRepository anotacaoRepository, VersaoAnotacaoRepository versaoAnotacaoRepository) {
+    public AnotacaoService(AnotacaoRepository anotacaoRepository, VersaoAnotacaoRepository versaoAnotacaoRepository,
+                           UsuarioAtualService usuarioAtualService) {
         this.anotacaoRepository = anotacaoRepository;
         this.versaoAnotacaoRepository = versaoAnotacaoRepository;
+        this.usuarioAtualService = usuarioAtualService;
     }
 
     @Transactional(readOnly = true)
     public List<Anotacao> listar(String busca) {
+        var usuarioId = usuarioAtualService.obter().getId();
         if (busca != null && !busca.isBlank()) {
-            return anotacaoRepository.findByTituloContainingIgnoreCaseOrderByAtualizadoEmDesc(busca.trim());
+            return anotacaoRepository.findByUsuarioIdAndTituloContainingIgnoreCaseOrderByAtualizadoEmDesc(usuarioId, busca.trim());
         }
-        return anotacaoRepository.findAllByOrderByAtualizadoEmDesc();
+        return anotacaoRepository.findByUsuarioIdOrderByAtualizadoEmDesc(usuarioId);
     }
 
     @Transactional(readOnly = true)
     public Anotacao buscar(Long id) {
-        return anotacaoRepository.findById(id)
+        return anotacaoRepository.findByIdAndUsuarioId(id, usuarioAtualService.obter().getId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Anotacao nao encontrada."));
     }
 
     @Transactional
     public Anotacao criar(Anotacao dados) {
         var anotacao = new Anotacao();
+        anotacao.setUsuario(usuarioAtualService.obter());
         anotacao.setTitulo(validarTexto(dados.getTitulo(), "Titulo"));
         anotacao.setConteudo(validarTexto(dados.getConteudo(), "Conteudo"));
         var salva = anotacaoRepository.save(anotacao);

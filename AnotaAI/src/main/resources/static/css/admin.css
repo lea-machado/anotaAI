@@ -1,0 +1,27 @@
+.admin-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+.admin-metric { padding: 20px; }
+.admin-metric span { display: block; color: var(--muted); font-size: 12px; font-weight: 700; }
+.admin-metric strong { display: block; margin-top: 8px; font-family: Georgia, 'Times New Roman', serif; font-size: 36px; }
+.admin-section { margin-top: 18px; padding: 22px; }
+.admin-section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.admin-section h2 { margin: 0; font-size: 24px; }
+.admin-section-head span { color: var(--muted); font-size: 12px; }
+.table-wrap { overflow-x: auto; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.admin-table th, .admin-table td { padding: 12px 10px; border-top: 1px solid var(--line); text-align: left; vertical-align: middle; white-space: nowrap; }
+.admin-table th { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+.admin-table td { color: var(--ink); }
+.role-badge, .status-badge { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border-radius: 999px; font-size: 10px; font-weight: 800; }
+.role-badge.admin { background: #e8eef7; color: #173f71; }
+.role-badge.user { background: #edf4ef; color: #286043; }
+.role-select { min-width: 132px; height: 34px; padding: 0 30px 0 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); font: inherit; font-weight: 700; }
+.role-select:focus { outline: 2px solid #8fb5d5; outline-offset: 1px; }
+.role-select:disabled { cursor: not-allowed; opacity: .62; }
+.current-user-label { display: inline-block; margin-left: 8px; color: var(--muted); font-size: 10px; font-weight: 700; }
+.admin-feedback { margin: 0 0 14px; padding: 10px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+.admin-feedback.success { border: 1px solid #a8c9b4; background: #edf4ef; color: #286043; }
+.admin-feedback.error { border: 1px solid #d9aaa5; background: #fff1ef; color: #8f2920; }
+.status-badge.success { background: #edf4ef; color: #286043; }
+.status-badge.failure { background: #fff0ee; color: #972f25; }
+.admin-error { padding: 16px; border: 1px solid #d9aaa5; border-radius: 7px; background: #fff1ef; color: #8f2920; }
+@media (max-width: 800px) { .admin-grid { grid-template-columns: 1fr; }.admin-section { padding: 16px; }.admin-section-head { align-items: flex-start; flex-direction: column; } }

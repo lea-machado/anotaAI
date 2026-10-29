@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+ <meta charset="utf-8"/>
+ <meta content="width=device-width, initial-scale=1" name="viewport"/>
+ <link href="../css/global.css" rel="stylesheet"/>
+ <link href="../css/sidebar.css" rel="stylesheet"/>
+ <link href="../css/admin.css" rel="stylesheet"/>
+ <title>Administração - AnotaAI</title>
+</head>
+<body data-page="admin">
+ <div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+   <div class="brand"><a aria-label="AnotaAI" class="brand-link" href="admin.html"><img alt="AnotaAI" class="brand-logo" src="../assets/images/logo-anotaai.png"/></a></div>
+   <nav aria-label="Navegação principal" class="sidebar-nav">
+    <a class="nav-item" href="anotacoes.html"><svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24"><path d="M6 3.5h10a2 2 0 0 1 2 2V20l-4-2-4 2-4-2-2 1V5.5a2 2 0 0 1 2-2Z"></path><path d="M8 8h7M8 12h7"></path></svg><span>Minhas anotações</span></a>
+    <a class="nav-item" href="desempenho.html"><svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg><span>Meu desempenho</span></a>
+    <a class="nav-item" href="perfil.html"><svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0"></path><path d="M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"></path></svg><span>Meu perfil</span></a>
+    <a class="nav-item active" href="admin.html"><svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24"><path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7l-8-4Z"></path><path d="m9 12 2 2 4-4"></path></svg><span>Administração</span></a>
+   </nav>
+   <div class="sidebar-footer"><button class="nav-item nav-button" data-action="logout" type="button"><svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24"><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M21 4v16"></path></svg><span>Sair</span></button></div>
+  </aside>
+  <header class="mobile-topbar"><a class="mobile-brand" href="admin.html"><img alt="AnotaAI" class="mobile-brand-logo" src="../assets/images/logo-anotaai.png"/></a><button aria-label="Abrir menu" class="icon-button" data-action="toggle-menu" type="button"><svg aria-hidden="true" class="simple-svg" viewbox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button></header>
+  <main class="app-main">
+   <section class="page" id="admin-content">
+    <header class="page-header"><div><p class="page-kicker">Acesso restrito</p><h1>Administração</h1><p class="page-subtitle">Visão geral dos usuários e dos eventos de segurança registrados no sistema.</p></div></header>
+    <section class="admin-grid">
+     <article class="panel admin-metric"><span>Usuários cadastrados</span><strong id="admin-users-count">0</strong></article>
+     <article class="panel admin-metric"><span>Anotações no sistema</span><strong id="admin-notes-count">0</strong></article>
+     <article class="panel admin-metric"><span>Registros de auditoria</span><strong id="admin-audit-count">0</strong></article>
+    </section>
+    <section class="panel admin-section"><div class="admin-section-head"><h2>Usuários</h2><span>Contas e papéis de acesso</span></div><p class="admin-feedback" hidden id="admin-feedback" role="status"></p><div class="table-wrap"><table class="admin-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Anotações</th><th>Cadastro</th></tr></thead><tbody id="users-body"></tbody></table></div></section>
+    <section class="panel admin-section"><div class="admin-section-head"><h2>Auditoria geral</h2><span>100 eventos mais recentes</span></div><div class="table-wrap"><table class="admin-table"><thead><tr><th>Data</th><th>Usuário</th><th>Ação</th><th>Recurso</th><th>IP</th><th>Resultado</th></tr></thead><tbody id="audit-body"></tbody></table></div></section>
+   </section>
+  </main>
+ </div>
+ <script src="../js/api.js"></script><script src="../js/main.js"></script><script src="../js/admin.js"></script>
+</body>
+</html>

@@ -47,7 +47,10 @@
       document.body.classList.toggle('sidebar-open');
     }
     if (action === 'logout') {
-      openModal('logout-modal');
+      event.preventDefault();
+      Api.logout()
+        .then(() => window.location.replace('/pages/login.html'))
+        .catch(error => toast(error.message, 'error'));
     }
     if (action === 'close-modal') {
       closeModal(event.target.closest('.modal'));
