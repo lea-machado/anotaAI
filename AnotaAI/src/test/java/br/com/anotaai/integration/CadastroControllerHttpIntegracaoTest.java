@@ -85,6 +85,8 @@ class CadastroControllerHttpIntegracaoTest {
         String token = (String) resposta.getBody().get("token");
         String cookie = resposta.getHeaders().getFirst("Set-Cookie");
 
+        assertThat(cookie).contains("XSRF-TOKEN=");
+
         return new String[] {
                 token,
                 cookie == null ? "" : cookie.split(";", 2)[0]

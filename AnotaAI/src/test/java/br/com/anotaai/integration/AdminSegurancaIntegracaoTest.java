@@ -17,6 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.hamcrest.Matchers.containsString;
+
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -105,5 +107,55 @@ class AdminSegurancaIntegracaoTest {
                                 .andExpect(jsonPath("$.usuarios").isNumber())
                                 .andExpect(jsonPath("$.anotacoes").isNumber())
                                 .andExpect(jsonPath("$.registrosAuditoria").isNumber());
+        }
+
+        @Test
+        void usuarios_comAdministrador_deveRetornar200ComUsuariosCadastrados() throws Exception {
+                HttpSession sessao = autenticar(emailAdmin);
+
+                mockMvc.perform(get("/api/admin/usuarios")
+                                .session((org.springframework.mock.web.MockHttpSession) sessao))
+                                .andExpect(status().isOk())
+                                .andExpect(content().string(containsString(emailUsuario)))
+                                .andExpect(content().string(containsString(emailAdmin)));
+        }
+
+        @Test
+        void alterarPerfil_comAdministrador_deveAtualizarPerfilDoUsuario() throws Exception {
+                HttpSession sessao = autenticar(emailAdmin);
+                var usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario).orElseThrow();
+
+                mockMvc.perform(put("/api/admin/usuarios/{id}/perfil", usuario.getId())
+                                .session((org.springframework.mock.web.MockHttpSession) sessao)
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"perfil\":\"ADMIN\"}"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(usuario.getId()))
+                                .andExpect(jsonPath("$.email").value(emailUsuario))
+                                .andExpect(jsonPath("$.perfil").value("ADMIN"))
+                                .andExpect(jsonPath("$.mensagem").value("Perfil atualizado com sucesso."));
+
+                org.assertj.core.api.Assertions.assertThat(usuarioRepository.findById(usuario.getId()).orElseThrow().getPerfil())
+                                .isEqualTo("ADMIN");
+        }
+
+        @Test
+        void auditoria_comAdministrador_deveRetornarRegistrosDeAtividade() throws Exception {
+                HttpSession sessao = autenticar(emailAdmin);
+                var usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario).orElseThrow();
+
+                mockMvc.perform(put("/api/admin/usuarios/{id}/perfil", usuario.getId())
+                                .session((org.springframework.mock.web.MockHttpSession) sessao)
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"perfil\":\"ADMIN\"}"))
+                                .andExpect(status().isOk());
+
+                mockMvc.perform(get("/api/admin/auditoria")
+                                .session((org.springframework.mock.web.MockHttpSession) sessao))
+                                .andExpect(status().isOk())
+                                .andExpect(content().string(containsString("ALTERACAO_PERFIL_USUARIO")))
+                                .andExpect(content().string(containsString(emailAdmin)));
         }
 }
