@@ -11,6 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,9 +61,30 @@ public class AdminController {
                 "nome", usuario.getNome(),
                 "email", usuario.getEmail(),
                 "perfil", usuario.getPerfil(),
+                "ativo", usuario.isAtivo(),
                 "criadoEm", usuario.getCriadoEm(),
                 "anotacoes", anotacaoRepository.countByUsuarioId(usuario.getId())
         )).toList();
+    }
+
+    @PatchMapping("/usuarios/{id}/status")
+    public Map<String, Object> alternarStatus(@PathVariable Long id, HttpServletRequest request) {
+        var administrador = usuarioAtualService.obter();
+        var usuario = adminService.alternarAtivo(id, administrador);
+        auditoriaService.registrar(administrador.getEmail(), "ALTERACAO_STATUS_USUARIO",
+                "/api/admin/usuarios/" + id + "/status", true,
+                "Usuário " + usuario.getEmail() + (usuario.isAtivo() ? " ativado." : " desativado."), request);
+        return Map.of("id", usuario.getId(), "ativo", usuario.isAtivo(),
+                "mensagem", usuario.isAtivo() ? "Usuário ativado com sucesso." : "Usuário desativado com sucesso.");
+    }
+
+    @DeleteMapping("/usuarios/{id}")
+    public Map<String, Object> excluirUsuario(@PathVariable Long id, HttpServletRequest request) {
+        var administrador = usuarioAtualService.obter();
+        adminService.excluir(id, administrador);
+        auditoriaService.registrar(administrador.getEmail(), "EXCLUSAO_USUARIO",
+                "/api/admin/usuarios/" + id, true, "Usuário excluído.", request);
+        return Map.of("id", id, "mensagem", "Usuário e dados vinculados excluídos com sucesso.");
     }
 
     @PutMapping("/usuarios/{id}/perfil")

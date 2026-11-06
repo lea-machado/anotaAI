@@ -1,53 +1,38 @@
 package br.com.anotaai.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "anotacoes")
+@Document(collection = "anotacoes")
 public class Anotacao {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Version
+    @JsonIgnore
+    private Long versao;
+
+    @DBRef
+
+    @JsonIgnore
     private Usuario usuario;
 
-    @Column(nullable = false, length = 120)
     private String titulo;
 
-    @Column(nullable = false, columnDefinition = "text")
     private String conteudo;
 
-    @Column(name = "criado_em", nullable = false)
+    @CreatedDate
     private LocalDateTime criadoEm;
 
-    @Column(name = "atualizado_em", nullable = false)
+    @LastModifiedDate
     private LocalDateTime atualizadoEm;
-
-    @PrePersist
-    void prePersist() {
-        criadoEm = LocalDateTime.now();
-        atualizadoEm = criadoEm;
-    }
-
-    @PreUpdate
-    void preUpdate() {
-        atualizadoEm = LocalDateTime.now();
-    }
 
     public Long getId() { return id; }
     public Usuario getUsuario() { return usuario; }

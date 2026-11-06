@@ -24,4 +24,5 @@
 .status-badge.success { background: #edf4ef; color: #286043; }
 .status-badge.failure { background: #fff0ee; color: #972f25; }
 .admin-error { padding: 16px; border: 1px solid #d9aaa5; border-radius: 7px; background: #fff1ef; color: #8f2920; }
+.admin-actions { display: flex; gap: 6px; }.admin-action { border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }.admin-action:hover { border-color: #8fb5d5; }.admin-action.danger { color: #8f2920; border-color: #e1b5ae; }.admin-action:disabled { opacity: .5; cursor: not-allowed; }
 @media (max-width: 800px) { .admin-grid { grid-template-columns: 1fr; }.admin-section { padding: 16px; }.admin-section-head { align-items: flex-start; flex-direction: column; } }

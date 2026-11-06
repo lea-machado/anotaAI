@@ -34,7 +34,7 @@ public class SecurityConfig {
                             var autenticacao = authentication.get();
                             var autorizado = autenticacao != null && autenticacao.isAuthenticated()
                                     && usuarioRepository.findByEmailIgnoreCase(autenticacao.getName())
-                                    .map(usuario -> "ADMIN".equals(usuario.getPerfil()))
+                                    .map(usuario -> usuario.isAtivo() && "ADMIN".equals(usuario.getPerfil()))
                                     .orElse(false);
                             return new AuthorizationDecision(autorizado);
                         })
@@ -57,6 +57,7 @@ public class SecurityConfig {
     @Bean
     UserDetailsService userDetailsService(UsuarioRepository usuarioRepository) {
         return email -> usuarioRepository.findByEmailIgnoreCase(email)
+                .filter(usuario -> usuario.isAtivo())
                 .map(usuario -> User.withUsername(usuario.getEmail())
                         .password(usuario.getSenha())
                         .roles(usuario.getPerfil())

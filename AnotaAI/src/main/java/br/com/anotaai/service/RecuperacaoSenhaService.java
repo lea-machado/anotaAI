@@ -33,6 +33,8 @@ public class RecuperacaoSenhaService {
         var usuario = usuarios.buscarParaRecuperacao(normalizado).orElse(null);
         // A resposta publica nao revela se o e-mail esta cadastrado.
         if (usuario == null) return desafio;
+        // A versão otimista impede solicitações concorrentes para a mesma conta.
+        usuarios.save(usuario);
         var agora = LocalDateTime.now();
         var ultimo = codigos.findTopByUsuarioIdOrderByCriadoEmDesc(usuario.getId());
         if (ultimo.isPresent() && ultimo.get().getCriadoEm().plusMinutes(1).isAfter(agora)) {

@@ -67,6 +67,7 @@ public class UsuarioService {
         usuario.setEscolaridade(escolaridadeValidada);
         usuario.setSenha(passwordEncoder.encode(senha));
         usuario.setPerfil("USER");
+        usuario.setAtivo(true);
         usuario.setTermosAceitosEm(LocalDateTime.now());
         usuario.setMaioridadeDeclaradaEm(LocalDateTime.now());
         usuario.setVersaoTermos(versaoTermos);

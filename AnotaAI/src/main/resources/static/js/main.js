@@ -1,4 +1,18 @@
 (function () {
+  document.querySelectorAll('.sidebar-nav').forEach(nav => {
+    const link = document.createElement('a');
+    link.className = 'nav-item' + (document.body.dataset.page === 'flashcards' ? ' active' : '');
+    link.href = '/pages/flashcards.html';
+    if (document.body.dataset.page === 'flashcards') link.setAttribute('aria-current', 'page');
+    const icon = document.createElement('span');
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = '▤';
+    const label = document.createElement('span');
+    label.textContent = 'Meus flashcards';
+    link.append(icon, label);
+    nav.insertBefore(link, nav.children[1] || null);
+  });
+
   function toast(message, type = 'success') {
     let wrap = document.querySelector('.toast-wrap');
     if (!wrap) {
@@ -49,8 +63,8 @@
     if (action === 'logout') {
       event.preventDefault();
       Api.logout()
-        .then(() => window.location.replace('/pages/login.html'))
-        .catch(error => toast(error.message, 'error'));
+        .catch(error => toast(error.message, 'error'))
+        .finally(() => window.location.replace('/pages/login.html'));
     }
     if (action === 'close-modal') {
       closeModal(event.target.closest('.modal'));

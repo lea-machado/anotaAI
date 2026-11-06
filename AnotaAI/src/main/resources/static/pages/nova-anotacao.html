@@ -78,12 +78,42 @@
        Salvar anotação
       </button>
      </div>
+     <div class="study-actions" aria-label="Gerar material de estudo">
+      <div class="study-intro">
+       <span class="study-intro-icon" aria-hidden="true">✦</span>
+       <div><h2>Transforme sua anotação em material de estudo</h2>
+        <p>Organize as ideias em um resumo ou pratique com perguntas e respostas.</p></div>
+      </div>
+      <div class="tool-group">
+       <button class="button button-primary" id="generate-summary" type="button">Gerar resumo</button>
+       <button class="button button-primary" id="generate-flashcards" type="button">Gerar flashcards</button>
+       <a class="button" href="flashcards.html">Meus flashcards ↗</a>
+      </div>
+      <p class="study-disclosure">Ao gerar, sua anotação é enviada ao Google Gemini. Revise o resultado antes de salvar.</p>
+      <p id="generation-status" role="status" aria-live="polite" aria-atomic="true"></p>
+     </div>
      <section class="editor-surface">
       <div class="editor-status">
        <span id="version-badge">Anotação</span>
        <span id="char-count">0 caracteres</span>
       </div>
       <textarea aria-label="Conteúdo da anotação" id="note-content" placeholder="Escreva sua anotação aqui."></textarea>
+     </section>
+     <section class="study-panel" id="study-results" aria-labelledby="study-title" hidden>
+      <h2 id="study-title">Estudar com IA</h2>
+      <p>Clique em uma pergunta para revelar a resposta. Salve o conjunto para estudar depois.</p>
+      <section id="summary-result" hidden><h3>Resumo</h3><p id="summary-text" class="study-text"></p></section>
+      <section id="flashcards-result" hidden>
+       <h3>Flashcards</h3>
+       <div id="flashcards-list"></div>
+       <label for="deck-title">Nome do conjunto</label>
+       <input id="deck-title" maxlength="120" placeholder="Ex.: Biologia — divisão celular"/>
+       <div class="tool-group">
+        <button class="button button-primary" type="button" id="save-flashcards">Salvar em Meus flashcards</button>
+        <a class="button" href="flashcards.html">Abrir Meus flashcards</a>
+       </div>
+       <p id="flashcards-save-status" role="status" aria-live="polite"></p>
+      </section>
      </section>
    </section>
   </main>

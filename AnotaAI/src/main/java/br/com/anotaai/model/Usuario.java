@@ -1,59 +1,50 @@
 package br.com.anotaai.model;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.annotation.CreatedDate;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "usuarios")
+@Document(collection = "usuarios")
 public class Usuario {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 120)
+    @Version
+    @JsonIgnore
+    private Long versao;
+
     private String nome;
 
-    @Column(nullable = false, unique = true, length = 180)
+    @Indexed(unique = true)
     private String email;
 
     @JsonIgnore
-    @Column(nullable = false, length = 100)
     private String senha;
 
-    @Column(nullable = false, length = 20)
     private String perfil;
 
-    @Column(name = "criado_em", nullable = false)
+    /** Null keeps accounts migrated from PostgreSQL active by default. */
+    private Boolean ativo = true;
+
+    @CreatedDate
     private LocalDateTime criadoEm;
 
-    @Column(name = "data_nascimento")
     private LocalDate dataNascimento;
 
-    @Column(length = 40)
     private String escolaridade;
 
-    @Column(name = "termos_aceitos_em")
     private LocalDateTime termosAceitosEm;
 
-    @Column(name = "maioridade_declarada_em")
     private LocalDateTime maioridadeDeclaradaEm;
 
-    @Column(name = "versao_termos", length = 20)
     private String versaoTermos;
-
-    @PrePersist
-    void prePersist() {
-        criadoEm = LocalDateTime.now();
-    }
 
     public Long getId() { return id; }
     public String getNome() { return nome; }
@@ -64,6 +55,9 @@ public class Usuario {
     public void setSenha(String senha) { this.senha = senha; }
     public String getPerfil() { return perfil; }
     public void setPerfil(String perfil) { this.perfil = perfil; }
+    public Boolean getAtivo() { return ativo; }
+    public boolean isAtivo() { return !Boolean.FALSE.equals(ativo); }
+    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
     public LocalDateTime getCriadoEm() { return criadoEm; }
     public LocalDate getDataNascimento() { return dataNascimento; }
     public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }

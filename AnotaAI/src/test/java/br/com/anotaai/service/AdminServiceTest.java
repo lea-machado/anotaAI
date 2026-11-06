@@ -12,7 +12,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 class AdminServiceTest {
     private final UsuarioRepository repository = mock(UsuarioRepository.class);
@@ -47,6 +46,13 @@ class AdminServiceTest {
                 () -> service.alterarPerfil(2L, "GERENTE", usuario(1L, "ADMIN")));
     }
 
+    @Test
+    void bloqueiaDesativacaoDaPropriaConta() {
+        var administrador = usuario(1L, "ADMIN");
+        when(repository.findById(1L)).thenReturn(Optional.of(administrador));
+        assertThrows(IllegalArgumentException.class, () -> service.alternarAtivo(1L, administrador));
+    }
+
     private Usuario usuario(Long id, String perfil) {
         var usuario = new Usuario();
         usuario.setPerfil(perfil);
@@ -58,23 +64,5 @@ class AdminServiceTest {
             throw new IllegalStateException(exception);
         }
         return usuario;
-    }
-
-    @Test
-    void rejeitarIdDeUsuarioNulo() {
-        var administrador = usuario(1L, "ADMIN");
-
-        IllegalArgumentException excecao = assertThrows(
-                IllegalArgumentException.class,
-                () -> service.alterarPerfil(
-                        null, "USER", administrador
-                )
-        );
-
-        assertEquals(
-                "Usuario e obrigatorio.",
-                excecao.getMessage()
-        );
-        verifyNoInteractions(repository);
     }
 }

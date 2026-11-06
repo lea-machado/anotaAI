@@ -38,28 +38,33 @@ public class AnotacaoService {
     }
 
     @Transactional
-    public Anotacao criar(Anotacao dados) {
+    public Anotacao criar(Anotacao dados, String revisaoIa, String conteudoOriginal) {
         var anotacao = new Anotacao();
         anotacao.setUsuario(usuarioAtualService.obter());
         anotacao.setTitulo(validarTexto(dados.getTitulo(), "Titulo"));
         anotacao.setConteudo(validarTexto(dados.getConteudo(), "Conteudo"));
         var salva = anotacaoRepository.save(anotacao);
-        salvarVersaoOriginal(salva);
+        salvarVersao(salva, "ORIGINAL", conteudoOriginal == null
+                ? salva.getConteudo() : validarTexto(conteudoOriginal, "Conteudo original"));
+        salvarRevisao(salva, revisaoIa);
         return salva;
     }
 
     @Transactional
-    public Anotacao atualizar(Long id, Anotacao dados) {
+    public Anotacao atualizar(Long id, Anotacao dados, String revisaoIa) {
         var anotacao = buscar(id);
         anotacao.setTitulo(validarTexto(dados.getTitulo(), "Titulo"));
         anotacao.setConteudo(validarTexto(dados.getConteudo(), "Conteudo"));
-        salvarVersaoOriginal(anotacao);
-        return anotacao;
+        salvarVersao(anotacao, "EDITADA", anotacao.getConteudo());
+        salvarRevisao(anotacao, revisaoIa);
+        return anotacaoRepository.save(anotacao);
     }
 
     @Transactional
     public void excluir(Long id) {
-        anotacaoRepository.delete(buscar(id));
+        var anotacao = buscar(id);
+        versaoAnotacaoRepository.deleteByAnotacaoId(id);
+        anotacaoRepository.delete(anotacao);
     }
 
     @Transactional(readOnly = true)
@@ -68,11 +73,23 @@ public class AnotacaoService {
         return versaoAnotacaoRepository.findByAnotacaoIdOrderByCriadoEmAsc(anotacaoId);
     }
 
-    private void salvarVersaoOriginal(Anotacao anotacao) {
+    private void salvarVersao(Anotacao anotacao, String tipo, String conteudo) {
         var versao = new VersaoAnotacao();
         versao.setAnotacao(anotacao);
-        versao.setTipo("ORIGINAL");
-        versao.setConteudo(anotacao.getConteudo());
+        versao.setTipo(tipo);
+        versao.setConteudo(conteudo);
+        versaoAnotacaoRepository.save(versao);
+    }
+
+    private void salvarRevisao(Anotacao anotacao, String conteudo) {
+        if (conteudo == null) return;
+        if (conteudo.isBlank() || conteudo.length() > 100000) {
+            throw new IllegalArgumentException("A revisão deve conter entre 1 e 100.000 caracteres.");
+        }
+        var versao = new VersaoAnotacao();
+        versao.setAnotacao(anotacao);
+        versao.setTipo("REVISADA_IA");
+        versao.setConteudo(conteudo.trim());
         versaoAnotacaoRepository.save(versao);
     }
 

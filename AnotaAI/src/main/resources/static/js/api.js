@@ -35,6 +35,13 @@
   }
 
   window.Api = {
+    listFlashcards: () => request('/flashcards'),
+    getFlashcards: id => request(`/flashcards/${id}`),
+    saveFlashcards: data => request('/flashcards', { method: 'POST', body: JSON.stringify(data) }),
+    deleteFlashcards: id => request(`/flashcards/${id}`, { method: 'DELETE' }),
+    generateStudyMaterial: (tipo, conteudo) => request(`/anotacoes/gerar/${tipo}`, {
+      method: 'POST', body: JSON.stringify({ conteudo })
+    }),
     listNotes: busca => request(`/anotacoes${busca ? `?busca=${encodeURIComponent(busca)}` : ''}`),
     getNote: id => request(`/anotacoes/${id}`),
     createNote: data => request('/anotacoes', { method: 'POST', body: JSON.stringify(data) }),
@@ -51,6 +58,8 @@
       method: 'PUT',
       body: JSON.stringify({ perfil })
     }),
+    toggleAdminUserStatus: id => request(`/admin/usuarios/${id}/status`, { method: 'PATCH' }),
+    deleteAdminUser: id => request(`/admin/usuarios/${id}`, { method: 'DELETE' }),
     getAdminAudit: () => request('/admin/auditoria'),
     logout: () => request('/auth/logout', { method: 'POST' })
   };

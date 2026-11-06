@@ -33,8 +33,8 @@ public class AnotacaoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Anotacao criar(@RequestBody Anotacao anotacao) {
-        return anotacaoService.criar(anotacao);
+    public Anotacao criar(@RequestBody Pedido anotacao) {
+        return anotacaoService.criar(anotacao.dados(), anotacao.revisaoIa(), anotacao.conteudoOriginal());
     }
 
     @GetMapping("/{id}")
@@ -43,8 +43,17 @@ public class AnotacaoController {
     }
 
     @PutMapping("/{id}")
-    public Anotacao atualizar(@PathVariable Long id, @RequestBody Anotacao anotacao) {
-        return anotacaoService.atualizar(id, anotacao);
+    public Anotacao atualizar(@PathVariable Long id, @RequestBody Pedido anotacao) {
+        return anotacaoService.atualizar(id, anotacao.dados(), anotacao.revisaoIa());
+    }
+
+    public record Pedido(String titulo, String conteudo, String revisaoIa, String conteudoOriginal) {
+        Anotacao dados() {
+            var anotacao = new Anotacao();
+            anotacao.setTitulo(titulo);
+            anotacao.setConteudo(conteudo);
+            return anotacao;
+        }
     }
 
     @DeleteMapping("/{id}")

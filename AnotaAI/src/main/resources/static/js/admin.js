@@ -25,6 +25,7 @@
       </tr>`).join('');
 
     usersBody.addEventListener('change', alterarPerfil);
+    usersBody.addEventListener('click', executarAcao);
   } catch (error) {
     document.getElementById('admin-content').innerHTML = `<p class="admin-error">${escapeHtml(error.message)}</p>`;
   }
@@ -52,8 +53,28 @@
     }
   }
 
+  async function executarAcao(event) {
+    const button = event.target.closest('[data-user-action]');
+    if (!button || button.disabled) return;
+    const id = button.dataset.userId;
+    if (button.dataset.userAction === 'delete' && !window.confirm('Excluir este usuário e todos os dados vinculados? Essa ação não pode ser desfeita.')) return;
+    button.disabled = true;
+    try {
+      const result = button.dataset.userAction === 'delete'
+        ? await Api.deleteAdminUser(id)
+        : await Api.toggleAdminUserStatus(id);
+      showFeedback(result.mensagem, 'success');
+      const [users, currentUser] = await Promise.all([Api.getAdminUsers(), Api.getCurrentUser()]);
+      usersBody.innerHTML = users.map(user => userRow(user, currentUser.id)).join('');
+    } catch (error) {
+      button.disabled = false;
+      showFeedback(error.message, 'error');
+    }
+  }
+
   function userRow(user, currentUserId) {
     const isCurrentUser = user.id === currentUserId;
+    const ativo = user.ativo !== false;
     return `
       <tr>
         <td>${escapeHtml(user.nome)}${isCurrentUser ? '<span class="current-user-label">Você</span>' : ''}</td>
@@ -65,8 +86,13 @@
             <option value="ADMIN" ${user.perfil === 'ADMIN' ? 'selected' : ''}>Administrador</option>
           </select>
         </td>
+        <td><span class="status-badge ${ativo ? 'success' : 'failure'}">${ativo ? 'Ativo' : 'Desativado'}</span></td>
         <td>${user.anotacoes}</td>
         <td>${new Date(user.criadoEm).toLocaleDateString('pt-BR')}</td>
+        <td class="admin-actions">
+          <button class="admin-action" data-user-action="status" data-user-id="${user.id}" ${isCurrentUser ? 'disabled' : ''}>${ativo ? 'Desativar' : 'Ativar'}</button>
+          <button class="admin-action danger" data-user-action="delete" data-user-id="${user.id}" ${isCurrentUser ? 'disabled' : ''}>Excluir</button>
+        </td>
       </tr>`;
   }
 
