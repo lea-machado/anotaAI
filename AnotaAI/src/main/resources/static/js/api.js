@@ -35,13 +35,20 @@
   }
 
   window.Api = {
-    listFlashcards: () => request('/flashcards'),
+    listFlashcards: anotacaoId => request(`/flashcards${anotacaoId ? `?anotacaoId=${encodeURIComponent(anotacaoId)}` : ''}`),
     getFlashcards: id => request(`/flashcards/${id}`),
     saveFlashcards: data => request('/flashcards', { method: 'POST', body: JSON.stringify(data) }),
     deleteFlashcards: id => request(`/flashcards/${id}`, { method: 'DELETE' }),
-    generateStudyMaterial: (tipo, conteudo) => request(`/anotacoes/gerar/${tipo}`, {
-      method: 'POST', body: JSON.stringify({ conteudo })
+    generateStudyMaterial: (tipo, anotacaoId, quantidade, conteudo) => request(`/anotacoes/gerar/${tipo}`, {
+      method: 'POST', body: JSON.stringify({ anotacaoId, quantidade, conteudo })
     }),
+    checkNoteInconsistencies: anotacaoId => request('/anotacoes/gerar/inconsistencias', {
+      method: 'POST', body: JSON.stringify({ anotacaoId })
+    }),
+    registerFlashcardResult: (id, indice, correto) => request(`/flashcards/${id}/cartoes/${indice}/resultado`, {
+      method: 'POST', body: JSON.stringify({ correto })
+    }),
+    reviewFlashcardErrors: anotacaoId => request(`/flashcards/revisao-erros${anotacaoId ? `?anotacaoId=${encodeURIComponent(anotacaoId)}` : ''}`),
     listNotes: busca => request(`/anotacoes${busca ? `?busca=${encodeURIComponent(busca)}` : ''}`),
     getNote: id => request(`/anotacoes/${id}`),
     createNote: data => request('/anotacoes', { method: 'POST', body: JSON.stringify(data) }),
@@ -50,10 +57,13 @@
     getVersions: id => request(`/anotacoes/${id}/versoes`),
     getPerformance: () => request('/desempenho'),
     getCurrentUser: () => request('/auth/me'),
+    requestAccountDeletion: () => request('/auth/exclusao', { method: 'POST' }),
     updateCurrentUser: data => request('/auth/me', { method: 'PUT', body: JSON.stringify(data) }),
     getAudit: () => request('/auditoria'),
-    getAdminSummary: () => request('/admin/resumo'),
+    getAdminSummary: query => request(`/admin/resumo${query ? `?${query}` : ''}`),
     getAdminUsers: () => request('/admin/usuarios'),
+    getAdminDeletionRequests: () => request('/admin/pedidos-exclusao'),
+    completeAdminDeletionRequest: id => request(`/admin/pedidos-exclusao/${id}`, { method: 'DELETE' }),
     updateAdminUserRole: (id, perfil) => request(`/admin/usuarios/${id}/perfil`, {
       method: 'PUT',
       body: JSON.stringify({ perfil })

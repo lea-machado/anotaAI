@@ -26,15 +26,11 @@ public class AuditoriaService {
                           String detalhes, HttpServletRequest request) {
         var registro = new RegistroAuditoria();
         if (email != null && !email.isBlank()) {
-            registro.setEmail(email);
             usuarioRepository.findByEmailIgnoreCase(email).ifPresent(registro::setUsuario);
         }
         registro.setAcao(limitar(acao, 60));
         registro.setRecurso(limitar(recurso, 255));
         registro.setSucesso(sucesso);
-        registro.setDetalhes(limitar(detalhes, 500));
-        registro.setEnderecoIp(limitar(obterIp(request), 64));
-        registro.setUserAgent(limitar(request.getHeader("User-Agent"), 500));
         registro.setCriadoEm(LocalDateTime.now());
         registroRepository.save(registro);
     }
@@ -47,13 +43,6 @@ public class AuditoriaService {
     @Transactional(readOnly = true)
     public List<RegistroAuditoria> listarTodos() {
         return registroRepository.findTop100ByOrderByCriadoEmDesc();
-    }
-
-    private String obterIp(HttpServletRequest request) {
-        var encaminhado = request.getHeader("X-Forwarded-For");
-        return encaminhado == null || encaminhado.isBlank()
-                ? request.getRemoteAddr()
-                : encaminhado.split(",")[0].trim();
     }
 
     private String limitar(String valor, int limite) {

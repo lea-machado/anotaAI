@@ -75,7 +75,8 @@ public class UsuarioService {
     }
 
     @Transactional
-    public Usuario atualizarPerfil(Usuario usuario, String nome, String email, String escolaridade) {
+    public Usuario atualizarPerfil(Usuario usuario, String nome, String email, String escolaridade,
+                                   String senhaAtual, String novaSenha) {
         var nomeValidado = validarNome(nome);
         var emailNormalizado = validarEmail(email);
         var escolaridadeValidada = validarEscolaridade(escolaridade);
@@ -89,6 +90,15 @@ public class UsuarioService {
         usuario.setNome(nomeValidado);
         usuario.setEmail(emailNormalizado);
         usuario.setEscolaridade(escolaridadeValidada);
+        if (novaSenha != null && !novaSenha.isBlank()) {
+            if (senhaAtual == null || !passwordEncoder.matches(senhaAtual, usuario.getSenha())) {
+                throw new IllegalArgumentException("Informe sua senha atual corretamente para alterá-la.");
+            }
+            validarSenha(novaSenha);
+            usuario.setSenha(passwordEncoder.encode(novaSenha));
+        } else if (senhaAtual != null && !senhaAtual.isBlank()) {
+            throw new IllegalArgumentException("Informe a nova senha para concluir a alteração.");
+        }
         return usuarioRepository.save(usuario);
     }
 

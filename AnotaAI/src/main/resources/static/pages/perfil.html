@@ -86,6 +86,14 @@
          <label for="email">E-mail</label>
          <input class="input" id="email" name="email" maxlength="180" required type="email" value=""/>
         </div>
+        <div class="field">
+         <label for="senha-atual">Senha atual <span>(necessária para trocar a senha)</span></label>
+         <input autocomplete="current-password" class="input" id="senha-atual" name="senhaAtual" type="password"/>
+        </div>
+        <div class="field">
+         <label for="nova-senha">Nova senha</label>
+         <input autocomplete="new-password" class="input" id="nova-senha" minlength="8" name="novaSenha" type="password"/>
+        </div>
         <div class="field full">
          <label for="escolaridade">Escolaridade</label>
          <select class="input" id="escolaridade" name="escolaridade" required>
@@ -108,6 +116,11 @@
        </form>
       </section>
       <aside class="profile-summary">
+       <article class="panel summary-card account-deletion-card">
+        <span>Excluir conta</span>
+        <p>Peça a exclusão da sua conta e dos dados vinculados. Seu acesso será encerrado assim que confirmar; o administrador concluirá a remoção.</p>
+        <button class="button button-danger" id="open-delete-account" type="button">Solicitar exclusão da conta</button>
+       </article>
        <article class="panel summary-card">
         <span>Anotações salvas</span>
         <strong id="profile-notes-count">0</strong>
@@ -154,6 +167,18 @@
     </section>
    </main>
   </div>
+  <dialog aria-labelledby="delete-account-title" class="delete-account-dialog" id="delete-account-dialog">
+   <form method="dialog">
+    <p class="page-kicker">Ação permanente</p>
+    <h2 id="delete-account-title">Solicitar exclusão da conta?</h2>
+    <p>Ao confirmar, você perderá imediatamente o acesso à sua conta. O administrador receberá seu pedido e excluirá sua conta e os dados vinculados. Essa ação não pode ser desfeita.</p>
+    <p aria-live="polite" class="delete-account-feedback" hidden id="delete-account-feedback"></p>
+    <div class="delete-account-actions">
+     <button class="button button-secondary" id="cancel-delete-account" type="button">Cancelar</button>
+     <button class="button button-danger" id="confirm-delete-account" type="button">Sim, solicitar exclusão</button>
+    </div>
+   </form>
+  </dialog>
   <script src="../js/api.js"></script>
   <script src="../js/main.js"></script>
   <script src="../js/perfil.js"></script>

@@ -76,6 +76,11 @@ public class AutenticacaoDoisFatoresService {
         if (registro.getTentativas() >= MAXIMO_TENTATIVAS) {
             throw new IllegalArgumentException("Limite de tentativas excedido. Inicie o login novamente.");
         }
+        if (!registro.getUsuario().isAtivo()) {
+            registro.setUsadoEm(agora);
+            codigoRepository.save(registro);
+            throw new IllegalArgumentException("A conta está desativada.");
+        }
         if (codigo == null || !codigo.matches("\\d{6}") || !passwordEncoder.matches(codigo, registro.getCodigoHash())) {
             registro.setTentativas(registro.getTentativas() + 1);
             codigoRepository.save(registro);

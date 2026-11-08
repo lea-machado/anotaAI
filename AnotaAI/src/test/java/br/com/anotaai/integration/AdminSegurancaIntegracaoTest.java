@@ -143,6 +143,7 @@ class AdminSegurancaIntegracaoTest {
         @Test
         void auditoria_comAdministrador_deveRetornarRegistrosDeAtividade() throws Exception {
                 HttpSession sessao = autenticar(emailAdmin);
+                var administrador = usuarioRepository.findByEmailIgnoreCase(emailAdmin).orElseThrow();
                 var usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario).orElseThrow();
 
                 mockMvc.perform(put("/api/admin/usuarios/{id}/perfil", usuario.getId())
@@ -156,6 +157,6 @@ class AdminSegurancaIntegracaoTest {
                                 .session((org.springframework.mock.web.MockHttpSession) sessao))
                                 .andExpect(status().isOk())
                                 .andExpect(content().string(containsString("ALTERACAO_PERFIL_USUARIO")))
-                                .andExpect(content().string(containsString(emailAdmin)));
+                                .andExpect(content().string(containsString("Conta " + administrador.getId())));
         }
 }

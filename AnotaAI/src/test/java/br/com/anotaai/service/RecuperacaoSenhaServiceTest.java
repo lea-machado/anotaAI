@@ -28,7 +28,7 @@ class RecuperacaoSenhaServiceTest {
         when(usuarios.buscarParaRecuperacao("teste@exemplo.com")).thenReturn(Optional.of(usuario));
         var desafio = service.solicitar(" TESTE@exemplo.com ");
         var codigo = ArgumentCaptor.forClass(String.class);
-        verify(email).enviarCodigoRecuperacao(eq(usuario.getEmail()), eq(usuario.getNome()), codigo.capture(), eq(10));
+        verify(email).enviarCodigoRecuperacao(eq(usuario.getEmail()), eq(usuario.getNome()), codigo.capture(), eq(5));
         assertTrue(codigo.getValue().matches("[0-9]{6}"));
         var captor = ArgumentCaptor.forClass(CodigoRecuperacao.class);
         verify(codigos).save(captor.capture());

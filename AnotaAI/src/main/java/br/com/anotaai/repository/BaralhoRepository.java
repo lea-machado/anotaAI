@@ -7,6 +7,8 @@ import java.util.Optional;
 
 public interface BaralhoRepository extends MongoRepository<Baralho, Long> {
     List<Baralho> findByUsuarioIdOrderByCriadoEmDesc(Long usuarioId);
+    List<Baralho> findByUsuarioIdAndAnotacaoIdOrderByCriadoEmDesc(Long usuarioId, Long anotacaoId);
     Optional<Baralho> findByIdAndUsuarioId(Long id, Long usuarioId);
     void deleteByUsuarioId(Long usuarioId);
+    void deleteByAnotacaoId(Long anotacaoId);
 }

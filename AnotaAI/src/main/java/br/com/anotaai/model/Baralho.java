@@ -25,6 +25,8 @@ public class Baralho {
 
     private String titulo;
 
+    private Long anotacaoId;
+
     @CreatedDate
     private LocalDateTime criadoEm;
 
@@ -34,6 +36,8 @@ public class Baralho {
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
+    public Long getAnotacaoId() { return anotacaoId; }
+    public void setAnotacaoId(Long anotacaoId) { this.anotacaoId = anotacaoId; }
     public LocalDateTime getCriadoEm() { return criadoEm; }
     public List<Flashcard> getFlashcards() { return flashcards; }
 }

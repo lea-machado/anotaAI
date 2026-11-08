@@ -50,9 +50,9 @@ public class RecuperacaoSenhaService {
         registro.setUsuario(usuario);
         registro.setCodigoHash(encoder.encode(codigo));
         registro.setCriadoEm(agora);
-        registro.setExpiraEm(agora.plusMinutes(10));
+        registro.setExpiraEm(agora.plusMinutes(5));
         codigos.save(registro);
-        emailService.enviarCodigoRecuperacao(usuario.getEmail(), usuario.getNome(), codigo, 10);
+        emailService.enviarCodigoRecuperacao(usuario.getEmail(), usuario.getNome(), codigo, 5);
         return desafio;
     }
 

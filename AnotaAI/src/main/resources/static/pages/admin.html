@@ -24,13 +24,31 @@
   <main class="app-main">
    <section class="page" id="admin-content">
     <header class="page-header"><div><p class="page-kicker">Acesso restrito</p><h1>Administração</h1><p class="page-subtitle">Visão geral dos usuários e dos eventos de segurança registrados no sistema.</p></div></header>
-    <section class="admin-grid">
-     <article class="panel admin-metric"><span>Usuários cadastrados</span><strong id="admin-users-count">0</strong></article>
-     <article class="panel admin-metric"><span>Anotações no sistema</span><strong id="admin-notes-count">0</strong></article>
-     <article class="panel admin-metric"><span>Registros de auditoria</span><strong id="admin-audit-count">0</strong></article>
+    <section aria-label="Filtros do dashboard" class="panel admin-filters">
+     <label>Período
+      <select id="dashboard-period"><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="all">Todo o período</option><option value="custom">Personalizado</option></select>
+     </label>
+     <label class="custom-date-filter" hidden>De <input id="dashboard-start" type="date"/></label>
+     <label class="custom-date-filter" hidden>Até <input id="dashboard-end" type="date"/></label>
+     <button class="admin-action" id="dashboard-refresh" type="button">Atualizar dados</button>
+     <span aria-live="polite" class="filter-result" id="dashboard-period-label"></span>
     </section>
-     <section class="panel admin-section"><div class="admin-section-head"><h2>Usuários</h2><span>Contas, acesso e ações administrativas</span></div><p class="admin-feedback" hidden id="admin-feedback" role="status"></p><div class="table-wrap"><table class="admin-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Status</th><th>Anotações</th><th>Cadastro</th><th>Ações</th></tr></thead><tbody id="users-body"></tbody></table></div></section>
-    <section class="panel admin-section"><div class="admin-section-head"><h2>Auditoria geral</h2><span>100 eventos mais recentes</span></div><div class="table-wrap"><table class="admin-table"><thead><tr><th>Data</th><th>Usuário</th><th>Ação</th><th>Recurso</th><th>IP</th><th>Resultado</th></tr></thead><tbody id="audit-body"></tbody></table></div></section>
+    <section aria-label="Indicadores do sistema" class="admin-grid">
+     <article class="panel admin-metric"><span>Usuários no período</span><strong id="admin-users-count">0</strong><small><b id="admin-new-users">0</b> cadastros no período</small></article>
+     <article class="panel admin-metric"><span>Usuários ativos</span><strong id="admin-active-count">0</strong><small><b id="admin-inactive-count">0</b> desativados</small></article>
+     <article class="panel admin-metric"><span>Anotações</span><strong id="admin-notes-count">0</strong><small>conteúdos criados na plataforma</small></article>
+     <article class="panel admin-metric"><span>Baralhos</span><strong id="admin-decks-count">0</strong><small><b id="admin-cards-count">0</b> flashcards</small></article>
+     <article class="panel admin-metric"><span>Administradores</span><strong id="admin-admins-count">0</strong><small>contas com acesso administrativo</small></article>
+     <article class="panel admin-metric"><span>Falhas registradas</span><strong id="admin-failures-count">0</strong><small>eventos de auditoria com falha</small></article>
+     <article class="panel admin-metric"><span>Usos de inteligência artificial</span><strong id="admin-ai-usage-count">0</strong><small>gerações concluídas no período</small></article>
+    </section>
+    <section class="admin-overview">
+     <article class="panel admin-section"><div class="admin-section-head"><h2>Novos usuários</h2><span>Cadastros agrupados no período selecionado</span></div><div aria-label="Cadastros por período" class="signup-chart" id="signup-chart"></div></article>
+     <article class="panel admin-section"><div class="admin-section-head"><h2>Saúde da plataforma</h2><span>Resumo operacional</span></div><div class="health-list"><div><span>Contas ativas</span><strong id="health-active">0%</strong></div><div class="health-track"><span id="health-active-bar"></span></div><div><span>Eventos auditados</span><strong id="health-audit">0</strong></div><div><span>Falhas registradas</span><strong id="health-failures">0</strong></div></div></article>
+    </section>
+    <section class="panel admin-section"><div class="admin-section-head"><h2>Pedidos de exclusão de conta</h2><span id="deletion-request-count">Solicitações pendentes</span></div><p class="admin-feedback" hidden id="deletion-feedback" role="status"></p><div class="table-wrap"><table class="admin-table"><thead><tr><th>Solicitado em</th><th>Nome</th><th>E-mail</th><th>Ação</th></tr></thead><tbody id="deletion-requests-body"></tbody></table></div><p class="empty-requests" hidden id="empty-deletion-requests">Não há pedidos de exclusão pendentes.</p></section>
+     <section class="panel admin-section"><div class="admin-section-head"><h2>Usuários</h2><span id="users-result-count">Contas, acesso e ações administrativas</span></div><div class="table-filters"><label class="table-search">Buscar usuário<input id="users-search" type="search" placeholder="Nome ou e-mail"/></label><label>Perfil<select id="users-role-filter"><option value="all">Todos</option><option value="USER">Usuário</option><option value="ADMIN">Administrador</option></select></label><label>Status<select id="users-status-filter"><option value="all">Todos</option><option value="active">Ativos</option><option value="inactive">Desativados</option></select></label></div><p class="admin-feedback" hidden id="admin-feedback" role="status"></p><div class="table-wrap"><table class="admin-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Status</th><th>Anotações</th><th>Cadastro</th><th>Ações</th></tr></thead><tbody id="users-body"></tbody></table></div></section>
+    <section class="panel admin-section"><div class="admin-section-head"><h2>Auditoria geral</h2><span id="audit-result-count">100 eventos mais recentes</span></div><div class="table-filters"><label class="table-search">Buscar evento<input id="audit-search" type="search" placeholder="Usuário, ação, recurso ou IP"/></label><label>Resultado<select id="audit-status-filter"><option value="all">Todos</option><option value="success">Sucesso</option><option value="failure">Falha</option></select></label></div><div class="table-wrap"><table class="admin-table"><thead><tr><th>Data</th><th>Usuário</th><th>Ação</th><th>Recurso</th><th>IP</th><th>Resultado</th></tr></thead><tbody id="audit-body"></tbody></table></div></section>
    </section>
   </main>
  </div>

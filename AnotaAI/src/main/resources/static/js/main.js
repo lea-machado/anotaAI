@@ -1,16 +1,36 @@
 (function () {
   document.querySelectorAll('.sidebar-nav').forEach(nav => {
-    const link = document.createElement('a');
-    link.className = 'nav-item' + (document.body.dataset.page === 'flashcards' ? ' active' : '');
-    link.href = '/pages/flashcards.html';
-    if (document.body.dataset.page === 'flashcards') link.setAttribute('aria-current', 'page');
-    const icon = document.createElement('span');
-    icon.setAttribute('aria-hidden', 'true');
-    icon.textContent = '▤';
-    const label = document.createElement('span');
-    label.textContent = 'Meus flashcards';
-    link.append(icon, label);
-    nav.insertBefore(link, nav.children[1] || null);
+    if (!nav.querySelector('a[href$="/flashcards.html"], a[href="flashcards.html"]')) {
+      const link = document.createElement('a');
+      link.className = 'nav-item';
+      link.href = '/pages/flashcards.html';
+      const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      icon.setAttribute('viewBox', '0 0 24 24');
+      icon.setAttribute('class', 'simple-svg');
+      icon.setAttribute('aria-hidden', 'true');
+      const backCard = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      backCard.setAttribute('d', 'M8 3h12v15');
+      const frontCard = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      frontCard.setAttribute('d', 'M4 6h12v15H4zM7 10h6M7 14h6');
+      icon.append(backCard, frontCard);
+      const label = document.createElement('span');
+      label.textContent = 'Meus flashcards';
+      link.append(icon, label);
+      nav.insertBefore(link, nav.children[1] || null);
+    }
+
+    const page = document.body.dataset.page;
+    const currentTarget = page === 'flashcards' ? 'flashcards.html'
+      : page === 'desempenho' ? 'desempenho.html'
+      : page === 'perfil' ? 'perfil.html'
+      : page === 'admin' ? 'admin.html'
+      : 'anotacoes.html';
+    nav.querySelectorAll('a.nav-item[href]').forEach(item => {
+      const active = new URL(item.href, location.href).pathname.endsWith(`/${currentTarget}`);
+      item.classList.toggle('active', active);
+      if (active) item.setAttribute('aria-current', 'page');
+      else item.removeAttribute('aria-current');
+    });
   });
 
   function toast(message, type = 'success') {

@@ -36,6 +36,12 @@ public class ApiExceptionHandler {
         return erro(exception.getMessage());
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    Map<String, Object> conflitoEstado(IllegalStateException exception) {
+        return erro(exception.getMessage());
+    }
+
     @ExceptionHandler(ServicoEmailException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     Map<String, Object> emailIndisponivel(ServicoEmailException exception) {

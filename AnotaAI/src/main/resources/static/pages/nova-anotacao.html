@@ -89,7 +89,11 @@
        <button class="button button-primary" id="generate-flashcards" type="button">Gerar flashcards</button>
        <a class="button" href="flashcards.html">Meus flashcards ↗</a>
       </div>
-      <p class="study-disclosure">Ao gerar, sua anotação é enviada ao Google Gemini. Revise o resultado antes de salvar.</p>
+      <div class="flashcard-quantity-control">
+       <label class="flashcard-quantity-label" for="flashcard-quantity">Quantidade de flashcards</label>
+       <select id="flashcard-quantity"><option>5</option><option selected>10</option><option>15</option><option>20</option></select>
+      </div>
+      <p class="study-disclosure">Antes de gerar o resumo, a IA consulta fontes para identificar possíveis erros factuais. Você decide se usa as correções sugeridas ou mantém seu texto original.</p>
       <p id="generation-status" role="status" aria-live="polite" aria-atomic="true"></p>
      </div>
      <section class="editor-surface">
@@ -102,7 +106,18 @@
      <section class="study-panel" id="study-results" aria-labelledby="study-title" hidden>
       <h2 id="study-title">Estudar com IA</h2>
       <p>Clique em uma pergunta para revelar a resposta. Salve o conjunto para estudar depois.</p>
-      <section id="summary-result" hidden><h3>Resumo</h3><p id="summary-text" class="study-text"></p></section>
+      <section id="fact-check-result" hidden aria-labelledby="fact-check-title">
+       <h3 id="fact-check-title">Verificação de informações</h3>
+       <p id="fact-check-status" role="status" aria-live="polite"></p>
+       <ul id="fact-check-list"></ul>
+       <h4>Fontes consultadas</h4>
+       <ul id="fact-check-sources"></ul>
+       <div class="tool-group" id="summary-choice" hidden>
+        <button class="button button-primary" id="summarize-corrected" type="button">Aplicar correções e gerar resumo</button>
+        <button class="button" id="summarize-original" type="button">Manter meu texto e gerar resumo</button>
+       </div>
+      </section>
+      <section id="summary-result" hidden><h3>Sugestão de organização</h3><p id="summary-text" class="study-text"></p><div class="tool-group"><button class="button button-primary" id="approve-summary" type="button">Aprovar sugestão e editar</button><button class="button" id="reject-summary" type="button">Rejeitar sugestão</button></div></section>
       <section id="flashcards-result" hidden>
        <h3>Flashcards</h3>
        <div id="flashcards-list"></div>

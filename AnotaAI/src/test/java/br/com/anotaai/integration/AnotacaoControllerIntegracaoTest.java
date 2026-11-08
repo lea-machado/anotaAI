@@ -12,12 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import javax.sql.DataSource;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,12 +42,6 @@ class AnotacaoControllerIntegracaoTest {
 
     @Autowired
     private VersaoAnotacaoRepository versaoAnotacaoRepository;
-
-    @Autowired
-    private DataSource dataSource;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     @MockitoBean
     private GmailApiEmailService emailService;
@@ -224,8 +216,6 @@ class AnotacaoControllerIntegracaoTest {
     @Test
     void excluir_comIdExistente_deveRetornar204ERemover() throws Exception {
 
-        configurarExclusaoEmCascataNoH2();
-
         long id = criarAnotacao("Para excluir");
 
         mockMvc.perform(
@@ -235,50 +225,6 @@ class AnotacaoControllerIntegracaoTest {
         ).andExpect(status().isNoContent());
 
         assertThat(anotacaoRepository.findById(id)).isEmpty();
-    }
-
-    private void configurarExclusaoEmCascataNoH2() throws Exception {
-
-        try (
-                var conexao = dataSource.getConnection();
-                var chaves = conexao.getMetaData()
-                        .getImportedKeys(null, null, "VERSOES_ANOTACAO")
-        ) {
-
-            while (chaves.next()) {
-
-                if (!"ANOTACOES".equalsIgnoreCase(
-                        chaves.getString("PKTABLE_NAME"))) {
-                    continue;
-                }
-
-                if (chaves.getShort("DELETE_RULE")
-                        == java.sql.DatabaseMetaData.importedKeyCascade) {
-                    return;
-                }
-
-                String nome = chaves.getString("FK_NAME");
-
-                assertThat(nome).isNotBlank();
-
-                jdbcTemplate.execute(
-                        "ALTER TABLE versoes_anotacao DROP CONSTRAINT \"" + nome + "\""
-                );
-
-                jdbcTemplate.execute(
-                        "ALTER TABLE versoes_anotacao " +
-                        "ADD CONSTRAINT fk_versoes_anotacao_teste " +
-                        "FOREIGN KEY (anotacao_id) REFERENCES anotacoes(id) " +
-                        "ON DELETE CASCADE"
-                );
-
-                return;
-            }
-        }
-
-        throw new IllegalStateException(
-                "Chave estrangeira de versoes_anotacao nao encontrada no H2."
-        );
     }
 
     @Test

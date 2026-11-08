@@ -49,9 +49,12 @@ public class MongoConfig {
     InitializingBean mongoCollections(MongoTemplate mongo) {
         return () -> {
             for (var type : List.of(Usuario.class, Anotacao.class, Baralho.class, VersaoAnotacao.class,
-                    CodigoAutenticacao.class, CodigoRecuperacao.class, RegistroAuditoria.class)) {
+                    CodigoAutenticacao.class, CodigoRecuperacao.class, RegistroAuditoria.class, SolicitacaoExclusao.class,
+                    RegistroUsoIa.class)) {
                 if (!mongo.collectionExists(type)) mongo.createCollection(type);
             }
+            mongo.updateMulti(new Query(), new Update().unset("email").unset("detalhes")
+                    .unset("enderecoIp").unset("userAgent"), RegistroAuditoria.class);
             if (!mongo.collectionExists("sequencias")) mongo.createCollection("sequencias");
             for (var name : List.of("anotacoes", "baralhos", "codigos_autenticacao", "codigos_recuperacao", "registros_auditoria")) {
                 mongo.indexOps(name).ensureIndex(new Index().on("usuario.$id", Sort.Direction.ASC)

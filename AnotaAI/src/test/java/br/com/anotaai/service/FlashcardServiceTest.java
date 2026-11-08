@@ -77,7 +77,7 @@ class FlashcardServiceTest {
         var card = new FlashcardService.Cartao("Pergunta", "Resposta");
         assertThrows(IllegalArgumentException.class, () -> service.salvar(null));
         assertThrows(IllegalArgumentException.class, () -> service.salvar(new FlashcardService.Pedido("Título", List.of())));
-        assertThrows(IllegalArgumentException.class, () -> service.salvar(new FlashcardService.Pedido("Título", Collections.nCopies(11, card))));
+        assertThrows(IllegalArgumentException.class, () -> service.salvar(new FlashcardService.Pedido("Título", Collections.nCopies(21, card))));
         assertThrows(IllegalArgumentException.class, () -> service.salvar(new FlashcardService.Pedido(" ", List.of(card))));
         assertThrows(IllegalArgumentException.class, () -> service.salvar(new FlashcardService.Pedido("a".repeat(121), List.of(card))));
         assertThrows(IllegalArgumentException.class, () -> service.salvar(new FlashcardService.Pedido("Título", List.of(new FlashcardService.Cartao("P", " ")))));

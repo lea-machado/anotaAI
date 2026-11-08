@@ -4,6 +4,8 @@ import br.com.anotaai.model.Anotacao;
 import br.com.anotaai.model.VersaoAnotacao;
 import br.com.anotaai.repository.AnotacaoRepository;
 import br.com.anotaai.repository.VersaoAnotacaoRepository;
+import br.com.anotaai.repository.BaralhoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,12 +16,21 @@ public class AnotacaoService {
     private final AnotacaoRepository anotacaoRepository;
     private final VersaoAnotacaoRepository versaoAnotacaoRepository;
     private final UsuarioAtualService usuarioAtualService;
+    private final BaralhoRepository baralhoRepository;
 
+    @Autowired
     public AnotacaoService(AnotacaoRepository anotacaoRepository, VersaoAnotacaoRepository versaoAnotacaoRepository,
-                           UsuarioAtualService usuarioAtualService) {
+                           UsuarioAtualService usuarioAtualService, BaralhoRepository baralhoRepository) {
         this.anotacaoRepository = anotacaoRepository;
         this.versaoAnotacaoRepository = versaoAnotacaoRepository;
         this.usuarioAtualService = usuarioAtualService;
+        this.baralhoRepository = baralhoRepository;
+    }
+
+    /** Constructor retained for focused service tests. */
+    public AnotacaoService(AnotacaoRepository anotacaoRepository, VersaoAnotacaoRepository versaoAnotacaoRepository,
+                           UsuarioAtualService usuarioAtualService) {
+        this(anotacaoRepository, versaoAnotacaoRepository, usuarioAtualService, null);
     }
 
     @Transactional(readOnly = true)
@@ -28,7 +39,7 @@ public class AnotacaoService {
         if (busca != null && !busca.isBlank()) {
             return anotacaoRepository.findByUsuarioIdAndTituloContainingIgnoreCaseOrderByAtualizadoEmDesc(usuarioId, busca.trim());
         }
-        return anotacaoRepository.findByUsuarioIdOrderByAtualizadoEmDesc(usuarioId);
+        return anotacaoRepository.findByUsuarioIdOrderByCriadoEmDesc(usuarioId);
     }
 
     @Transactional(readOnly = true)
@@ -63,6 +74,7 @@ public class AnotacaoService {
     @Transactional
     public void excluir(Long id) {
         var anotacao = buscar(id);
+        if (baralhoRepository != null) baralhoRepository.deleteByAnotacaoId(id);
         versaoAnotacaoRepository.deleteByAnotacaoId(id);
         anotacaoRepository.delete(anotacao);
     }

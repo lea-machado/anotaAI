@@ -38,7 +38,15 @@ public class SecurityConfig {
                                     .orElse(false);
                             return new AuthorizationDecision(autorizado);
                         })
-                        .anyRequest().hasAnyRole("USER", "ADMIN")
+                        .anyRequest().access((authentication, context) -> {
+                            var autenticacao = authentication.get();
+                            var ativo = autenticacao != null && autenticacao.isAuthenticated()
+                                    && usuarioRepository.findByEmailIgnoreCase(autenticacao.getName())
+                                    .map(usuario -> usuario.isAtivo()
+                                            && ("USER".equals(usuario.getPerfil()) || "ADMIN".equals(usuario.getPerfil())))
+                                    .orElse(false);
+                            return new AuthorizationDecision(ativo);
+                        })
                 )
                 .csrf(csrf -> csrf.csrfTokenRepository(csrfRepository))
                 .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint((request, response, exception) -> {

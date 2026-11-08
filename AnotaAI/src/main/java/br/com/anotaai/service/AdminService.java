@@ -8,6 +8,7 @@ import br.com.anotaai.repository.CodigoAutenticacaoRepository;
 import br.com.anotaai.repository.CodigoRecuperacaoRepository;
 import br.com.anotaai.repository.RegistroAuditoriaRepository;
 import br.com.anotaai.repository.VersaoAnotacaoRepository;
+import br.com.anotaai.repository.RegistroUsoIaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,12 +27,13 @@ public class AdminService {
     private final CodigoAutenticacaoRepository autenticacaoRepository;
     private final CodigoRecuperacaoRepository recuperacaoRepository;
     private final RegistroAuditoriaRepository auditoriaRepository;
+    private final RegistroUsoIaRepository registroUsoIaRepository;
 
     @Autowired
     public AdminService(UsuarioRepository usuarioRepository, AnotacaoRepository anotacaoRepository,
                         VersaoAnotacaoRepository versaoRepository, BaralhoRepository baralhoRepository,
                         CodigoAutenticacaoRepository autenticacaoRepository, CodigoRecuperacaoRepository recuperacaoRepository,
-                        RegistroAuditoriaRepository auditoriaRepository) {
+                        RegistroAuditoriaRepository auditoriaRepository, RegistroUsoIaRepository registroUsoIaRepository) {
         this.usuarioRepository = usuarioRepository;
         this.anotacaoRepository = anotacaoRepository;
         this.versaoRepository = versaoRepository;
@@ -39,11 +41,12 @@ public class AdminService {
         this.autenticacaoRepository = autenticacaoRepository;
         this.recuperacaoRepository = recuperacaoRepository;
         this.auditoriaRepository = auditoriaRepository;
+        this.registroUsoIaRepository = registroUsoIaRepository;
     }
 
     /** Constructor kept for focused unit tests that exercise role changes only. */
     public AdminService(UsuarioRepository usuarioRepository) {
-        this(usuarioRepository, null, null, null, null, null, null);
+        this(usuarioRepository, null, null, null, null, null, null, null);
     }
 
     @Transactional
@@ -83,6 +86,7 @@ public class AdminService {
         autenticacaoRepository.deleteByUsuarioId(usuarioId);
         recuperacaoRepository.deleteByUsuarioId(usuarioId);
         auditoriaRepository.deleteByUsuarioId(usuarioId);
+        if (registroUsoIaRepository != null) registroUsoIaRepository.deleteByUsuarioId(usuarioId);
         usuarioRepository.delete(usuario);
     }
 

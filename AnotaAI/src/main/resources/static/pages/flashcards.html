@@ -13,9 +13,9 @@
   <aside class="sidebar" id="sidebar">
    <div class="brand"><a class="brand-link" href="anotacoes.html" aria-label="Página inicial do AnotaAI"><img class="brand-logo" src="../assets/images/logo-anotaai.png" alt="AnotaAI"/></a></div>
    <nav class="sidebar-nav" aria-label="Navegação principal">
-    <a class="nav-item" href="anotacoes.html"><span aria-hidden="true">▣</span><span>Minhas anotações</span></a>
-    <a class="nav-item" href="desempenho.html"><span aria-hidden="true">▥</span><span>Meu desempenho</span></a>
-    <a class="nav-item" href="perfil.html"><span aria-hidden="true">○</span><span>Meu perfil</span></a>
+    <a class="nav-item" href="anotacoes.html"><svg aria-hidden="true" class="simple-svg" viewBox="0 0 24 24"><path d="M6 3.5h10a2 2 0 0 1 2 2V20l-4-2-4 2-4-2-2 1V5.5a2 2 0 0 1 2-2Z"></path><path d="M8 8h7M8 12h7"></path></svg><span>Minhas anotações</span></a>
+    <a class="nav-item" href="desempenho.html"><svg aria-hidden="true" class="simple-svg" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg><span>Meu desempenho</span></a>
+    <a class="nav-item" href="perfil.html"><svg aria-hidden="true" class="simple-svg" viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0"></path><path d="M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"></path></svg><span>Meu perfil</span></a>
    </nav>
    <div class="sidebar-footer"><button class="nav-item nav-button" data-action="logout" type="button">Sair</button></div>
   </aside>
@@ -31,6 +31,7 @@
     </header>
     <p id="library-status" role="status" aria-live="polite">Carregando seus flashcards…</p>
     <button class="button" id="retry-load" type="button" hidden>Tentar novamente</button>
+    <button class="button" id="review-errors" type="button">Revisar flashcards marcados como erro</button>
     <section id="decks-empty" class="deck-empty" hidden>
      <h2>Seu próximo estudo começa com uma anotação</h2>
      <p>Abra uma anotação, clique em “Gerar flashcards”, revise o resultado e escolha “Salvar em Meus flashcards”.</p>
@@ -45,8 +46,11 @@
     <article class="study-card">
      <p class="page-kicker">Pergunta</p>
      <h2 id="card-question"></h2>
-     <button class="button button-primary" id="reveal-answer" type="button" aria-expanded="false" aria-controls="card-answer">Mostrar resposta</button>
+     <p class="quiz-instruction">Escolha uma das quatro respostas:</p>
+     <div id="quiz-options" class="quiz-options"></div>
+     <p id="quiz-feedback" class="quiz-feedback" role="status" aria-live="polite" hidden></p>
      <p id="card-answer" hidden></p>
+     <p class="card-score" id="card-score"></p>
     </article>
     <div class="study-navigation">
      <button class="button" id="previous-card" type="button">← Anterior</button>
