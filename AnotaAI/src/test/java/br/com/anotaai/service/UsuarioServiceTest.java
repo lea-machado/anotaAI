@@ -22,7 +22,6 @@ class UsuarioServiceTest {
 
     @Test
     void exigeDataDeNascimento() {
-        org.junit.jupiter.api.Assertions.assertTrue(false);
         assertThrows(IllegalArgumentException.class, () -> cadastrar(null));
         verifyNoInteractions(usuarioRepository);
     }

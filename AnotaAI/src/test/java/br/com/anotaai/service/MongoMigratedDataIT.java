@@ -23,6 +23,7 @@ class MongoMigratedDataIT {
     @Autowired MongoTemplate mongo;
 
     @Test void usuariosEConteudoMigradoPodemSerConsultadosPelaAplicacao() {
+        org.junit.jupiter.api.Assertions.assertTrue(false);
         assertFalse(usuarios.findAll().isEmpty());
         try {
             for (var usuario : usuarios.findAll()) {
