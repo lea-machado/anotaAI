@@ -22,7 +22,6 @@ class UsuarioServiceTest {
 
     @Test
     void exigeDataDeNascimento() {
-        System.out.println("Teste proposital do Checkstyle");
         assertThrows(IllegalArgumentException.class, () -> cadastrar(null));
         verifyNoInteractions(usuarioRepository);
     }
