@@ -28,7 +28,7 @@ class RecuperacaoSenhaServiceTest {
         when(usuarios.buscarParaRecuperacao("teste@exemplo.com")).thenReturn(Optional.of(usuario));
         var desafio = service.solicitar(" TESTE@exemplo.com ");
         var codigo = ArgumentCaptor.forClass(String.class);
-        verify(email).enviarCodigoRecuperacao(eq(usuario.getEmail()), eq(usuario.getNome()), codigo.capture(), eq(10));
+        verify(email).enviarCodigoRecuperacao(eq(usuario.getEmail()), eq(usuario.getNome()), codigo.capture(), eq(5));
         assertTrue(codigo.getValue().matches("[0-9]{6}"));
         var captor = ArgumentCaptor.forClass(CodigoRecuperacao.class);
         verify(codigos).save(captor.capture());
@@ -40,7 +40,8 @@ class RecuperacaoSenhaServiceTest {
         assertTrue(encoder.matches("minhaNovaSenha123", usuario.getSenha()));
         assertNotNull(registro.getUsadoEm());
         assertThrows(IllegalArgumentException.class, () -> service.redefinir(desafio, codigo.getValue(), "outraSenha123"));
-        verify(usuarios, times(1)).save(usuario);
+        // Uma gravação reserva a versão da conta; a outra efetiva a nova senha.
+        verify(usuarios, times(2)).save(usuario);
     }
 
     @Test
@@ -64,10 +65,7 @@ class RecuperacaoSenhaServiceTest {
     void rejeitaCodigoExpirado() {
         var registro = registro();
         registro.setExpiraEm(LocalDateTime.now().minusSeconds(1));
-
-       IllegalArgumentException excecao = assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "123456", "novaSenha123"));
-
-        assertNotNull(excecao.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "123456", "novaSenha123"));
         verify(usuarios, never()).save(any());
     }
 

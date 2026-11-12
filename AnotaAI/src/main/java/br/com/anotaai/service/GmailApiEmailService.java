@@ -8,6 +8,7 @@ import org.springframework.web.client.RestClient;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Map;
 
@@ -39,6 +40,79 @@ public class GmailApiEmailService {
 
     public void enviarCodigoRecuperacao(String destinatario, String nome, String codigo, int minutosValidade) {
         enviarCodigo(destinatario, nome, codigo, minutosValidade, true);
+    }
+
+    public void enviarConfirmacaoExclusao(String destinatario, String nome) {
+        validarConfiguracao();
+        var html = """
+                <html><body style="font-family:Arial,sans-serif;color:#122838">
+                <h2>Exclusão da conta concluída</h2>
+                <p>Olá, %s.</p>
+                <p>Conforme solicitado, sua conta AnotaAI e os dados pessoais vinculados foram excluídos.</p>
+                <p>Esta mensagem confirma a conclusão do seu pedido.</p>
+                </body></html>
+                """.formatted(escaparHtml(nome == null ? "estudante" : nome));
+        try {
+            var rawMessage = "From: AnotaAI <%s>\r\n".formatted(remetente)
+                    + "To: %s\r\n".formatted(destinatario)
+                    + "Subject: Exclusão da conta concluída - AnotaAI\r\n"
+                    + "MIME-Version: 1.0\r\n"
+                    + "Content-Type: text/html; charset=UTF-8\r\n\r\n"
+                    + html;
+            var raw = Base64.getUrlEncoder().withoutPadding()
+                    .encodeToString(rawMessage.getBytes(StandardCharsets.UTF_8));
+            restClient.post()
+                    .uri("https://gmail.googleapis.com/gmail/v1/users/me/messages/send")
+                    .headers(headers -> headers.setBearerAuth(obterAccessToken()))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("raw", raw))
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (ServicoEmailException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw new ServicoEmailException("A conta foi excluída, mas não foi possível enviar a confirmação por e-mail.", exception);
+        }
+    }
+
+    public void enviarAvisoPedidoExclusao(String destinatario, String nomeUsuario, String emailUsuario,
+                                         LocalDateTime solicitadaEm) {
+        validarConfiguracao();
+        var prazo = solicitadaEm.plusDays(15).toLocalDate().toString();
+        var html = """
+                <html><body style="font-family:Arial,sans-serif;color:#122838">
+                <h2>Novo pedido de exclusão de conta</h2>
+                <p>O usuário %s (%s) solicitou a exclusão da conta e dos dados vinculados.</p>
+                <p>O acesso já foi suspenso. Conclua o pedido no painel administrativo até %s.</p>
+                <p>O pedido também está disponível no painel administrativo do AnotaAI.</p>
+                </body></html>
+                """.formatted(escaparHtml(nomeUsuario == null ? "Estudante" : nomeUsuario),
+                escaparHtml(emailUsuario), prazo);
+        enviarHtml(destinatario, "Novo pedido de exclusão - AnotaAI", html);
+    }
+
+    private void enviarHtml(String destinatario, String assunto, String html) {
+        try {
+            var rawMessage = "From: AnotaAI <%s>\r\n".formatted(remetente)
+                    + "To: %s\r\n".formatted(destinatario)
+                    + "Subject: %s\r\n".formatted(assunto)
+                    + "MIME-Version: 1.0\r\n"
+                    + "Content-Type: text/html; charset=UTF-8\r\n\r\n"
+                    + html;
+            var raw = Base64.getUrlEncoder().withoutPadding()
+                    .encodeToString(rawMessage.getBytes(StandardCharsets.UTF_8));
+            restClient.post()
+                    .uri("https://gmail.googleapis.com/gmail/v1/users/me/messages/send")
+                    .headers(headers -> headers.setBearerAuth(obterAccessToken()))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("raw", raw))
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (ServicoEmailException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw new ServicoEmailException("Não foi possível enviar o aviso por e-mail.", exception);
+        }
     }
 
     private void enviarCodigo(String destinatario, String nome, String codigo, int minutosValidade, boolean recuperacao) {

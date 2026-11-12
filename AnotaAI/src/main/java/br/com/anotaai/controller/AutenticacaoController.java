@@ -4,6 +4,8 @@ import br.com.anotaai.service.AuditoriaService;
 import br.com.anotaai.service.AutenticacaoDoisFatoresService;
 import br.com.anotaai.service.UsuarioAtualService;
 import br.com.anotaai.service.UsuarioService;
+import br.com.anotaai.service.SolicitacaoExclusaoService;
+import br.com.anotaai.service.GmailApiEmailService;
 import br.com.anotaai.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -34,19 +36,25 @@ public class AutenticacaoController {
     private final AutenticacaoDoisFatoresService doisFatoresService;
     private final UsuarioRepository usuarioRepository;
     private final UsuarioService usuarioService;
+    private final SolicitacaoExclusaoService solicitacaoExclusaoService;
+    private final GmailApiEmailService emailService;
 
     public AutenticacaoController(AuthenticationManager authenticationManager,
                                   UsuarioAtualService usuarioAtualService,
                                   AuditoriaService auditoriaService,
                                   AutenticacaoDoisFatoresService doisFatoresService,
                                   UsuarioRepository usuarioRepository,
-                                  UsuarioService usuarioService) {
+                                  UsuarioService usuarioService,
+                                  SolicitacaoExclusaoService solicitacaoExclusaoService,
+                                  GmailApiEmailService emailService) {
         this.authenticationManager = authenticationManager;
         this.usuarioAtualService = usuarioAtualService;
         this.auditoriaService = auditoriaService;
         this.doisFatoresService = doisFatoresService;
         this.usuarioRepository = usuarioRepository;
         this.usuarioService = usuarioService;
+        this.solicitacaoExclusaoService = solicitacaoExclusaoService;
+        this.emailService = emailService;
     }
 
     @GetMapping("/csrf")
@@ -138,7 +146,7 @@ public class AutenticacaoController {
         var usuarioAtual = usuarioAtualService.obter();
         try {
             var usuario = usuarioService.atualizarPerfil(
-                    usuarioAtual, dados.nome(), dados.email(), dados.escolaridade());
+                    usuarioAtual, dados.nome(), dados.email(), dados.escolaridade(), dados.senhaAtual(), dados.novaSenha());
             atualizarAutenticacaoDaSessao(usuario, request);
             auditoriaService.registrar(usuario.getEmail(), "PERFIL_ATUALIZADO", "/api/auth/me", true,
                     "Dados do perfil atualizados.", request);
@@ -154,6 +162,34 @@ public class AutenticacaoController {
             auditoriaService.registrar(usuarioAtual.getEmail(), "PERFIL_ATUALIZACAO_FALHA", "/api/auth/me", false,
                     exception.getMessage(), request);
             return ResponseEntity.badRequest().body(Map.of("mensagem", exception.getMessage()));
+        }
+    }
+
+    @PostMapping("/exclusao")
+    public ResponseEntity<?> solicitarExclusao(HttpServletRequest request) {
+        var usuario = usuarioAtualService.obter();
+        try {
+            var solicitacao = solicitacaoExclusaoService.solicitar(usuario, request);
+            usuarioRepository.findAll().stream()
+                    .filter(admin -> admin.isAtivo() && "ADMIN".equalsIgnoreCase(admin.getPerfil()))
+                    .forEach(admin -> {
+                        try {
+                            emailService.enviarAvisoPedidoExclusao(admin.getEmail(), usuario.getNome(),
+                                    usuario.getEmail(), solicitacao.getSolicitadaEm());
+                            auditoriaService.registrar(admin.getEmail(), "AVISO_PEDIDO_EXCLUSAO_ENVIADO",
+                                    "/api/admin/pedidos-exclusao", true,
+                                    "Aviso de pedido de exclusão enviado ao administrador.", request);
+                        } catch (RuntimeException ignored) {
+                            // O pedido continua disponível no painel administrativo caso o e-mail falhe.
+                        }
+                    });
+            var session = request.getSession(false);
+            if (session != null) session.invalidate();
+            SecurityContextHolder.clearContext();
+            return ResponseEntity.accepted().body(Map.of("mensagem",
+                    "Pedido recebido. O acesso à conta foi encerrado e o administrador concluirá a exclusão dos dados."));
+        } catch (IllegalStateException exception) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensagem", exception.getMessage()));
         }
     }
 
@@ -181,5 +217,6 @@ public class AutenticacaoController {
 
     public record LoginRequest(String email, String senha) {}
     public record VerificacaoRequest(UUID desafioId, String codigo) {}
-    public record AtualizarPerfilRequest(String nome, String email, String escolaridade) {}
+    public record AtualizarPerfilRequest(String nome, String email, String escolaridade,
+                                         String senhaAtual, String novaSenha) {}
 }

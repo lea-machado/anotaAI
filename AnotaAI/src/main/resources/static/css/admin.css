@@ -1,7 +1,34 @@
-.admin-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
-.admin-metric { padding: 20px; }
+.admin-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.admin-metric { position: relative; overflow: hidden; padding: 20px; }
+.admin-metric::before { position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--brand, #4e8c68); content: ''; }
 .admin-metric span { display: block; color: var(--muted); font-size: 12px; font-weight: 700; }
 .admin-metric strong { display: block; margin-top: 8px; font-family: Georgia, 'Times New Roman', serif; font-size: 36px; }
+.admin-metric small { display: block; margin-top: 6px; color: var(--muted); font-size: 11px; }
+.admin-metric small b { color: var(--ink); }
+.admin-filters { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; margin: 0 0 18px; padding: 14px 18px; }
+.admin-filters label, .table-filters label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; font-weight: 700; }
+.admin-filters select, .admin-filters input, .table-filters select, .table-filters input { min-width: 145px; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); font: inherit; }
+.admin-filters input[type="date"] { min-width: 140px; }
+.custom-date-filter[hidden] { display: none; }
+.filter-result { margin: 0 0 9px auto; color: var(--muted); font-size: 11px; }
+.table-filters { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; margin: -4px 0 14px; }
+.table-filters .table-search { flex: 1 1 240px; }
+.table-filters .table-search input { width: 100%; }
+.table-filters select { min-width: 130px; }
+.admin-table tbody tr[hidden] { display: none; }
+.admin-overview { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(260px, .8fr); gap: 14px; }
+.admin-overview .admin-section { margin-top: 0; }
+.signup-chart { display: grid; grid-template-columns: repeat(auto-fit, minmax(28px, 1fr)); gap: 10px; height: 150px; padding-top: 8px; overflow-x: auto; }
+.signup-day { display: grid; grid-template-rows: 18px 1fr 18px; gap: 5px; text-align: center; }
+.signup-count, .signup-label { color: var(--muted); font-size: 10px; font-weight: 700; }
+.signup-bar-wrap { display: flex; align-items: end; justify-content: center; border-bottom: 1px solid var(--line); }
+.signup-bar { display: block; width: min(24px, 65%); min-height: 4px; border-radius: 5px 5px 0 0; background: #5c9a72; transition: height .25s ease; }
+.health-list { display: grid; gap: 12px; font-size: 12px; }
+.health-list > div:not(.health-track) { display: flex; justify-content: space-between; gap: 12px; }
+.health-list span { color: var(--muted); }
+.health-list strong { color: var(--ink); }
+.health-track { height: 8px; overflow: hidden; border-radius: 99px; background: #edf0eb; }
+.health-track span { display: block; width: 0; height: 100%; border-radius: inherit; background: #5c9a72; transition: width .25s ease; }
 .admin-section { margin-top: 18px; padding: 22px; }
 .admin-section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .admin-section h2 { margin: 0; font-size: 24px; }
@@ -24,4 +51,7 @@
 .status-badge.success { background: #edf4ef; color: #286043; }
 .status-badge.failure { background: #fff0ee; color: #972f25; }
 .admin-error { padding: 16px; border: 1px solid #d9aaa5; border-radius: 7px; background: #fff1ef; color: #8f2920; }
-@media (max-width: 800px) { .admin-grid { grid-template-columns: 1fr; }.admin-section { padding: 16px; }.admin-section-head { align-items: flex-start; flex-direction: column; } }
+.empty-requests { color: var(--muted); font-size: 12px; }
+.admin-actions { display: flex; gap: 6px; }.admin-action { border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }.admin-action:hover { border-color: #8fb5d5; }.admin-action.danger { color: #8f2920; border-color: #e1b5ae; }.admin-action:disabled { opacity: .5; cursor: not-allowed; }
+@media (max-width: 800px) { .admin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.admin-overview { grid-template-columns: 1fr; }.admin-section { padding: 16px; }.admin-section-head { align-items: flex-start; flex-direction: column; }.filter-result { margin-left: 0; } }
+@media (max-width: 480px) { .admin-grid { grid-template-columns: 1fr; } }

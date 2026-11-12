@@ -184,3 +184,19 @@
 .profile-feedback.success { color: #2f6f4c; }
 .profile-feedback.error { color: var(--danger); }
 .profile-actions .button:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+.account-deletion-card { border-color: #e4c4bf; }
+.account-deletion-card > span { color: #8f2920; }
+.account-deletion-card p { color: var(--muted); font-size: 12px; line-height: 1.55; }
+.button-danger { border: 1px solid #b74a40; border-radius: 7px; padding: 11px 15px; background: #a9362c; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.button-danger:hover { background: #8f2920; }
+.button-danger:disabled { cursor: wait; opacity: .65; }
+.delete-account-dialog { width: min(92vw, 480px); padding: 0; border: 0; border-radius: 12px; box-shadow: 0 20px 70px #17231c40; color: var(--ink); }
+.delete-account-dialog::backdrop { background: #14201999; }
+.delete-account-dialog form { padding: 28px; }
+.delete-account-dialog h2 { margin: 0 0 12px; font-size: 24px; }
+.delete-account-dialog form > p:not(.page-kicker) { color: var(--muted); font-size: 14px; line-height: 1.6; }
+.delete-account-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.delete-account-feedback { padding: 10px; border-radius: 6px; font-size: 12px; }
+.delete-account-feedback.success { background: #edf4ef; color: #286043; }
+.delete-account-feedback.error { background: #fff1ef; color: #8f2920; }
+.empty-requests { color: var(--muted); font-size: 12px; }

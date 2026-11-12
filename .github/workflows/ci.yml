@@ -1,0 +1,79 @@
+name: CI - AnotaAI
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  unitarios:
+    name: Testes unitários
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: AnotaAI
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: AnotaAI/pom.xml
+      - name: Executar apenas testes unitários
+        run: mvn -B test '-Dtest=**/*Test,!**/*IntegracaoTest,!**/*IT' -DfailIfNoTests=true
+
+  integracao:
+    name: Testes de integração
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SPRING_DATA_MONGODB_URI: mongodb://localhost:27017/?replicaSet=rs0
+      MONGODB_DATABASE: anotaai_test
+    defaults:
+      run:
+        working-directory: AnotaAI
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: AnotaAI/pom.xml
+      - name: Inicializar replica set MongoDB para transações
+        run: |
+          docker run -d --name anotaai-mongo -p 27017:27017 mongo:7 --replSet rs0 --bind_ip_all
+          for i in $(seq 1 30); do
+            if docker exec anotaai-mongo mongosh --quiet --eval 'db.adminCommand({ping:1})' >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          docker exec anotaai-mongo mongosh --quiet --eval 'try { rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]}) } catch(e) { print(e) }'
+          for i in $(seq 1 30); do
+            if docker exec anotaai-mongo mongosh --quiet --eval 'quit(db.hello().isWritablePrimary ? 0 : 1)'; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Executar apenas testes de integração
+        run: mvn -B test '-Dtest=**/*IntegracaoTest,**/*IT' -DfailIfNoTests=true
+
+  linter:
+    name: Linter
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: AnotaAI
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: AnotaAI/pom.xml
+      - name: Verificar regras Checkstyle
+        run: mvn -B checkstyle:check

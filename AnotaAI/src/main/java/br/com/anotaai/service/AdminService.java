@@ -2,7 +2,15 @@ package br.com.anotaai.service;
 
 import br.com.anotaai.model.Usuario;
 import br.com.anotaai.repository.UsuarioRepository;
+import br.com.anotaai.repository.AnotacaoRepository;
+import br.com.anotaai.repository.BaralhoRepository;
+import br.com.anotaai.repository.CodigoAutenticacaoRepository;
+import br.com.anotaai.repository.CodigoRecuperacaoRepository;
+import br.com.anotaai.repository.RegistroAuditoriaRepository;
+import br.com.anotaai.repository.VersaoAnotacaoRepository;
+import br.com.anotaai.repository.RegistroUsoIaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
@@ -13,9 +21,32 @@ public class AdminService {
     private static final Set<String> PERFIS_PERMITIDOS = Set.of("USER", "ADMIN");
 
     private final UsuarioRepository usuarioRepository;
+    private final AnotacaoRepository anotacaoRepository;
+    private final VersaoAnotacaoRepository versaoRepository;
+    private final BaralhoRepository baralhoRepository;
+    private final CodigoAutenticacaoRepository autenticacaoRepository;
+    private final CodigoRecuperacaoRepository recuperacaoRepository;
+    private final RegistroAuditoriaRepository auditoriaRepository;
+    private final RegistroUsoIaRepository registroUsoIaRepository;
 
-    public AdminService(UsuarioRepository usuarioRepository) {
+    @Autowired
+    public AdminService(UsuarioRepository usuarioRepository, AnotacaoRepository anotacaoRepository,
+                        VersaoAnotacaoRepository versaoRepository, BaralhoRepository baralhoRepository,
+                        CodigoAutenticacaoRepository autenticacaoRepository, CodigoRecuperacaoRepository recuperacaoRepository,
+                        RegistroAuditoriaRepository auditoriaRepository, RegistroUsoIaRepository registroUsoIaRepository) {
         this.usuarioRepository = usuarioRepository;
+        this.anotacaoRepository = anotacaoRepository;
+        this.versaoRepository = versaoRepository;
+        this.baralhoRepository = baralhoRepository;
+        this.autenticacaoRepository = autenticacaoRepository;
+        this.recuperacaoRepository = recuperacaoRepository;
+        this.auditoriaRepository = auditoriaRepository;
+        this.registroUsoIaRepository = registroUsoIaRepository;
+    }
+
+    /** Constructor kept for focused unit tests that exercise role changes only. */
+    public AdminService(UsuarioRepository usuarioRepository) {
+        this(usuarioRepository, null, null, null, null, null, null, null);
     }
 
     @Transactional
@@ -36,5 +67,35 @@ public class AdminService {
 
         usuario.setPerfil(perfilNormalizado);
         return usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public Usuario alternarAtivo(Long usuarioId, Usuario administradorAtual) {
+        var usuario = alvo(usuarioId, administradorAtual);
+        usuario.setAtivo(!usuario.isAtivo());
+        return usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public void excluir(Long usuarioId, Usuario administradorAtual) {
+        var usuario = alvo(usuarioId, administradorAtual);
+        var anotacoes = anotacaoRepository.findByUsuarioIdOrderByAtualizadoEmDesc(usuarioId);
+        anotacoes.forEach(anotacao -> versaoRepository.deleteByAnotacaoId(anotacao.getId()));
+        anotacaoRepository.deleteByUsuarioId(usuarioId);
+        baralhoRepository.deleteByUsuarioId(usuarioId);
+        autenticacaoRepository.deleteByUsuarioId(usuarioId);
+        recuperacaoRepository.deleteByUsuarioId(usuarioId);
+        auditoriaRepository.deleteByUsuarioId(usuarioId);
+        if (registroUsoIaRepository != null) registroUsoIaRepository.deleteByUsuarioId(usuarioId);
+        usuarioRepository.delete(usuario);
+    }
+
+    private Usuario alvo(Long usuarioId, Usuario administradorAtual) {
+        if (usuarioId == null) throw new IllegalArgumentException("Usuario e obrigatorio.");
+        if (usuarioId.equals(administradorAtual.getId())) {
+            throw new IllegalArgumentException("Nao e permitido alterar ou excluir a propria conta administrativa.");
+        }
+        return usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario nao encontrado."));
     }
 }

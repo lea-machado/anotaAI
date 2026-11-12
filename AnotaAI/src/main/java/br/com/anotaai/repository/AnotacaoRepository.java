@@ -1,13 +1,15 @@
 package br.com.anotaai.repository;
 
 import br.com.anotaai.model.Anotacao;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
 
-public interface AnotacaoRepository extends JpaRepository<Anotacao, Long> {
+public interface AnotacaoRepository extends MongoRepository<Anotacao, Long> {
     List<Anotacao> findByUsuarioIdAndTituloContainingIgnoreCaseOrderByAtualizadoEmDesc(Long usuarioId, String titulo);
     List<Anotacao> findByUsuarioIdOrderByAtualizadoEmDesc(Long usuarioId);
+    List<Anotacao> findByUsuarioIdOrderByCriadoEmDesc(Long usuarioId);
     java.util.Optional<Anotacao> findByIdAndUsuarioId(Long id, Long usuarioId);
     long countByUsuarioId(Long usuarioId);
+    void deleteByUsuarioId(Long usuarioId);
 }

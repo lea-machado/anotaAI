@@ -16,6 +16,7 @@ public class UsuarioAtualService {
     public Usuario obter() {
         var email = SecurityContextHolder.getContext().getAuthentication().getName();
         return usuarioRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario autenticado nao encontrado."));
+                .filter(Usuario::isAtivo)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario autenticado nao encontrado ou desativado."));
     }
 }

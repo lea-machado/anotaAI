@@ -15,7 +15,7 @@ public class RecuperacaoSenhaController {
     public Map<String, Object> solicitar(@RequestBody SolicitarRequest request) {
         var desafio = service.solicitar(request.email());
         return Map.of("desafioId", desafio, "mensagem",
-                "Se o e-mail estiver cadastrado, você receberá um código válido por 10 minutos. Aguarde um minuto entre solicitações.");
+                "Se o e-mail estiver cadastrado, você receberá um código válido por 5 minutos. Aguarde um minuto entre solicitações.");
     }
 
     @PostMapping("/redefinir")
