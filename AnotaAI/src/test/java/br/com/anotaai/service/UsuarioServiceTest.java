@@ -22,6 +22,7 @@ class UsuarioServiceTest {
 
     @Test
     void exigeDataDeNascimento() {
+        assertTrue(false);
         assertThrows(IllegalArgumentException.class, () -> cadastrar(null));
         verifyNoInteractions(usuarioRepository);
     }
