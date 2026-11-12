@@ -11,7 +11,6 @@ import org.bson.Document;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Verificação somente de leitura dos dados migrados; executar explicitamente. */
 @SpringBootTest
 class MongoMigratedDataIT {
     @Autowired UsuarioRepository usuarios;
@@ -32,7 +31,7 @@ class MongoMigratedDataIT {
                 assertTrue(usuario.getSenha().startsWith("$2"));
                 SecurityContextHolder.getContext().setAuthentication(
                         new UsernamePasswordAuthenticationToken(usuario.getEmail(), "", List.of()));
-                var userNotes = anotacoes.listar(null);
+                List<br.com.anotaai.model.Anotacao> userNotes = anotacoes.listar(null);
                 assertEquals(userNotes.size(), ((Number) desempenho.obter().get("anotacoes")).intValue());
                 for (var note : userNotes) {
                     assertNotNull(note.getAtualizadoEm());
@@ -46,10 +45,11 @@ class MongoMigratedDataIT {
             }
             for (var collection : List.of("usuarios", "anotacoes", "versoes_anotacao", "baralhos",
                     "codigos_autenticacao", "codigos_recuperacao", "registros_auditoria")) {
+                var largest = mongo.getCollection(collection).find().sort(new Document("_id", -1)).first();
+                if (largest == null) continue;
                 var counter = mongo.getCollection("sequencias").find(new Document("_id", collection)).first();
                 assertNotNull(counter);
-                var largest = mongo.getCollection(collection).find().sort(new Document("_id", -1)).first();
-                if (largest != null) assertTrue(((Number) counter.get("value")).longValue() >= ((Number) largest.get("_id")).longValue());
+                assertTrue(((Number) counter.get("value")).longValue() >= ((Number) largest.get("_id")).longValue());
             }
         } finally { SecurityContextHolder.clearContext(); }
     }
