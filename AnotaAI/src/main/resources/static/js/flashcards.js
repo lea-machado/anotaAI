@@ -7,6 +7,8 @@
   const query = new URLSearchParams(location.search);
   const sourceNoteId = Number(query.get('anotacaoId')) || null;
   const reviewButton = document.getElementById('review-errors');
+  const deckPicker = document.getElementById('error-deck-picker');
+  const errorDeckList = document.getElementById('error-deck-list');
   let decks = [];
   let activeDeck = null;
   let cardIndex = 0;
@@ -20,7 +22,7 @@
     node.textContent = text;
     if (className) node.className = className;
     return node;
-  }
+  }                                                                                       
 
   async function load() {
     if (busy) return;
@@ -34,16 +36,23 @@
       status.textContent = error.message;
       retry.hidden = false;
     } finally { busy = false; }
-  }
+  }                                                                                    
 
   function render() {
     grid.replaceChildren();
     status.textContent = `${decks.length} conjunto(s) salvo(s)`;
+    const totalCorrect = decks.reduce((sum, deck) => sum + (deck.acertos || 0), 0);
+    const totalErrors = decks.reduce((sum, deck) => sum + (deck.erros || 0), 0);
+    document.getElementById('total-answered').textContent = totalCorrect + totalErrors;
+    document.getElementById('total-correct').textContent = totalCorrect;
+    document.getElementById('total-errors').textContent = totalErrors;
     document.getElementById('decks-empty').hidden = decks.length > 0;
     decks.forEach(deck => {
       const card = element('article', '', 'deck-card');
       card.append(element('h2', deck.titulo));
       card.append(element('p', `${deck.quantidade} flashcards`));
+      const stats = element('p', `Acertos: ${deck.acertos || 0} · Erros: ${deck.erros || 0}`, 'deck-score');
+      card.append(stats);
       const actions = element('div', '', 'study-navigation');
       const open = element('button', 'Estudar', 'button button-primary');
       open.type = 'button';
@@ -55,6 +64,21 @@
       actions.append(open, remove);
       card.append(actions);
       grid.append(card);
+    });
+    renderErrorDeckPicker();
+  }
+                                                                
+  function renderErrorDeckPicker() {
+    errorDeckList.replaceChildren();
+    const decksWithErrors = decks.filter(deck => (deck.cartoesComErro || 0) > 0);
+    document.getElementById('error-deck-empty').hidden = decksWithErrors.length > 0;
+    decksWithErrors.forEach(deck => {
+      const button = element('button', '', 'error-deck-option');
+      button.type = 'button';
+      button.append(element('strong', deck.titulo));
+      button.append(element('span', `${deck.cartoesComErro} pergunta(s) errada(s)`));
+      button.addEventListener('click', () => reviewErrors(deck.id));
+      errorDeckList.append(button);
     });
   }
 
@@ -77,14 +101,19 @@
     finally { busy = false; button.disabled = false; }
   }
 
-  async function reviewErrors() {
+  async function reviewErrors(baralhoId) {
+    if (!baralhoId) {
+      deckPicker.hidden = false;
+      deckPicker.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      return;
+    }
     if (busy) return;
     busy = true;
     reviewButton.disabled = true;
     try {
-      const errors = await Api.reviewFlashcardErrors(sourceNoteId);
+      const errors = await Api.reviewFlashcardErrors(sourceNoteId, baralhoId);
       if (!errors.length) {
-        App.toast('Não há flashcards pendentes de revisão.');
+        App.toast('Você ainda não errou nenhum flashcard.');
         return;
       }
       reviewMode = true;
@@ -92,20 +121,21 @@
       answeredCards.clear();
       activeDeck = {
         id: null,
-        titulo: 'Revisar flashcards marcados como erro',
+        titulo: `Perguntas erradas: ${decks.find(deck => deck.id === baralhoId)?.titulo || 'conjunto selecionado'}`,
         flashcards: errors.map(card => ({
           deckId: card.baralhoId,
           indice: card.indice,
           pergunta: card.pergunta,
           resposta: card.resposta,
           erros: card.erros,
-          acertos: 0
+          acertos: card.acertos
         }))
       };
       cardIndex = 0;
       document.getElementById('deck-heading').textContent = activeDeck.titulo;
       renderCard();
       library.hidden = true;
+      deckPicker.hidden = true;
       study.hidden = false;
     } catch (error) {
       App.toast(error.message, 'error');
@@ -160,6 +190,7 @@
   function getOptions(card, index) {
     if (optionsByCard.has(card)) return optionsByCard.get(card);
     const correct = card.resposta;
+                                                                             
     const normalize = value => value.trim().toLocaleLowerCase('pt-BR');
     const distractors = [...new Set(activeDeck.flashcards
       .filter((other, otherIndex) => otherIndex !== index)
@@ -176,7 +207,7 @@
     }
     optionsByCard.set(card, choices);
     return choices;
-  }
+  }                                                                                               
 
   async function answerQuestion(choice) {
     if (busy) return;
@@ -228,8 +259,11 @@
     study.hidden = true;
     library.hidden = false;
     activeDeck = null;
+    load();                                                                           
   });
+  document.getElementById('cancel-error-review').addEventListener('click', () => { deckPicker.hidden = true; });
   retry.addEventListener('click', load);
-  reviewButton.addEventListener('click', reviewErrors);
+                                                                      
+  reviewButton.addEventListener('click', () => reviewErrors());
   load();
 })();

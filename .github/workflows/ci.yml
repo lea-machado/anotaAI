@@ -24,7 +24,7 @@ jobs:
           cache: maven
           cache-dependency-path: AnotaAI/pom.xml
       - name: Executar apenas testes unitários
-        run: mvn -B test '-Dtest=**/*Test,!**/*IntegracaoTest,!**/*IT' -DfailIfNoTests=true
+        run: mvn -B test '-Dtest=**/*IntegracaoTest,**/*IT' -DfailIfNoTests=true
 
   integracao:
     name: Testes de integração

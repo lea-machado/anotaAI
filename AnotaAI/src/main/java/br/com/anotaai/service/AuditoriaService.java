@@ -22,8 +22,9 @@ public class AuditoriaService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+
     public void registrar(String email, String acao, String recurso, boolean sucesso,
-                          String detalhes, HttpServletRequest request) {
+            String detalhes, HttpServletRequest request) {
         var registro = new RegistroAuditoria();
         if (email != null && !email.isBlank()) {
             usuarioRepository.findByEmailIgnoreCase(email).ifPresent(registro::setUsuario);
@@ -36,17 +37,20 @@ public class AuditoriaService {
     }
 
     @Transactional(readOnly = true)
+
     public List<RegistroAuditoria> listarDoUsuario(Long usuarioId) {
         return registroRepository.findTop50ByUsuarioIdOrderByCriadoEmDesc(usuarioId);
     }
 
     @Transactional(readOnly = true)
+
     public List<RegistroAuditoria> listarTodos() {
         return registroRepository.findTop100ByOrderByCriadoEmDesc();
     }
 
     private String limitar(String valor, int limite) {
-        if (valor == null) return null;
+        if (valor == null)
+            return null;
         return valor.length() <= limite ? valor : valor.substring(0, limite);
     }
 }

@@ -20,16 +20,15 @@ public class AnotacaoService {
 
     @Autowired
     public AnotacaoService(AnotacaoRepository anotacaoRepository, VersaoAnotacaoRepository versaoAnotacaoRepository,
-                           UsuarioAtualService usuarioAtualService, BaralhoRepository baralhoRepository) {
+            UsuarioAtualService usuarioAtualService, BaralhoRepository baralhoRepository) {
         this.anotacaoRepository = anotacaoRepository;
         this.versaoAnotacaoRepository = versaoAnotacaoRepository;
         this.usuarioAtualService = usuarioAtualService;
         this.baralhoRepository = baralhoRepository;
     }
 
-    /** Constructor retained for focused service tests. */
     public AnotacaoService(AnotacaoRepository anotacaoRepository, VersaoAnotacaoRepository versaoAnotacaoRepository,
-                           UsuarioAtualService usuarioAtualService) {
+            UsuarioAtualService usuarioAtualService) {
         this(anotacaoRepository, versaoAnotacaoRepository, usuarioAtualService, null);
     }
 
@@ -37,7 +36,8 @@ public class AnotacaoService {
     public List<Anotacao> listar(String busca) {
         var usuarioId = usuarioAtualService.obter().getId();
         if (busca != null && !busca.isBlank()) {
-            return anotacaoRepository.findByUsuarioIdAndTituloContainingIgnoreCaseOrderByAtualizadoEmDesc(usuarioId, busca.trim());
+            return anotacaoRepository.findByUsuarioIdAndTituloContainingIgnoreCaseOrderByAtualizadoEmDesc(usuarioId,
+                    busca.trim());
         }
         return anotacaoRepository.findByUsuarioIdOrderByCriadoEmDesc(usuarioId);
     }
@@ -56,7 +56,8 @@ public class AnotacaoService {
         anotacao.setConteudo(validarTexto(dados.getConteudo(), "Conteudo"));
         var salva = anotacaoRepository.save(anotacao);
         salvarVersao(salva, "ORIGINAL", conteudoOriginal == null
-                ? salva.getConteudo() : validarTexto(conteudoOriginal, "Conteudo original"));
+                ? salva.getConteudo()
+                : validarTexto(conteudoOriginal, "Conteudo original"));
         salvarRevisao(salva, revisaoIa);
         return salva;
     }
@@ -74,7 +75,8 @@ public class AnotacaoService {
     @Transactional
     public void excluir(Long id) {
         var anotacao = buscar(id);
-        if (baralhoRepository != null) baralhoRepository.deleteByAnotacaoId(id);
+        if (baralhoRepository != null)
+            baralhoRepository.deleteByAnotacaoId(id);
         versaoAnotacaoRepository.deleteByAnotacaoId(id);
         anotacaoRepository.delete(anotacao);
     }
@@ -94,7 +96,8 @@ public class AnotacaoService {
     }
 
     private void salvarRevisao(Anotacao anotacao, String conteudo) {
-        if (conteudo == null) return;
+        if (conteudo == null)
+            return;
         if (conteudo.isBlank() || conteudo.length() > 100000) {
             throw new IllegalArgumentException("A revisão deve conter entre 1 e 100.000 caracteres.");
         }

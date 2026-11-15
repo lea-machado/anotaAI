@@ -20,27 +20,52 @@
     grid.hidden = !notes.length;
     empty.hidden = !!notes.length;
     count.textContent = `${notes.length} ${notes.length === 1 ? 'anotação' : 'anotações'}`;
-    grid.innerHTML = notes.map(note => `
-      <article class="note-card">
-        <a class="note-card-link" href="nova-anotacao.html?id=${note.id}">
-          <div class="note-card-top"><h2>${note.titulo}</h2><span class="note-open">Abrir ↗</span></div>
-          <p class="note-preview">${note.conteudo}</p>
-          <div class="note-meta"><span>Atualizada em ${note.atualizadoEm}</span></div>
-        </a>
-        <button
-          class="note-delete"
-          type="button"
-          data-delete-note="${note.id}"
-          data-note-title="${note.titulo}"
-          aria-label="Excluir anotação ${note.titulo}"
-          title="Excluir anotação"
-        >
-          <svg aria-hidden="true" class="simple-svg" viewBox="0 0 24 24">
-            <path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"></path>
-          </svg>
-          <span>Excluir</span>
-        </button>
-      </article>`).join('');
+    grid.replaceChildren();
+    for (const note of notes) {
+      const id = String(note.id ?? '');
+      const titulo = String(note.titulo ?? '');
+      const article = document.createElement('article');
+      article.className = 'note-card';
+      const link = document.createElement('a');
+      link.className = 'note-card-link';
+      link.href = `nova-anotacao.html?id=${encodeURIComponent(id)}`;
+      const top = document.createElement('div');
+      top.className = 'note-card-top';
+      const heading = document.createElement('h2');
+      heading.textContent = titulo;
+      const open = document.createElement('span');
+      open.className = 'note-open';
+      open.textContent = 'Abrir ↗';
+      top.append(heading, open);
+      const preview = document.createElement('p');
+      preview.className = 'note-preview';
+      preview.textContent = String(note.conteudo ?? '');
+      const meta = document.createElement('div');
+      meta.className = 'note-meta';
+      const updated = document.createElement('span');
+      updated.textContent = `Atualizada em ${String(note.atualizadoEm ?? '')}`;
+      meta.append(updated);
+      link.append(top, preview, meta);
+      const button = document.createElement('button');
+      button.className = 'note-delete';
+      button.type = 'button';
+      button.dataset.deleteNote = id;
+      button.dataset.noteTitle = titulo;
+      button.setAttribute('aria-label', `Excluir anotação ${titulo}`);
+      button.title = 'Excluir anotação';
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('class', 'simple-svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5');
+      svg.append(path);
+      const label = document.createElement('span');
+      label.textContent = 'Excluir';
+      button.append(svg, label);
+      article.append(link, button);
+      grid.append(article);
+    }
   }
 
   async function deleteNote(button) {

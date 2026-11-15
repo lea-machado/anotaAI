@@ -11,7 +11,10 @@ import java.util.UUID;
 public interface CodigoAutenticacaoRepository extends MongoRepository<CodigoAutenticacao, Long> {
 
     Optional<CodigoAutenticacao> findByDesafioId(UUID desafioId);
+
     Optional<CodigoAutenticacao> findTopByUsuarioIdOrderByCriadoEmDesc(Long usuarioId);
+
     List<CodigoAutenticacao> findByUsuarioIdAndUsadoEmIsNull(Long usuarioId);
+
     void deleteByUsuarioId(Long usuarioId);
 }

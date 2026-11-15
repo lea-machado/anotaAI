@@ -26,8 +26,7 @@ public class UsuarioService {
             "Ensino Superior Completo",
             "Pós-graduação",
             "Mestrado",
-            "Doutorado"
-    );
+            "Doutorado");
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
@@ -38,6 +37,7 @@ public class UsuarioService {
     }
 
     @Transactional
+
     public Usuario criarUsuarioComum(
             String nome,
             String email,
@@ -46,8 +46,7 @@ public class UsuarioService {
             String escolaridade,
             Boolean aceitouTermos,
             Boolean declarouMaioridade,
-            String versaoTermos
-    ) {
+            String versaoTermos) {
         var nomeValidado = validarNome(nome);
         var emailNormalizado = validarEmail(email);
         validarSenha(senha);
@@ -75,8 +74,9 @@ public class UsuarioService {
     }
 
     @Transactional
+
     public Usuario atualizarPerfil(Usuario usuario, String nome, String email, String escolaridade,
-                                   String senhaAtual, String novaSenha) {
+            String senhaAtual, String novaSenha) {
         var nomeValidado = validarNome(nome);
         var emailNormalizado = validarEmail(email);
         var escolaridadeValidada = validarEscolaridade(escolaridade);
@@ -125,12 +125,64 @@ public class UsuarioService {
     }
 
     public static void validarSenha(String senha) {
-        if (senha == null || senha.length() < 8) {
-            throw new IllegalArgumentException("A senha deve ter pelo menos 8 caracteres.");
+        if (senha == null || senha.codePointCount(0, senha.length()) < 12) {
+            throw senhaFraca();
         }
         if (senha.getBytes(StandardCharsets.UTF_8).length > 72) {
             throw new IllegalArgumentException("A senha deve ter no maximo 72 bytes.");
         }
+        boolean maiuscula = false;
+        boolean minuscula = false;
+        boolean numero = false;
+        boolean simbolo = false;
+        for (int caractere : senha.codePoints().toArray()) {
+            maiuscula |= Character.isUpperCase(caractere);
+            minuscula |= Character.isLowerCase(caractere);
+            numero |= Character.isDigit(caractere);
+            simbolo |= !Character.isLetterOrDigit(caractere) && !Character.isWhitespace(caractere);
+        }
+        if (!maiuscula || !minuscula || !numero || !simbolo || contemSequenciaComum(senha)) {
+            throw senhaFraca();
+        }
+    }
+
+    private static IllegalArgumentException senhaFraca() {
+        return new IllegalArgumentException("Use uma senha com pelo menos 12 caracteres, incluindo letra maiúscula, "
+                + "letra minúscula, número e símbolo. Evite sequências simples e palavras comuns.");
+    }
+
+    private static boolean contemSequenciaComum(String senha) {
+        var normalizada = senha.toLowerCase(Locale.ROOT);
+        if (normalizada.contains("password") || normalizada.contains("senha") || normalizada.contains("admin")) {
+            return true;
+        }
+
+        int[] caracteres = normalizada.codePoints().toArray();
+        int crescente = 1;
+        int decrescente = 1;
+        for (int indice = 1; indice < caracteres.length; indice++) {
+            int anterior = caracteres[indice - 1];
+            int atual = caracteres[indice];
+            boolean alfanumericosAscii = asciiAlfanumerico(anterior) && asciiAlfanumerico(atual);
+            crescente = alfanumericosAscii && atual == anterior + 1 ? crescente + 1 : 1;
+            decrescente = alfanumericosAscii && atual == anterior - 1 ? decrescente + 1 : 1;
+            if (crescente >= 4 || decrescente >= 4)
+                return true;
+        }
+
+        for (String linha : Set.of("qwertyuiop", "asdfghjkl", "zxcvbnm")) {
+            for (int inicio = 0; inicio <= linha.length() - 4; inicio++) {
+                var trecho = linha.substring(inicio, inicio + 4);
+                if (normalizada.contains(trecho)
+                        || normalizada.contains(new StringBuilder(trecho).reverse()))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean asciiAlfanumerico(int caractere) {
+        return caractere >= 'a' && caractere <= 'z' || caractere >= '0' && caractere <= '9';
     }
 
     public String validarEscolaridade(String escolaridade) {

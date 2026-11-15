@@ -26,6 +26,7 @@ public class CadastroController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+
     public Map<String, Object> cadastrar(@RequestBody CadastroRequest dados, HttpServletRequest request) {
         var emailInformado = dados.email() == null ? "" : dados.email().trim().toLowerCase();
         try {
@@ -39,8 +40,7 @@ public class CadastroController {
                     "nome", usuario.getNome(),
                     "email", usuario.getEmail(),
                     "perfil", usuario.getPerfil(),
-                    "mensagem", "Conta criada com sucesso."
-            );
+                    "mensagem", "Conta criada com sucesso.");
         } catch (IllegalArgumentException exception) {
             auditoriaService.registrar(emailInformado, "CADASTRO_USUARIO", "/api/auth/cadastro",
                     false, exception.getMessage(), request);
@@ -56,6 +56,6 @@ public class CadastroController {
             String escolaridade,
             Boolean aceitouTermos,
             Boolean declarouMaioridade,
-            String versaoTermos
-    ) {}
+            String versaoTermos) {
+    }
 }

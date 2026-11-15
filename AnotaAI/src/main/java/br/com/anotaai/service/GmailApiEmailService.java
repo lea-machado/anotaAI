@@ -23,10 +23,10 @@ public class GmailApiEmailService {
     private Instant accessTokenExpiraEm = Instant.EPOCH;
 
     public GmailApiEmailService(RestClient.Builder restClientBuilder,
-                                @Value("${gmail.api.client-id:}") String clientId,
-                                @Value("${gmail.api.client-secret:}") String clientSecret,
-                                @Value("${gmail.api.refresh-token:}") String refreshToken,
-                                @Value("${gmail.api.sender-email:}") String remetente) {
+            @Value("${gmail.api.client-id:}") String clientId,
+            @Value("${gmail.api.client-secret:}") String clientSecret,
+            @Value("${gmail.api.refresh-token:}") String refreshToken,
+            @Value("${gmail.api.sender-email:}") String remetente) {
         this.restClient = restClientBuilder.build();
         this.clientId = clientId;
         this.clientSecret = clientSecret;
@@ -46,16 +46,17 @@ public class GmailApiEmailService {
         validarConfiguracao();
         var html = """
                 <html><body style="font-family:Arial,sans-serif;color:#122838">
-                <h2>Exclusão da conta concluída</h2>
+                <h2>Anonimização da conta concluída</h2>
                 <p>Olá, %s.</p>
-                <p>Conforme solicitado, sua conta AnotaAI e os dados pessoais vinculados foram excluídos.</p>
+                <p>Conforme solicitado, os dados cadastrais da conta foram substituídos por identificadores anônimos e o acesso foi encerrado. O conteúdo de estudo foi preservado.</p>
                 <p>Esta mensagem confirma a conclusão do seu pedido.</p>
                 </body></html>
-                """.formatted(escaparHtml(nome == null ? "estudante" : nome));
+                """
+                .formatted(escaparHtml(nome == null ? "estudante" : nome));
         try {
             var rawMessage = "From: AnotaAI <%s>\r\n".formatted(remetente)
                     + "To: %s\r\n".formatted(destinatario)
-                    + "Subject: Exclusão da conta concluída - AnotaAI\r\n"
+                    + "Subject: Anonimização da conta concluída - AnotaAI\r\n"
                     + "MIME-Version: 1.0\r\n"
                     + "Content-Type: text/html; charset=UTF-8\r\n\r\n"
                     + html;
@@ -71,24 +72,25 @@ public class GmailApiEmailService {
         } catch (ServicoEmailException exception) {
             throw exception;
         } catch (Exception exception) {
-            throw new ServicoEmailException("A conta foi excluída, mas não foi possível enviar a confirmação por e-mail.", exception);
+            throw new ServicoEmailException(
+                    "A conta foi anonimizada, mas não foi possível enviar a confirmação por e-mail.", exception);
         }
     }
 
     public void enviarAvisoPedidoExclusao(String destinatario, String nomeUsuario, String emailUsuario,
-                                         LocalDateTime solicitadaEm) {
+            LocalDateTime solicitadaEm) {
         validarConfiguracao();
         var prazo = solicitadaEm.plusDays(15).toLocalDate().toString();
         var html = """
                 <html><body style="font-family:Arial,sans-serif;color:#122838">
                 <h2>Novo pedido de exclusão de conta</h2>
-                <p>O usuário %s (%s) solicitou a exclusão da conta e dos dados vinculados.</p>
+                <p>O usuário %s (%s) solicitou o encerramento e a anonimização da conta.</p>
                 <p>O acesso já foi suspenso. Conclua o pedido no painel administrativo até %s.</p>
                 <p>O pedido também está disponível no painel administrativo do AnotaAI.</p>
                 </body></html>
                 """.formatted(escaparHtml(nomeUsuario == null ? "Estudante" : nomeUsuario),
                 escaparHtml(emailUsuario), prazo);
-        enviarHtml(destinatario, "Novo pedido de exclusão - AnotaAI", html);
+        enviarHtml(destinatario, "Novo pedido de anonimização - AnotaAI", html);
     }
 
     private void enviarHtml(String destinatario, String assunto, String html) {
@@ -115,7 +117,8 @@ public class GmailApiEmailService {
         }
     }
 
-    private void enviarCodigo(String destinatario, String nome, String codigo, int minutosValidade, boolean recuperacao) {
+    private void enviarCodigo(String destinatario, String nome, String codigo, int minutosValidade,
+            boolean recuperacao) {
         validarConfiguracao();
         try {
             var mensagem = montarMensagem(destinatario, nome, codigo, minutosValidade);
@@ -205,5 +208,6 @@ public class GmailApiEmailService {
         }
     }
 
-    private record TokenResponse(String access_token, long expires_in) {}
+    private record TokenResponse(String access_token, long expires_in) {
+    }
 }

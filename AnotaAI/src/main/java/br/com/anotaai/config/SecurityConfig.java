@@ -24,30 +24,32 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/pages/login.html", "/pages/cadastro.html", "/pages/termos.html", "/pages/privacidade.html",
+                                "/pages/login.html", "/pages/cadastro.html",
+                                "/pages/privacidade.html",
                                 "/css/**", "/assets/**", "/js/login.js", "/js/cadastro.js", "/js/termos.js",
-                                "/api/auth/login", "/api/auth/2fa/verify", "/api/auth/cadastro", "/api/auth/csrf", "/error",
+                                "/api/auth/login", "/api/auth/2fa/verify", "/api/auth/cadastro", "/api/auth/csrf",
+                                "/error",
                                 "/api/auth/recuperacao/solicitar", "/api/auth/recuperacao/redefinir",
-                                "/pages/recuperar-senha.html", "/js/recuperar-senha.js"
-                        ).permitAll()
+                                "/pages/recuperar-senha.html", "/js/recuperar-senha.js")
+                        .permitAll()
                         .requestMatchers("/pages/admin.html", "/api/admin/**").access((authentication, context) -> {
                             var autenticacao = authentication.get();
                             var autorizado = autenticacao != null && autenticacao.isAuthenticated()
                                     && usuarioRepository.findByEmailIgnoreCase(autenticacao.getName())
-                                    .map(usuario -> usuario.isAtivo() && "ADMIN".equals(usuario.getPerfil()))
-                                    .orElse(false);
+                                            .map(usuario -> usuario.isAtivo() && "ADMIN".equals(usuario.getPerfil()))
+                                            .orElse(false);
                             return new AuthorizationDecision(autorizado);
                         })
                         .anyRequest().access((authentication, context) -> {
                             var autenticacao = authentication.get();
                             var ativo = autenticacao != null && autenticacao.isAuthenticated()
                                     && usuarioRepository.findByEmailIgnoreCase(autenticacao.getName())
-                                    .map(usuario -> usuario.isAtivo()
-                                            && ("USER".equals(usuario.getPerfil()) || "ADMIN".equals(usuario.getPerfil())))
-                                    .orElse(false);
+                                            .map(usuario -> usuario.isAtivo()
+                                                    && ("USER".equals(usuario.getPerfil())
+                                                            || "ADMIN".equals(usuario.getPerfil())))
+                                            .orElse(false);
                             return new AuthorizationDecision(ativo);
-                        })
-                )
+                        }))
                 .csrf(csrf -> csrf.csrfTokenRepository(csrfRepository))
                 .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint((request, response, exception) -> {
                     if (request.getRequestURI().startsWith("/api/")) {

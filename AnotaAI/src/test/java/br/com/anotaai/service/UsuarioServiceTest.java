@@ -46,16 +46,15 @@ class UsuarioServiceTest {
     @Test
     void exigeDeclaracaoDeMaioridade() {
         assertThrows(IllegalArgumentException.class, () -> usuarioService.criarUsuarioComum(
-                "Pessoa Adulta", "adulta@example.com", "senha1234", LocalDate.now().minusYears(20),
+                "Pessoa Adulta", "adulta@example.com", "Conta!Forte2026", LocalDate.now().minusYears(20),
                 "Ensino Superior Incompleto", true, false, UsuarioService.VERSAO_ATUAL_TERMOS));
         verifyNoInteractions(usuarioRepository);
     }
 
-
     @Test
     void exigeEscolaridade() {
         assertThrows(IllegalArgumentException.class, () -> usuarioService.criarUsuarioComum(
-                "Pessoa Adulta", "adulta@example.com", "senha1234", LocalDate.now().minusYears(20),
+                "Pessoa Adulta", "adulta@example.com", "Conta!Forte2026", LocalDate.now().minusYears(20),
                 "", true, true, UsuarioService.VERSAO_ATUAL_TERMOS));
         verifyNoInteractions(usuarioRepository);
     }
@@ -71,7 +70,7 @@ class UsuarioServiceTest {
 
     private Usuario cadastrar(LocalDate dataNascimento) {
         return usuarioService.criarUsuarioComum(
-                "Pessoa Adulta", "adulta@example.com", "senha1234", dataNascimento,
+                "Pessoa Adulta", "adulta@example.com", "Conta!Forte2026", dataNascimento,
                 "Ensino Superior Incompleto", true, true, UsuarioService.VERSAO_ATUAL_TERMOS);
     }
 }

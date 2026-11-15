@@ -36,19 +36,63 @@ public class CodigoRecuperacao {
 
     private LocalDateTime criadoEm;
 
-    public Long getId() { return id; }
-    public UUID getDesafioId() { return desafioId; }
-    public void setDesafioId(UUID desafioId) { this.desafioId = desafioId; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    public String getCodigoHash() { return codigoHash; }
-    public void setCodigoHash(String codigoHash) { this.codigoHash = codigoHash; }
-    public int getTentativas() { return tentativas; }
-    public void setTentativas(int tentativas) { this.tentativas = tentativas; }
-    public LocalDateTime getExpiraEm() { return expiraEm; }
-    public void setExpiraEm(LocalDateTime expiraEm) { this.expiraEm = expiraEm; }
-    public LocalDateTime getUsadoEm() { return usadoEm; }
-    public void setUsadoEm(LocalDateTime usadoEm) { this.usadoEm = usadoEm; }
-    public LocalDateTime getCriadoEm() { return criadoEm; }
-    public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
+    public Long getId() {
+        return id;
+    }
+
+    public UUID getDesafioId() {
+        return desafioId;
+    }
+
+    public void setDesafioId(UUID desafioId) {
+        this.desafioId = desafioId;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
+
+    public String getCodigoHash() {
+        return codigoHash;
+    }
+
+    public void setCodigoHash(String codigoHash) {
+        this.codigoHash = codigoHash;
+    }
+
+    public int getTentativas() {
+        return tentativas;
+    }
+
+    public void setTentativas(int tentativas) {
+        this.tentativas = tentativas;
+    }
+
+    public LocalDateTime getExpiraEm() {
+        return expiraEm;
+    }
+
+    public void setExpiraEm(LocalDateTime expiraEm) {
+        this.expiraEm = expiraEm;
+    }
+
+    public LocalDateTime getUsadoEm() {
+        return usadoEm;
+    }
+
+    public void setUsadoEm(LocalDateTime usadoEm) {
+        this.usadoEm = usadoEm;
+    }
+
+    public LocalDateTime getCriadoEm() {
+        return criadoEm;
+    }
+
+    public void setCriadoEm(LocalDateTime criadoEm) {
+        this.criadoEm = criadoEm;
+    }
 }

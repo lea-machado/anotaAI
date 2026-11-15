@@ -13,11 +13,31 @@ public class RegistroUsoIa {
     private String funcionalidade;
     private LocalDateTime criadoEm;
 
-    public Long getId() { return id; }
-    public Long getUsuarioId() { return usuarioId; }
-    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
-    public String getFuncionalidade() { return funcionalidade; }
-    public void setFuncionalidade(String funcionalidade) { this.funcionalidade = funcionalidade; }
-    public LocalDateTime getCriadoEm() { return criadoEm; }
-    public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
+    public Long getId() {
+        return id;
+    }
+
+    public Long getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(Long usuarioId) {
+        this.usuarioId = usuarioId;
+    }
+
+    public String getFuncionalidade() {
+        return funcionalidade;
+    }
+
+    public void setFuncionalidade(String funcionalidade) {
+        this.funcionalidade = funcionalidade;
+    }
+
+    public LocalDateTime getCriadoEm() {
+        return criadoEm;
+    }
+
+    public void setCriadoEm(LocalDateTime criadoEm) {
+        this.criadoEm = criadoEm;
+    }
 }

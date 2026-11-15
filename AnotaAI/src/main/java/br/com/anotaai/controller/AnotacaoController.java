@@ -58,6 +58,7 @@ public class AnotacaoController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+
     public void excluir(@PathVariable Long id) {
         anotacaoService.excluir(id);
     }
@@ -69,8 +70,7 @@ public class AnotacaoController {
                         "id", versao.getId(),
                         "tipo", versao.getTipo(),
                         "conteudo", versao.getConteudo(),
-                        "criadoEm", versao.getCriadoEm()
-                ))
+                        "criadoEm", versao.getCriadoEm()))
                 .toList();
     }
 }

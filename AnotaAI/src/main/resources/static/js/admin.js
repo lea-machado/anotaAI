@@ -3,6 +3,12 @@
   const feedback = document.getElementById('admin-feedback');
   const deletionFeedback = document.getElementById('deletion-feedback');
   const deletionRequestsBody = document.getElementById('deletion-requests-body');
+  const confirmationModal = document.getElementById('admin-confirm-modal');
+  const confirmationTitle = document.getElementById('admin-confirm-title');
+  const confirmationMessage = document.getElementById('admin-confirm-message');
+  const confirmationCancel = document.getElementById('admin-confirm-cancel');
+  const confirmationAccept = document.getElementById('admin-confirm-accept');
+  let finishConfirmation = null;
   let currentUser;
   let allUsers = [];
   let allAudit = [];
@@ -22,6 +28,21 @@
     usersBody.addEventListener('change', alterarPerfil);
     usersBody.addEventListener('click', executarAcao);
     deletionRequestsBody.addEventListener('click', concluirPedidoExclusao);
+    confirmationCancel.addEventListener('click', () => closeConfirmation(false));
+    confirmationAccept.addEventListener('click', () => closeConfirmation(true));
+    confirmationModal.addEventListener('click', event => {
+      if (event.target === confirmationModal) closeConfirmation(false);
+    });
+    document.addEventListener('keydown', event => {
+      if (confirmationModal.hidden) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeConfirmation(false);
+      } else if (event.key === 'Tab') {
+        event.preventDefault();
+        (document.activeElement === confirmationCancel ? confirmationAccept : confirmationCancel).focus();
+      }
+    });
     ['dashboard-period', 'dashboard-start', 'dashboard-end', 'users-search', 'users-role-filter', 'users-status-filter', 'audit-search', 'audit-status-filter'].forEach(id => {
       document.getElementById(id).addEventListener('input', applyFilters);
       document.getElementById(id).addEventListener('change', applyFilters);
@@ -31,6 +52,23 @@
   } catch (error) {
     document.getElementById('admin-content').innerHTML = `<p class="admin-error">${escapeHtml(error.message)}</p>`;
   }
+
+  function showConfirmation(title, message, acceptLabel) {
+    confirmationTitle.textContent = title;
+    confirmationMessage.textContent = message;
+    confirmationAccept.textContent = acceptLabel;
+    App.openModal('admin-confirm-modal');
+    requestAnimationFrame(() => confirmationCancel.focus());
+    return new Promise(resolve => { finishConfirmation = resolve; });
+  }
+
+  function closeConfirmation(confirmed) {
+    if (!finishConfirmation) return;
+    const resolve = finishConfirmation;
+    finishConfirmation = null;
+    App.closeModal(confirmationModal);
+    resolve(confirmed);
+  }      
 
   async function refreshDashboard() {
     const button = document.getElementById('dashboard-refresh');
@@ -54,10 +92,10 @@
     document.getElementById('empty-deletion-requests').hidden = requests.length > 0;
     deletionRequestsBody.innerHTML = requests.map(request => `
       <tr>
-        <td>${new Date(request.solicitadaEm).toLocaleString('pt-BR')}<br><small>${deletionDeadline(request.solicitadaEm)}</small></td>
+        <td>${request.solicitadaEm ? new Date(request.solicitadaEm).toLocaleString('pt-BR') : '—'}<br><small>${request.solicitadaEm ? deletionDeadline(request.solicitadaEm) : 'Data não informada'}</small></td>
         <td>${escapeHtml(request.nome)}</td>
         <td>${escapeHtml(request.email)}</td>
-        <td><button class="admin-action danger" data-deletion-request="${request.id}" data-user-id="${request.usuarioId}">Excluir conta e dados</button></td>
+        <td><button class="admin-action danger" data-deletion-request="${request.id}" data-user-id="${request.usuarioId}">Anonimizar conta</button></td>
       </tr>`).join('');
   }
 
@@ -74,7 +112,12 @@
   async function concluirPedidoExclusao(event) {
     const button = event.target.closest('[data-deletion-request]');
     if (!button || button.disabled) return;
-    if (!window.confirm('Excluir permanentemente a conta e todos os dados vinculados a este pedido? Esta ação não pode ser desfeita.')) return;
+    const confirmed = await showConfirmation(
+      'Anonimizar esta conta?',
+      'Os dados cadastrais serão substituídos, o acesso será encerrado e o conteúdo de estudo será preservado.',
+      'Anonimizar conta'
+    );
+    if (!confirmed) return;
     button.disabled = true;
     try {
       const result = await Api.completeAdminDeletionRequest(button.dataset.deletionRequest);
@@ -132,6 +175,7 @@
       if (!summaryCache.has(cacheKey)) summaryCache.set(cacheKey, await Api.getAdminSummary(query));
       const summary = summaryCache.get(cacheKey);
       renderDashboard(summary);
+                                                                                   
       const matchesPeriod = date => {
         if (!start && !end) return true;
         if (!date) return false;
@@ -218,7 +262,14 @@
     const button = event.target.closest('[data-user-action]');
     if (!button || button.disabled) return;
     const id = button.dataset.userId;
-    if (button.dataset.userAction === 'delete' && !window.confirm('Excluir este usuário e todos os dados vinculados? Essa ação não pode ser desfeita.')) return;
+    if (button.dataset.userAction === 'delete') {
+      const confirmed = await showConfirmation(
+        'Anonimizar esta conta?',
+        'Os dados cadastrais serão substituídos, o acesso será encerrado e o conteúdo de estudo será preservado.',
+        'Anonimizar conta'
+      );
+      if (!confirmed) return;
+    }
     button.disabled = true;
     try {
       const result = button.dataset.userAction === 'delete'
@@ -234,24 +285,25 @@
 
   function userRow(user, currentUserId) {
     const isCurrentUser = user.id === currentUserId;
+    const anonymized = user.anonimizado === true;
     const ativo = user.ativo !== false;
     return `
       <tr>
-        <td>${escapeHtml(user.nome)}${isCurrentUser ? '<span class="current-user-label">Você</span>' : ''}</td>
+        <td>${escapeHtml(user.nome)}${isCurrentUser ? '<span class="current-user-label">Você</span>' : ''}${anonymized ? '<span class="current-user-label">Anonimizado</span>' : ''}</td>
         <td>${escapeHtml(user.email)}</td>
         <td>
           <select class="role-select" data-current-role="${user.perfil}" data-role-select data-user-id="${user.id}"
-                  aria-label="Perfil de ${escapeHtml(user.nome)}" ${isCurrentUser ? 'disabled title="Seu próprio perfil não pode ser alterado"' : ''}>
+                  aria-label="Perfil de ${escapeHtml(user.nome)}" ${isCurrentUser || anonymized ? 'disabled title="Conta anonimizada"' : ''}>
             <option value="USER" ${user.perfil === 'USER' ? 'selected' : ''}>Usuário</option>
             <option value="ADMIN" ${user.perfil === 'ADMIN' ? 'selected' : ''}>Administrador</option>
           </select>
         </td>
-        <td><span class="status-badge ${user.pedidoExclusao ? 'failure' : (ativo ? 'success' : 'failure')}">${user.pedidoExclusao ? 'Exclusão pendente' : (ativo ? 'Ativo' : 'Desativado')}</span></td>
+        <td><span class="status-badge ${user.pedidoExclusao || anonymized ? 'failure' : (ativo ? 'success' : 'failure')}">${anonymized ? 'Anonimizado' : (user.pedidoExclusao ? 'Pedido pendente' : (ativo ? 'Ativo' : 'Desativado'))}</span></td>
         <td>${user.anotacoes}</td>
-        <td>${new Date(user.criadoEm).toLocaleDateString('pt-BR')}</td>
+        <td>${user.criadoEm ? new Date(user.criadoEm).toLocaleDateString('pt-BR') : '—'}</td>
         <td class="admin-actions">
-          <button class="admin-action" data-user-action="status" data-user-id="${user.id}" ${isCurrentUser || user.pedidoExclusao ? 'disabled' : ''}>${user.pedidoExclusao ? 'Aguardando exclusão' : (ativo ? 'Desativar' : 'Ativar')}</button>
-          <button class="admin-action danger" data-user-action="delete" data-user-id="${user.id}" ${isCurrentUser || !user.pedidoExclusao ? 'disabled' : ''}>${user.pedidoExclusao ? 'Excluir' : 'Sem pedido'}</button>
+          <button class="admin-action" data-user-action="status" data-user-id="${user.id}" ${isCurrentUser || user.pedidoExclusao || anonymized ? 'disabled' : ''}>${anonymized ? 'Conta encerrada' : (user.pedidoExclusao ? 'Aguardando anonimização' : (ativo ? 'Desativar' : 'Ativar'))}</button>
+          <button class="admin-action danger" data-user-action="delete" data-user-id="${user.id}" ${isCurrentUser || !user.pedidoExclusao ? 'disabled' : ''}>${user.pedidoExclusao ? 'Anonimizar' : 'Sem pedido'}</button>
         </td>
       </tr>`;
   }

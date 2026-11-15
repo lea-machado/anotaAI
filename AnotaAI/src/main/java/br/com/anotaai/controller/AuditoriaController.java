@@ -28,8 +28,7 @@ public class AuditoriaController {
                         "acao", registro.getAcao(),
                         "recurso", registro.getRecurso(),
                         "sucesso", registro.isSucesso(),
-                        "criadoEm", registro.getCriadoEm()
-                ))
+                        "criadoEm", registro.getCriadoEm()))
                 .toList();
     }
 }

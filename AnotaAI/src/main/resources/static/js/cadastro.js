@@ -68,7 +68,7 @@
       button.disabled = false;
       button.textContent = 'Criar conta';
     }
-  });
+  });                                                                                               
 
   function showFeedback(message) {
     feedback.textContent = message;

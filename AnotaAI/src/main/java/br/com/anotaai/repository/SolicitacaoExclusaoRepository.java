@@ -8,5 +8,6 @@ import java.util.Optional;
 
 public interface SolicitacaoExclusaoRepository extends MongoRepository<SolicitacaoExclusao, Long> {
     List<SolicitacaoExclusao> findAllByOrderBySolicitadaEmAsc();
+
     Optional<SolicitacaoExclusao> findByUsuarioId(Long usuarioId);
 }

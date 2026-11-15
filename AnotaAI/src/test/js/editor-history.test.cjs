@@ -14,7 +14,7 @@ async function editor(versions = [], search = '') {
         classList: { add: c => classes.add(c), remove: c => classes.delete(c), contains: c => classes.has(c) },
         addEventListener(name, fn) { const previous = this.events[name]; this.events[name] = (...args) => { if (previous) previous(...args); return fn(...args); }; },
         querySelector() { return element(id + '-small'); },
-        setAttribute() {}, scrollIntoView() {} });
+        setAttribute() {}, scrollIntoView() {}, replaceChildren() {}, append() {} });
     }
     return elements.get(id);
   }
@@ -25,6 +25,7 @@ async function editor(versions = [], search = '') {
   const api = {
     getNote: async () => ({ titulo: 'Título', conteudo: 'Original salvo' }),
     getVersions: async () => versions,
+    checkNoteInconsistencies: async () => ({ sugestoes: [], fontes: [] }),
     generateStudyMaterial: async () => ({ resumo: 'Resumo gerado pela IA' }),
     createNote: async payload => { saves.push(payload); return { id: 42, ...payload }; },
     updateNote: async (id, payload) => { saves.push(payload); return { id, ...payload }; }
@@ -39,26 +40,29 @@ async function editor(versions = [], search = '') {
   return { element, api, saves, click: id => element(id).events.click() };
 }
 
-test('mostra a revisão gerada, mantém seleção ao reabrir e salva sem trocar o original', async () => {
+test('a sugestão exige aprovação e preserva o conteúdo original no histórico', async () => {
   const e = await editor();
   e.element('note-title').value = 'Título';
   e.element('note-content').value = 'Meu texto';
   await e.click('generate-summary');
+  assert.equal(e.element('note-content').value, 'Meu texto');
+  assert.equal(e.element('summary-text').textContent, 'Resumo gerado pela IA');
+  assert.equal(e.saves[0].conteudo, 'Meu texto');
+  await e.click('approve-summary');
   assert.equal(e.element('note-content').value, 'Resumo gerado pela IA');
   await e.click('versions');
   await e.click('original');
   assert.equal(e.element('drawer-preview-text').textContent, 'Meu texto');
-  await e.click('versions');
   await e.click('revisada');
   assert.equal(e.element('drawer-preview-text').textContent, 'Resumo gerado pela IA');
   await e.click('versions');
   assert.equal(e.element('drawer-preview-text').textContent, 'Resumo gerado pela IA');
   await e.click('save-note');
-  assert.equal(e.saves[0].conteudo, 'Resumo gerado pela IA');
-  assert.equal(e.saves[0].conteudoOriginal, 'Meu texto');
-  assert.equal(e.saves[0].revisaoIa, 'Resumo gerado pela IA');
+  assert.equal(e.saves[1].conteudo, 'Resumo gerado pela IA');
+  assert.equal(e.saves[1].conteudoOriginal, 'Meu texto');
+  assert.equal(e.saves[1].revisaoIa, 'Resumo gerado pela IA');
   await e.click('save-note');
-  assert.equal(e.saves[1].revisaoIa, null);
+  assert.equal(e.saves.length, 2);
 });
 
 test('ao reabrir a anotação, exibe a última revisão salva no histórico', async () => {
@@ -76,10 +80,13 @@ test('ao reabrir a anotação, exibe a última revisão salva no histórico', as
 
 test('não associa uma resposta que chegou depois de o texto ter sido editado', async () => {
   const e = await editor();
+  e.element('note-title').value = 'Título';
   e.element('note-content').value = 'Texto antes';
   let resolve;
   e.api.generateStudyMaterial = () => new Promise(r => { resolve = r; });
   const pending = e.click('generate-summary');
+  for (let i = 0; i < 5 && !resolve; i++) await new Promise(setImmediate);
+  assert.equal(typeof resolve, 'function');
   e.element('note-content').value = 'Texto depois';
   e.element('note-content').events.input();
   resolve({ resumo: 'Revisão do texto antigo' });

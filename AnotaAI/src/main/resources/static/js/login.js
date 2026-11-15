@@ -13,7 +13,7 @@
     const current = await fetch('/api/auth/me', { credentials: 'same-origin' });
     if (current.ok) redirectAuthenticated(await current.json());
   } catch (_) {
-    // A tela permanece disponivel enquanto o servidor inicia.
+                            
   }
 
   const params = new URLSearchParams(location.search);
@@ -106,6 +106,7 @@
   function startCountdown(totalSeconds) {
     const expiration = document.getElementById('code-expiration');
     let remaining = totalSeconds;
+                                                                          
     const render = () => {
       const minutes = Math.floor(remaining / 60);
       const seconds = String(remaining % 60).padStart(2, '0');

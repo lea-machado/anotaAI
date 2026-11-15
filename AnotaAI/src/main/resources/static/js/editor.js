@@ -254,7 +254,7 @@
     document.getElementById('fact-check-result').hidden = true;
     document.getElementById('fact-check-result').classList.remove('verification-failed');
     await generate('resumo', { skipFactCheck: true, conteudo: conteudo ?? undefined });
-  }
+  }                                                                                                    
 
   function renderFactCheck(suggestions, sources) {
     const list = document.getElementById('fact-check-list');
@@ -290,7 +290,7 @@
         const item = document.createElement('li');
         item.append(link);
         sourceList.append(item);
-      } catch (_) { /* Ignora referências sem URL válida. */ }
+      } catch (_) {                                          }
     });
   }
 

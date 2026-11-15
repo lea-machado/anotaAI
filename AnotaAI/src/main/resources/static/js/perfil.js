@@ -63,7 +63,7 @@
       try {
         renderAudit(await Api.getAudit());
       } catch (_) {
-        // A atualização do perfil já foi concluída; a auditoria é apenas complementar.
+                                                                                       
       }
     } catch (error) {
       feedback.textContent = error.message;
@@ -86,7 +86,7 @@
   function iniciais(nome) {
     const partes = (nome || 'EA').trim().split(/\s+/).filter(Boolean);
     return partes.slice(0, 2).map(parte => parte[0]).join('').toUpperCase() || 'EA';
-  }
+  }                                                                                                  
 
   function renderAudit(audit) {
     auditList.innerHTML = audit.length ? audit.map(item => `
@@ -98,7 +98,7 @@
 
   function formatAction(action) {
     return action.toLowerCase().replaceAll('_', ' ').replace(/^./, value => value.toUpperCase());
-  }
+  }                                                                                                      
 
   function addAdminNavigation() {
     const navigation = document.querySelector('.sidebar-nav');

@@ -16,14 +16,15 @@ public class SolicitacaoExclusaoService {
     private final AuditoriaService auditoriaService;
 
     public SolicitacaoExclusaoService(SolicitacaoExclusaoRepository solicitacaoRepository,
-                                     UsuarioRepository usuarioRepository,
-                                     AuditoriaService auditoriaService) {
+            UsuarioRepository usuarioRepository,
+            AuditoriaService auditoriaService) {
         this.solicitacaoRepository = solicitacaoRepository;
         this.usuarioRepository = usuarioRepository;
         this.auditoriaService = auditoriaService;
     }
 
     @Transactional
+
     public SolicitacaoExclusao solicitar(Usuario usuario, jakarta.servlet.http.HttpServletRequest request) {
         if (solicitacaoRepository.findByUsuarioId(usuario.getId()).isPresent()) {
             throw new IllegalStateException("Já existe um pedido de exclusão para esta conta.");

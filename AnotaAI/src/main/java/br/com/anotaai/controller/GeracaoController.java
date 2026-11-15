@@ -1,6 +1,6 @@
 package br.com.anotaai.controller;
 
-import br.com.anotaai.service.GeminiService;
+import br.com.anotaai.service.OpenRouterService;
 import br.com.anotaai.service.RegistroUsoIaService;
 import br.com.anotaai.service.AnotacaoService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -9,17 +9,19 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/anotacoes/gerar")
 public class GeracaoController {
-    private final GeminiService gemini;
+    private final OpenRouterService openRouter;
     private final RegistroUsoIaService usoIa;
     private final AnotacaoService anotacaoService;
 
-    public GeracaoController(GeminiService gemini, RegistroUsoIaService usoIa, AnotacaoService anotacaoService) {
-        this.gemini = gemini;
+    public GeracaoController(OpenRouterService openRouter, RegistroUsoIaService usoIa,
+            AnotacaoService anotacaoService) {
+        this.openRouter = openRouter;
         this.usoIa = usoIa;
         this.anotacaoService = anotacaoService;
     }
 
-    public record Pedido(Long anotacaoId, Integer quantidade, String conteudo) {}
+    public record Pedido(Long anotacaoId, Integer quantidade, String conteudo) {
+    }
 
     @PostMapping("/{tipo}")
     public JsonNode gerar(@PathVariable String tipo, @RequestBody Pedido pedido) {
@@ -32,7 +34,7 @@ public class GeracaoController {
         }
         var conteudoBase = pedido.conteudo() == null ? anotacao.getConteudo() : pedido.conteudo();
         var somenteTituloEConteudo = "Título: " + anotacao.getTitulo() + "\n\nConteúdo:\n" + conteudoBase;
-        var resultado = gemini.gerar(somenteTituloEConteudo, tipo, pedido.quantidade());
+        var resultado = openRouter.gerar(somenteTituloEConteudo, tipo, pedido.quantidade());
         usoIa.registrar(tipo);
         return resultado;
     }
@@ -43,7 +45,7 @@ public class GeracaoController {
             throw new IllegalArgumentException("Salve a anotação antes de solicitar a verificação.");
         }
         var anotacao = anotacaoService.buscar(pedido.anotacaoId());
-        var resultado = gemini.verificarInconsistencias(anotacao.getTitulo(), anotacao.getConteudo());
+        var resultado = openRouter.verificarInconsistencias(anotacao.getTitulo(), anotacao.getConteudo());
         usoIa.registrar("inconsistencias");
         return resultado;
     }

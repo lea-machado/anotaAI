@@ -7,7 +7,11 @@ import java.util.Optional;
 
 public interface UsuarioRepository extends MongoRepository<Usuario, Long> {
 
-    default Optional<Usuario> buscarParaRecuperacao(String email) { return findByEmailIgnoreCase(email); }
+    default Optional<Usuario> buscarParaRecuperacao(String email) {
+        return findByEmailIgnoreCase(email);
+    }
+
     Optional<Usuario> findByEmailIgnoreCase(String email);
+
     boolean existsByEmailIgnoreCase(String email);
 }

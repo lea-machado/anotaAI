@@ -12,15 +12,17 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
-    @ExceptionHandler({org.springframework.dao.OptimisticLockingFailureException.class,
-            org.springframework.dao.DuplicateKeyException.class})
+    @ExceptionHandler({ org.springframework.dao.OptimisticLockingFailureException.class,
+            org.springframework.dao.DuplicateKeyException.class })
     @ResponseStatus(HttpStatus.CONFLICT)
     Map<String, Object> conflito() {
-        return erro("Os dados foram alterados em outra solicitação ou já estão cadastrados. Atualize a página e tente novamente.");
+        return erro(
+                "Os dados foram alterados em outra solicitação ou já estão cadastrados. Atualize a página e tente novamente.");
     }
-    @ExceptionHandler(br.com.anotaai.service.GeminiException.class)
+
+    @ExceptionHandler(br.com.anotaai.service.OpenRouterException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
-    Map<String, Object> geminiIndisponivel(br.com.anotaai.service.GeminiException exception) {
+    Map<String, Object> openRouterIndisponivel(br.com.anotaai.service.OpenRouterException exception) {
         return erro(exception.getMessage());
     }
 

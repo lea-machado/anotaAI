@@ -48,7 +48,13 @@
     registerFlashcardResult: (id, indice, correto) => request(`/flashcards/${id}/cartoes/${indice}/resultado`, {
       method: 'POST', body: JSON.stringify({ correto })
     }),
-    reviewFlashcardErrors: anotacaoId => request(`/flashcards/revisao-erros${anotacaoId ? `?anotacaoId=${encodeURIComponent(anotacaoId)}` : ''}`),
+    reviewFlashcardErrors: (anotacaoId, baralhoId) => {
+      const params = new URLSearchParams();
+      if (anotacaoId) params.set('anotacaoId', anotacaoId);
+      if (baralhoId) params.set('baralhoId', baralhoId);
+      const query = params.toString();
+      return request(`/flashcards/revisao-erros${query ? `?${query}` : ''}`);
+    },
     listNotes: busca => request(`/anotacoes${busca ? `?busca=${encodeURIComponent(busca)}` : ''}`),
     getNote: id => request(`/anotacoes/${id}`),
     createNote: data => request('/anotacoes', { method: 'POST', body: JSON.stringify(data) }),

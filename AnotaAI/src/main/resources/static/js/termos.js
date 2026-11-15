@@ -10,7 +10,7 @@
   const checkbox = document.getElementById('accept-terms');
   const adultCheckbox = document.getElementById('confirm-adult');
   const continueButton = document.getElementById('continue-registration');
-
+                                                                     
   const updateButton = () => {
     continueButton.disabled = !checkbox.checked || !adultCheckbox.checked;
   };

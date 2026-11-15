@@ -17,6 +17,7 @@ public class DesempenhoController {
     }
 
     @GetMapping
+
     public Map<String, Object> obter() {
         return desempenhoService.obter();
     }

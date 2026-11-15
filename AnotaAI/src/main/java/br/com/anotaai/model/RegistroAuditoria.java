@@ -18,7 +18,6 @@ public class RegistroAuditoria {
     private Long versao;
 
     @DBRef
-
     private Usuario usuario;
 
     private String email;
@@ -37,23 +36,79 @@ public class RegistroAuditoria {
 
     private LocalDateTime criadoEm;
 
-    public Long getId() { return id; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getAcao() { return acao; }
-    public void setAcao(String acao) { this.acao = acao; }
-    public String getRecurso() { return recurso; }
-    public void setRecurso(String recurso) { this.recurso = recurso; }
-    public boolean isSucesso() { return sucesso; }
-    public void setSucesso(boolean sucesso) { this.sucesso = sucesso; }
-    public String getDetalhes() { return detalhes; }
-    public void setDetalhes(String detalhes) { this.detalhes = detalhes; }
-    public String getEnderecoIp() { return enderecoIp; }
-    public void setEnderecoIp(String enderecoIp) { this.enderecoIp = enderecoIp; }
-    public String getUserAgent() { return userAgent; }
-    public void setUserAgent(String userAgent) { this.userAgent = userAgent; }
-    public LocalDateTime getCriadoEm() { return criadoEm; }
-    public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
+    public Long getId() {
+        return id;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getAcao() {
+        return acao;
+    }
+
+    public void setAcao(String acao) {
+        this.acao = acao;
+    }
+
+    public String getRecurso() {
+        return recurso;
+    }
+
+    public void setRecurso(String recurso) {
+        this.recurso = recurso;
+    }
+
+    public boolean isSucesso() {
+        return sucesso;
+    }
+
+    public void setSucesso(boolean sucesso) {
+        this.sucesso = sucesso;
+    }
+
+    public String getDetalhes() {
+        return detalhes;
+    }
+
+    public void setDetalhes(String detalhes) {
+        this.detalhes = detalhes;
+    }
+
+    public String getEnderecoIp() {
+        return enderecoIp;
+    }
+
+    public void setEnderecoIp(String enderecoIp) {
+        this.enderecoIp = enderecoIp;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
+    public LocalDateTime getCriadoEm() {
+        return criadoEm;
+    }
+
+    public void setCriadoEm(LocalDateTime criadoEm) {
+        this.criadoEm = criadoEm;
+    }
 }

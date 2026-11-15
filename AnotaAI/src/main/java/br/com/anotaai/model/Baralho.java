@@ -31,13 +31,40 @@ public class Baralho {
     private LocalDateTime criadoEm;
 
     private List<Flashcard> flashcards = new ArrayList<>();
-    public Long getId() { return id; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    public String getTitulo() { return titulo; }
-    public void setTitulo(String titulo) { this.titulo = titulo; }
-    public Long getAnotacaoId() { return anotacaoId; }
-    public void setAnotacaoId(Long anotacaoId) { this.anotacaoId = anotacaoId; }
-    public LocalDateTime getCriadoEm() { return criadoEm; }
-    public List<Flashcard> getFlashcards() { return flashcards; }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
+
+    public String getTitulo() {
+        return titulo;
+    }
+
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
+    }
+
+    public Long getAnotacaoId() {
+        return anotacaoId;
+    }
+
+    public void setAnotacaoId(Long anotacaoId) {
+        this.anotacaoId = anotacaoId;
+    }
+
+    public LocalDateTime getCriadoEm() {
+        return criadoEm;
+    }
+
+    public List<Flashcard> getFlashcards() {
+        return flashcards;
+    }
 }

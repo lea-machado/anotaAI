@@ -56,7 +56,7 @@ class AdminSegurancaIntegracaoTest {
 
         private void cadastrar(String email) throws Exception {
                 String dados = """
-                                {"nome":"Usuario","email":"%s","senha":"senha1234",
+                                {"nome":"Usuario","email":"%s","senha":"Conta!Forte2026",
                                 "dataNascimento":"2000-09-10","escolaridade":"Ensino Superior Incompleto",
                                 "aceitouTermos":true,"declarouMaioridade":true,"versaoTermos":"2026-09-25"}
                                 """.formatted(email);
@@ -67,7 +67,7 @@ class AdminSegurancaIntegracaoTest {
 
         private HttpSession autenticar(String email) throws Exception {
                 String dados = """
-                                {"email":"%s","senha":"senha1234"}
+                                {"email":"%s","senha":"Conta!Forte2026"}
                                 """.formatted(email);
                 var login = mockMvc.perform(post("/api/auth/login").with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON).content(dados))
@@ -136,7 +136,8 @@ class AdminSegurancaIntegracaoTest {
                                 .andExpect(jsonPath("$.perfil").value("ADMIN"))
                                 .andExpect(jsonPath("$.mensagem").value("Perfil atualizado com sucesso."));
 
-                org.assertj.core.api.Assertions.assertThat(usuarioRepository.findById(usuario.getId()).orElseThrow().getPerfil())
+                org.assertj.core.api.Assertions
+                                .assertThat(usuarioRepository.findById(usuario.getId()).orElseThrow().getPerfil())
                                 .isEqualTo("ADMIN");
         }
 

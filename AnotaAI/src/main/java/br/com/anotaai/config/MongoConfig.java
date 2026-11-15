@@ -27,7 +27,6 @@ public class MongoConfig {
         return new MongoTransactionManager(factory);
     }
 
-    // Mantém os IDs existentes e os links da aplicação após a migração.
     @Bean
     BeforeConvertCallback<Object> numericIds(org.springframework.beans.factory.ObjectProvider<MongoTemplate> provider) {
         return (entity, collection) -> {
@@ -49,14 +48,18 @@ public class MongoConfig {
     InitializingBean mongoCollections(MongoTemplate mongo) {
         return () -> {
             for (var type : List.of(Usuario.class, Anotacao.class, Baralho.class, VersaoAnotacao.class,
-                    CodigoAutenticacao.class, CodigoRecuperacao.class, RegistroAuditoria.class, SolicitacaoExclusao.class,
+                    CodigoAutenticacao.class, CodigoRecuperacao.class, RegistroAuditoria.class,
+                    SolicitacaoExclusao.class,
                     RegistroUsoIa.class)) {
-                if (!mongo.collectionExists(type)) mongo.createCollection(type);
+                if (!mongo.collectionExists(type))
+                    mongo.createCollection(type);
             }
             mongo.updateMulti(new Query(), new Update().unset("email").unset("detalhes")
                     .unset("enderecoIp").unset("userAgent"), RegistroAuditoria.class);
-            if (!mongo.collectionExists("sequencias")) mongo.createCollection("sequencias");
-            for (var name : List.of("anotacoes", "baralhos", "codigos_autenticacao", "codigos_recuperacao", "registros_auditoria")) {
+            if (!mongo.collectionExists("sequencias"))
+                mongo.createCollection("sequencias");
+            for (var name : List.of("anotacoes", "baralhos", "codigos_autenticacao", "codigos_recuperacao",
+                    "registros_auditoria")) {
                 mongo.indexOps(name).ensureIndex(new Index().on("usuario.$id", Sort.Direction.ASC)
                         .on(name.equals("anotacoes") ? "atualizadoEm" : "criadoEm", Sort.Direction.DESC));
             }

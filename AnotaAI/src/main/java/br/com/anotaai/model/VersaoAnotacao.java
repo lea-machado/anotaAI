@@ -29,12 +29,35 @@ public class VersaoAnotacao {
     @CreatedDate
     private LocalDateTime criadoEm;
 
-    public Long getId() { return id; }
-    public Anotacao getAnotacao() { return anotacao; }
-    public void setAnotacao(Anotacao anotacao) { this.anotacao = anotacao; }
-    public String getTipo() { return tipo; }
-    public void setTipo(String tipo) { this.tipo = tipo; }
-    public String getConteudo() { return conteudo; }
-    public void setConteudo(String conteudo) { this.conteudo = conteudo; }
-    public LocalDateTime getCriadoEm() { return criadoEm; }
+    public Long getId() {
+        return id;
+    }
+
+    public Anotacao getAnotacao() {
+        return anotacao;
+    }
+
+    public void setAnotacao(Anotacao anotacao) {
+        this.anotacao = anotacao;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
+    }
+
+    public String getConteudo() {
+        return conteudo;
+    }
+
+    public void setConteudo(String conteudo) {
+        this.conteudo = conteudo;
+    }
+
+    public LocalDateTime getCriadoEm() {
+        return criadoEm;
+    }
 }

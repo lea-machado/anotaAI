@@ -9,18 +9,41 @@ public class Flashcard {
     private int erros;
     private boolean pendenteRevisao;
 
-    protected Flashcard() {}
+    protected Flashcard() {
+    }
+
     public Flashcard(String pergunta, String resposta) {
         this.pergunta = pergunta;
         this.resposta = resposta;
     }
-    public String getPergunta() { return pergunta; }
-    public String getResposta() { return resposta; }
-    public int getAcertos() { return acertos; }
-    public int getErros() { return erros; }
-    public boolean isPendenteRevisao() { return pendenteRevisao; }
+
+    public String getPergunta() {
+        return pergunta;
+    }
+
+    public String getResposta() {
+        return resposta;
+    }
+
+    public int getAcertos() {
+        return acertos;
+    }
+
+    public int getErros() {
+        return erros;
+    }
+
+    public boolean isPendenteRevisao() {
+        return pendenteRevisao;
+    }
+
     public void registrarResultado(boolean correto) {
-        if (correto) { acertos++; pendenteRevisao = false; }
-        else { erros++; pendenteRevisao = true; }
+        if (correto) {
+            acertos++;
+            pendenteRevisao = false;
+        } else {
+            erros++;
+            pendenteRevisao = true;
+        }
     }
 }
