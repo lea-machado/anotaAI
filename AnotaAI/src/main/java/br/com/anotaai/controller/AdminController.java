@@ -12,6 +12,7 @@ import br.com.anotaai.service.AdminService;
 import br.com.anotaai.service.GmailApiEmailService;
 import br.com.anotaai.service.UsuarioAtualService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.domain.Range;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -84,11 +85,13 @@ public class AdminController {
                 long flashcards = baralhosPeriodo.stream()
                                 .mapToLong(b -> b.getFlashcards() == null ? 0 : b.getFlashcards().size()).sum();
                 long ativos = usuariosPeriodo.stream().filter(u -> u.isAtivo()).count();
+                var periodoAuditoria = periodoAplicado
+                                ? Range.rightOpen(inicioPeriodo, fim.plusDays(1).atStartOfDay()) : null;
                 long registrosAuditoria = periodoAplicado
-                                ? auditoriaRepository.countByCriadoEmBetween(inicioPeriodo, fimPeriodo)
+                                ? auditoriaRepository.countByCriadoEmBetween(periodoAuditoria)
                                 : auditoriaRepository.count();
                 long falhasAuditoria = periodoAplicado
-                                ? auditoriaRepository.countBySucessoFalseAndCriadoEmBetween(inicioPeriodo, fimPeriodo)
+                                ? auditoriaRepository.countBySucessoFalseAndCriadoEmBetween(periodoAuditoria)
                                 : auditoriaRepository.countBySucessoFalse();
                 long usosIa = periodoAplicado
                                 ? registroUsoIaRepository.countByCriadoEmBetween(inicioPeriodo, fimPeriodo)
@@ -237,8 +240,10 @@ public class AdminController {
         }
 
         @GetMapping("/auditoria")
-        public List<Map<String, Object>> auditoria() {
-                return auditoriaService.listarTodos().stream().map(this::mapearAuditoria).toList();
+        public List<Map<String, Object>> auditoria(@RequestParam(required = false) LocalDate inicio,
+                        @RequestParam(required = false) LocalDate fim,
+                        @RequestParam(required = false) Boolean sucesso) {
+                return auditoriaService.listarTodos(inicio, fim, sucesso).stream().map(this::mapearAuditoria).toList();
         }
 
         private Map<String, Object> mapearAuditoria(RegistroAuditoria registro) {

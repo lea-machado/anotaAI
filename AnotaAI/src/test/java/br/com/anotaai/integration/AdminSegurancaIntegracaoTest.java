@@ -14,10 +14,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.is;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -153,9 +156,14 @@ class AdminSegurancaIntegracaoTest {
                                 .content("{\"perfil\":\"ADMIN\"}"))
                                 .andExpect(status().isOk());
 
+                var hoje = LocalDate.now();
                 mockMvc.perform(get("/api/admin/auditoria")
+                                .param("inicio", hoje.minusDays(1).toString())
+                                .param("fim", hoje.plusDays(1).toString())
+                                .param("sucesso", "true")
                                 .session((org.springframework.mock.web.MockHttpSession) sessao))
                                 .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[*].sucesso", everyItem(is(true))))
                                 .andExpect(content().string(containsString("ALTERACAO_PERFIL_USUARIO")))
                                 .andExpect(content().string(containsString("Conta " + administrador.getId())));
         }

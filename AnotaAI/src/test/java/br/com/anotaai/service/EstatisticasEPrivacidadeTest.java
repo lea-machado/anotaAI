@@ -84,6 +84,20 @@ class EstatisticasEPrivacidadeTest {
         when(repo.findTop50ByUsuarioIdOrderByCriadoEmDesc(7L)).thenReturn(List.of(registros.get(0)));
         when(repo.findTop100ByOrderByCriadoEmDesc()).thenReturn(registros);
         assertThat(service.listarDoUsuario(7L)).containsExactly(registros.get(0));
-        assertThat(service.listarTodos()).containsExactlyElementsOf(registros);
+        assertThat(service.listarTodos(null, null, null)).containsExactlyElementsOf(registros);
+    }
+
+    @Test void auditoriaFiltraPeriodoEResultadoAntesDoLimite() {
+        var repo = mock(RegistroAuditoriaRepository.class);
+        var service = new AuditoriaService(repo, mock(UsuarioRepository.class));
+        var dia = java.time.LocalDate.of(2026, 11, 15);
+        var periodo = org.springframework.data.domain.Range.rightOpen(dia.atStartOfDay(),
+                dia.plusDays(1).atStartOfDay());
+        var falha = new RegistroAuditoria();
+        when(repo.findTop100BySucessoAndCriadoEmBetweenOrderByCriadoEmDesc(false, periodo)).thenReturn(List.of(falha));
+
+        assertThat(service.listarTodos(dia, dia, false)).containsExactly(falha);
+        verify(repo).findTop100BySucessoAndCriadoEmBetweenOrderByCriadoEmDesc(false, periodo);
+        verifyNoMoreInteractions(repo);
     }
 }

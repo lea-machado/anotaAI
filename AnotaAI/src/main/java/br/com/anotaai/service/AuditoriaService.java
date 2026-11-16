@@ -4,11 +4,13 @@ import br.com.anotaai.model.RegistroAuditoria;
 import br.com.anotaai.repository.RegistroAuditoriaRepository;
 import br.com.anotaai.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.domain.Range;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -44,8 +46,15 @@ public class AuditoriaService {
 
     @Transactional(readOnly = true)
 
-    public List<RegistroAuditoria> listarTodos() {
-        return registroRepository.findTop100ByOrderByCriadoEmDesc();
+    public List<RegistroAuditoria> listarTodos(LocalDate inicio, LocalDate fim, Boolean sucesso) {
+        if (inicio == null || fim == null) {
+            return sucesso == null ? registroRepository.findTop100ByOrderByCriadoEmDesc()
+                    : registroRepository.findTop100BySucessoOrderByCriadoEmDesc(sucesso);
+        }
+        var periodo = Range.rightOpen(inicio.atStartOfDay(), fim.plusDays(1).atStartOfDay());
+        return sucesso == null
+                ? registroRepository.findTop100ByCriadoEmBetweenOrderByCriadoEmDesc(periodo)
+                : registroRepository.findTop100BySucessoAndCriadoEmBetweenOrderByCriadoEmDesc(sucesso, periodo);
     }
 
     private String limitar(String valor, int limite) {
