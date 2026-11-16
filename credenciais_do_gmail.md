@@ -14,7 +14,7 @@ Gere a credencial no painel oficial e configure as variáveis no processo que in
    ```text
    https://www.googleapis.com/auth/gmail.send
    ```
-4. **Crie o cliente OAuth.** Em **Clients**, clique em **Create client** e selecione **Web application**. Adicione a URI abaixo em **Authorized redirect URIs**. Guarde o *Client ID* e o *Client secret* gerados para esse cliente.
+4. **Crie o cliente OAuth:** Em **Clients**, clique em **Create client** e selecione **Web application**. Adicione a URI abaixo em **Authorized redirect URIs**. Guarde o *Client ID* e o *Client secret* gerados para esse cliente.
    ```text
    https://developers.google.com/oauthplayground
    ```
@@ -23,8 +23,8 @@ Gere a credencial no painel oficial e configure as variáveis no processo que in
 
 ## Gere o refresh token no OAuth Playground
 
-5. **Use as credenciais do seu projeto.** Abra o [OAuth Playground](https://developers.google.com/oauthplayground) e clique na engrenagem. Marque **Use your own OAuth credentials**, informe o *Client ID* e o *Client secret* e mantenha *Access type* em **Offline**.
-6. **Autorize a conta remetente.** No OAuth Playground, vá a **Step 1** e cole o endereço completo do passo 3 no campo **Input your own scopes**. Clique em **Authorize APIs**, entre na conta remetente do AnotaAI e conceda a permissão.
-7. **Troque o código pelos tokens.** No **Step 2**, clique em **Exchange authorization code for tokens**. Copie o campo **Refresh token** para `GMAIL_REFRESH_TOKEN`. Use o e-mail da mesma conta em `GMAIL_SENDER_EMAIL`. O backend usa o refresh token para obter novos *access tokens*.
+5. **Use as credenciais do seu projeto:** Abra o [OAuth Playground](https://developers.google.com/oauthplayground) e clique na engrenagem. Marque **Use your own OAuth credentials**, informe o *Client ID* e o *Client secret* e mantenha *Access type* em **Offline**.
+6. **Autorize a conta remetente:** No OAuth Playground, vá a **Step 1** e cole o endereço completo do passo 3 no campo **Input your own scopes**. Clique em **Authorize APIs**, entre na conta remetente do AnotaAI e conceda a permissão.
+7. **Troque o código pelos tokens:** No **Step 2**, clique em **Exchange authorization code for tokens**. Copie o campo **Refresh token** para `GMAIL_REFRESH_TOKEN`. Use o e-mail da mesma conta em `GMAIL_SENDER_EMAIL`. O backend usa o refresh token para obter novos *access tokens*.
 
 > ⚠️ **Atenção:** Em um app *External* com status *Testing*, o refresh token com o escopo do Gmail expira em **sete dias**. Para uso contínuo, confira as condições de publicação e verificação no Google Auth Platform antes de gerar o token definitivo.
