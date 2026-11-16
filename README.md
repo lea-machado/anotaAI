@@ -189,9 +189,13 @@ Defina as variáveis utilizadas pela integração com a Gmail API:
 
 O envio de e-mails precisa funcionar para concluir o login, inclusive de administradores, e para recuperar senhas.
 
+**[Clique aqui para acessar o tutorial de como gerar a chave da API](credenciais_do_gmail.md)**
+
 #### 3.3 Configure a chave API OpenRouter
 
 Crie uma chave API na OpenRouter e a insira na variável de ambiente `OPENROUTER_API_KEY`.
+
+**[Clique aqui para acessar o tutorial de como gerar a chave da API](credencial_do_openrouter.md)**
 
 #### 3.4 Crie o primeiro usuário admin
 
