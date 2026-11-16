@@ -17,38 +17,26 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
+                                                                                                       
 @SpringBootTest
 @ActiveProfiles("test")
 class MongoPersistenceIT {
     static final String DATABASE = "anotaai_test_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-
-    @DynamicPropertySource
-    static void database(DynamicPropertyRegistry registry) {
+    @DynamicPropertySource static void database(DynamicPropertyRegistry registry) {
         registry.add("spring.data.mongodb.database", () -> DATABASE);
     }
-
-    @Autowired
-    MongoTemplate mongo;
-    @Autowired
-    UsuarioRepository usuarios;
-    @Autowired
-    AnotacaoRepository notas;
-    @Autowired
-    VersaoAnotacaoRepository versoes;
-    @Autowired
-    CodigoRecuperacaoRepository codigos;
-    @Autowired
-    BaralhoRepository baralhos;
-    @Autowired
-    AnotacaoService service;
-    @Autowired
-    PlatformTransactionManager transactions;
-    @MockBean
-    UsuarioAtualService atual;
+    @Autowired MongoTemplate mongo;
+    @Autowired UsuarioRepository usuarios;
+    @Autowired AnotacaoRepository notas;
+    @Autowired VersaoAnotacaoRepository versoes;
+    @Autowired CodigoRecuperacaoRepository codigos;
+    @Autowired BaralhoRepository baralhos;
+    @Autowired AnotacaoService service;
+    @Autowired PlatformTransactionManager transactions;
+    @MockBean UsuarioAtualService atual;
     Usuario usuario;
 
-    @BeforeEach
-    void owner() {
+    @BeforeEach void owner() {
         usuario = new Usuario();
         usuario.setNome("Teste de persistência");
         usuario.setEmail(UUID.randomUUID() + "@example.invalid");
@@ -60,27 +48,21 @@ class MongoPersistenceIT {
         assertNotNull(usuario.getCriadoEm());
     }
 
-    @AfterAll
-    static void cleanup(@Autowired MongoTemplate mongo) {
+    @AfterAll static void cleanup(@Autowired MongoTemplate mongo) {
         if (!mongo.getDb().getName().equals(DATABASE) || !DATABASE.startsWith("anotaai_test_"))
             throw new IllegalStateException("Banco de teste inesperado");
         mongo.getDb().drop();
     }
 
     Anotacao data(String content) {
-        var n = new Anotacao();
-        n.setTitulo("Biologia");
-        n.setConteudo(content);
-        return n;
+        var n = new Anotacao(); n.setTitulo("Biologia"); n.setConteudo(content); return n;
     }
 
-    @Test
-    void preservaReferenciasHistoricoAtualizacaoEExclusao() {
+    @Test void preservaReferenciasHistoricoAtualizacaoEExclusao() {
         var created = service.criar(data("Resumo"), "Resumo", "Original");
         assertNotNull(created.getAtualizadoEm());
         assertEquals(1, notas.findByUsuarioIdOrderByAtualizadoEmDesc(usuario.getId()).size());
-        assertEquals(1, notas
-                .findByUsuarioIdAndTituloContainingIgnoreCaseOrderByAtualizadoEmDesc(usuario.getId(), "BIO").size());
+        assertEquals(1, notas.findByUsuarioIdAndTituloContainingIgnoreCaseOrderByAtualizadoEmDesc(usuario.getId(), "BIO").size());
         assertEquals(1, notas.countByUsuarioId(usuario.getId()));
         assertEquals(usuario.getEmail(), notas.findById(created.getId()).orElseThrow().getUsuario().getEmail());
         assertTrue(notas.findByIdAndUsuarioId(created.getId(), -100L).isEmpty());
@@ -93,45 +75,33 @@ class MongoPersistenceIT {
         assertTrue(versoes.findByAnotacaoIdOrderByCriadoEmAsc(created.getId()).isEmpty());
     }
 
-    @Test
-    void rollbackNaoDeixaAnotacaoOuVersaoParcial() {
+    @Test void rollbackNaoDeixaAnotacaoOuVersaoParcial() {
         long beforeNotes = notas.count(), beforeVersions = versoes.count();
         assertThrows(IllegalStateException.class, () -> new TransactionTemplate(transactions).execute(status -> {
             service.criar(data("Teste rollback"), "Resumo", "Original");
             throw new IllegalStateException("Reverter teste");
         }));
-        assertEquals(beforeNotes, notas.count());
-        assertEquals(beforeVersions, versoes.count());
+        assertEquals(beforeNotes, notas.count()); assertEquals(beforeVersions, versoes.count());
     }
 
-    @Test
-    void codigosUuidCartoesEConcorrencia() {
-        var c = new CodigoRecuperacao();
-        c.setDesafioId(UUID.randomUUID());
-        c.setUsuario(usuario);
-        c.setCodigoHash("hash");
-        c.setCriadoEm(LocalDateTime.now());
-        c.setExpiraEm(LocalDateTime.now().plusMinutes(10));
+    @Test void codigosUuidCartoesEConcorrencia() {
+        var c = new CodigoRecuperacao(); c.setDesafioId(UUID.randomUUID()); c.setUsuario(usuario);
+        c.setCodigoHash("hash"); c.setCriadoEm(LocalDateTime.now()); c.setExpiraEm(LocalDateTime.now().plusMinutes(10));
         codigos.save(c);
         assertEquals(usuario.getId(), codigos.findByDesafioId(c.getDesafioId()).orElseThrow().getUsuario().getId());
         assertEquals(1, codigos.findByUsuarioIdAndUsadoEmIsNull(usuario.getId()).size());
         assertTrue(codigos.findTopByUsuarioIdOrderByCriadoEmDesc(usuario.getId()).isPresent());
         var first = codigos.findById(c.getId()).orElseThrow();
         var stale = codigos.findById(c.getId()).orElseThrow();
-        first.setUsadoEm(LocalDateTime.now());
-        codigos.save(first);
+        first.setUsadoEm(LocalDateTime.now()); codigos.save(first);
         stale.setTentativas(1);
         assertThrows(org.springframework.dao.OptimisticLockingFailureException.class, () -> codigos.save(stale));
-        var b = new Baralho();
-        b.setUsuario(usuario);
-        b.setTitulo("Biologia");
+        var b = new Baralho(); b.setUsuario(usuario); b.setTitulo("Biologia");
         b.getFlashcards().add(new Flashcard("Primeira", "Resposta 1"));
         b.getFlashcards().add(new Flashcard("Segunda", "Resposta 2"));
         baralhos.save(b);
-        assertEquals("Segunda", baralhos.findByIdAndUsuarioId(b.getId(), usuario.getId()).orElseThrow().getFlashcards()
-                .get(1).getPergunta());
-        var duplicate = new Usuario();
-        duplicate.setEmail(usuario.getEmail());
+        assertEquals("Segunda", baralhos.findByIdAndUsuarioId(b.getId(), usuario.getId()).orElseThrow().getFlashcards().get(1).getPergunta());
+        var duplicate = new Usuario(); duplicate.setEmail(usuario.getEmail());
         assertThrows(org.springframework.dao.DuplicateKeyException.class, () -> usuarios.save(duplicate));
     }
 }

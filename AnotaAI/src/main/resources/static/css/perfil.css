@@ -51,6 +51,20 @@
   grid-column: 1 / -1;
 }
 
+.profile-form .field {
+  align-content: start;
+}
+
+.profile-form .field small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.profile-form .profile-feedback {
+  grid-column: 1 / -1;
+}
+
 .profile-readonly { margin: 0; color: var(--muted-2); font-size: 12px; }
 .audit-card h2 { margin: 5px 0 14px; font-size: 19px; }
 .audit-list { max-height: 290px; overflow: auto; display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }

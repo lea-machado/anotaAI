@@ -1,3 +1,4 @@
+
 package br.com.anotaai.integration;
 
 import br.com.anotaai.repository.UsuarioRepository;
@@ -25,153 +26,150 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class CadastroIntegracaoTest {
 
-  @Autowired
-  private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-  @Autowired
-  private UsuarioRepository usuarioRepository;
+        @Autowired
+        private UsuarioRepository usuarioRepository;
 
-  @Autowired
-  private PasswordEncoder passwordEncoder;
+        @Autowired
+        private PasswordEncoder passwordEncoder;
 
-  @MockitoBean
-  private GmailApiEmailService emailService;
+        @MockitoBean
+        private GmailApiEmailService emailService;
 
-  @Test
-  void deveCadastrarUsuarioPelaApiESalvarNoBanco() throws Exception {
+        @Test
+        void deveCadastrarUsuarioPelaApiESalvarNoBanco() throws Exception {
 
-    String email = "integracao-" + UUID.randomUUID()
-        + "@teste.com";
+                String email = "integracao-" + UUID.randomUUID()
+                                + "@teste.com";
 
-    String senha = "Conta!Forte2026";
+                String senha = "Conta!Forte2026";
 
-    String json = """
-        {
-          "nome": "Usuario Integracao",
-          "email": "%s",
-          "senha": "Conta!Forte2026",
-          "dataNascimento": "2000-01-01",
-          "escolaridade": "Ensino Superior Incompleto",
-          "aceitouTermos": true,
-          "declarouMaioridade": true,
-          "versaoTermos": "2026-09-25"
+                String json = """
+                                {
+                                  "nome": "Usuario Integracao",
+                                  "email": "%s",
+                                  "senha": "Conta!Forte2026",
+                                  "dataNascimento": "2000-01-01",
+                                  "escolaridade": "Ensino Superior Incompleto",
+                                  "aceitouTermos": true,
+                                  "declarouMaioridade": true,
+                                  "versaoTermos": "2026-09-25"
+                                }
+                                """.formatted(email);
+
+                mockMvc.perform(
+                                post("/api/auth/cadastro")
+                                                .with(csrf())
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(json))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.id").isNumber())
+                                .andExpect(jsonPath("$.nome")
+                                                .value("Usuario Integracao"))
+                                .andExpect(jsonPath("$.email").value(email))
+                                .andExpect(jsonPath("$.perfil").value("USER"))
+                                .andExpect(jsonPath("$.mensagem")
+                                                .value("Conta criada com sucesso."));
+
+                var usuarioSalvo = usuarioRepository
+                                .findByEmailIgnoreCase(email)
+                                .orElseThrow();
+
+                assertNotNull(usuarioSalvo.getId());
+
+                assertEquals(
+                                "Usuario Integracao",
+                                usuarioSalvo.getNome());
+                assertEquals("Ensino Superior Incompleto", usuarioSalvo.getEscolaridade());
+
+                assertEquals(
+                                "USER",
+                                usuarioSalvo.getPerfil());
+
+                assertEquals(
+                                "2026-09-25",
+                                usuarioSalvo.getVersaoTermos());
+
+                assertNotEquals(senha, usuarioSalvo.getSenha());
+
+                assertTrue(
+                                passwordEncoder.matches(
+                                                senha,
+                                                usuarioSalvo.getSenha()));
         }
-        """.formatted(email);
 
-    mockMvc.perform(
-        post("/api/auth/cadastro")
-            .with(csrf())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(json))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").isNumber())
-        .andExpect(jsonPath("$.nome")
-            .value("Usuario Integracao"))
-        .andExpect(jsonPath("$.email").value(email))
-        .andExpect(jsonPath("$.perfil").value("USER"))
-        .andExpect(jsonPath("$.mensagem")
-            .value("Conta criada com sucesso."));
+        @Test
+        void Retornar400QuandoMenorDeIdadeTentaCadastrar() throws Exception {
 
-    var usuarioSalvo = usuarioRepository
-        .findByEmailIgnoreCase(email)
-        .orElseThrow();
+                String email = "menor-" + UUID.randomUUID() + "@teste.com";
 
-    assertNotNull(usuarioSalvo.getId());
+                String json = """
+                                {
+                                  "nome": "Menor",
+                                  "email": "%s",
+                                  "senha": "Conta!Forte2026",
+                                  "dataNascimento": "2015-01-01",
+                                  "escolaridade": "Ensino Fundamental Completo",
+                                  "aceitouTermos": true,
+                                  "declarouMaioridade": true,
+                                  "versaoTermos": "2026-09-25"
+                                }
+                                """.formatted(email);
 
-    assertEquals(
-        "Usuario Integracao",
-        usuarioSalvo.getNome());
+                mockMvc.perform(
+                                post("/api/auth/cadastro")
+                                                .with(csrf())
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(json))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.mensagem").value(
+                                                "E necessario ter pelo menos 18 anos para criar uma conta."))
+                                .andExpect(jsonPath("$.momento").exists());
 
-    assertEquals(
-        "Ensino Superior Incompleto",
-        usuarioSalvo.getEscolaridade());
-
-    assertEquals(
-        "USER",
-        usuarioSalvo.getPerfil());
-
-    assertEquals(
-        "2026-09-25",
-        usuarioSalvo.getVersaoTermos());
-
-    assertNotEquals(senha, usuarioSalvo.getSenha());
-
-    assertTrue(
-        passwordEncoder.matches(
-            senha,
-            usuarioSalvo.getSenha()));
-  }
-
-  @Test
-  void Retornar400QuandoMenorDeIdadeTentaCadastrar() throws Exception {
-
-    String email = "menor-" + UUID.randomUUID() + "@teste.com";
-
-    String json = """
-        {
-          "nome": "Menor",
-          "email": "%s",
-          "senha": "Conta!Forte2026",
-          "dataNascimento": "2015-01-01",
-          "escolaridade": "Ensino Fundamental Completo",
-          "aceitouTermos": true,
-          "declarouMaioridade": true,
-          "versaoTermos": "2026-09-25"
+                assertTrue(
+                                usuarioRepository.findByEmailIgnoreCase(email).isEmpty());
         }
-        """.formatted(email);
 
-    mockMvc.perform(
-        post("/api/auth/cadastro")
-            .with(csrf())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(json))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.mensagem").value(
-            "E necessario ter pelo menos 18 anos para criar uma conta."))
-        .andExpect(jsonPath("$.momento").exists());
+        @Test
+        void deveImpedirCadastroComEmailDuplicado() throws Exception {
 
-    assertTrue(
-        usuarioRepository.findByEmailIgnoreCase(email).isEmpty());
-  }
+                String email = "duplicado-" + UUID.randomUUID() + "@teste.com";
 
-  @Test
-  void deveImpedirCadastroComEmailDuplicado() throws Exception {
+                String json = """
+                                {
+                                  "nome": "E-mail Duplicado",
+                                  "email": "%s",
+                                  "senha": "Conta!Forte2026",
+                                  "dataNascimento": "2000-01-01",
+                                  "escolaridade": "Ensino Superior Incompleto",
+                                  "aceitouTermos": true,
+                                  "declarouMaioridade": true,
+                                  "versaoTermos": "2026-09-25"
+                                }
+                                """.formatted(email);
 
-    String email = "duplicado-" + UUID.randomUUID() + "@teste.com";
+                long quantidadeAntes = usuarioRepository.count();
 
-    String json = """
-        {
-          "nome": "E-mail Duplicado",
-          "email": "%s",
-          "senha": "Conta!Forte2026",
-          "dataNascimento": "2000-01-01",
-          "escolaridade": "Ensino Superior Incompleto",
-          "aceitouTermos": true,
-          "declarouMaioridade": true,
-          "versaoTermos": "2026-09-25"
+                mockMvc.perform(
+                                post("/api/auth/cadastro")
+                                                .with(csrf())
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(json))
+                                .andExpect(status().isCreated());
+
+                mockMvc.perform(
+                                post("/api/auth/cadastro")
+                                                .with(csrf())
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(json))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.mensagem").value(
+                                                "Ja existe uma conta cadastrada com este e-mail."));
+
+                assertEquals(
+                                quantidadeAntes + 1,
+                                usuarioRepository.count());
         }
-        """.formatted(email);
-
-    long quantidadeAntes = usuarioRepository.count();
-
-    mockMvc.perform(
-        post("/api/auth/cadastro")
-            .with(csrf())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(json))
-        .andExpect(status().isCreated());
-
-    mockMvc.perform(
-        post("/api/auth/cadastro")
-            .with(csrf())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(json))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.mensagem").value(
-            "Ja existe uma conta cadastrada com este e-mail."));
-
-    assertEquals(
-        quantidadeAntes + 1,
-        usuarioRepository.count());
-  }
 }

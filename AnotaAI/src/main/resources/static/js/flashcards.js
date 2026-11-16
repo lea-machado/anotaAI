@@ -15,6 +15,7 @@
   let busy = false;
   let reviewMode = false;
   const optionsByCard = new Map();
+  const legacyDistractorUses = new Map();
   const answeredCards = new Map();
 
   function element(tag, text, className) {
@@ -91,6 +92,7 @@
       reviewMode = false;
       cardIndex = 0;
       optionsByCard.clear();
+      legacyDistractorUses.clear();
       answeredCards.clear();
       document.getElementById('deck-heading').textContent = activeDeck.titulo;
       renderCard();
@@ -118,6 +120,7 @@
       }
       reviewMode = true;
       optionsByCard.clear();
+      legacyDistractorUses.clear();
       answeredCards.clear();
       activeDeck = {
         id: null,
@@ -127,6 +130,7 @@
           indice: card.indice,
           pergunta: card.pergunta,
           resposta: card.resposta,
+          distratores: card.distratores,
           erros: card.erros,
           acertos: card.acertos
         }))
@@ -166,7 +170,7 @@
     answer.textContent = `Resposta correta: ${card.resposta}`;
     const feedback = document.getElementById('quiz-feedback');
     const options = document.getElementById('quiz-options');
-    const choices = getOptions(card, cardIndex);
+    const choices = getOptions(card);
     const selected = answeredCards.get(card);
     options.replaceChildren();
     answer.hidden = !selected;
@@ -187,27 +191,47 @@
     document.getElementById('next-card').disabled = cardIndex === activeDeck.flashcards.length - 1;
   }
 
-  function getOptions(card, index) {
+  function getOptions(card) {
     if (optionsByCard.has(card)) return optionsByCard.get(card);
-    const correct = card.resposta;
-                                                                             
-    const normalize = value => value.trim().toLocaleLowerCase('pt-BR');
-    const distractors = [...new Set(activeDeck.flashcards
-      .filter((other, otherIndex) => otherIndex !== index)
-      .map(other => other.resposta.trim())
-      .filter(value => value && normalize(value) !== normalize(correct)))];
-    for (const filler of ['Nenhuma das outras alternativas', 'Todas as alternativas estão incorretas', 'Não é possível determinar']) {
-      if (distractors.length >= 3) break;
-      if (normalize(filler) !== normalize(correct) && !distractors.some(value => normalize(value) === normalize(filler))) distractors.push(filler);
-    }
-    const choices = [correct, ...distractors.slice(0, 3)];
-    for (let i = choices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [choices[i], choices[j]] = [choices[j], choices[i]];
-    }
+    const distractors = card.distratores?.length === 3 ? card.distratores : legacyDistractors(card);
+    const choices = shuffle([card.resposta, ...distractors]);
     optionsByCard.set(card, choices);
     return choices;
-  }                                                                                               
+  }
+
+  function normalize(value) {
+    return value.trim().toLocaleLowerCase('pt-BR');
+  }
+
+  function legacyDistractors(card) {
+    const candidates = new Map();
+    const correct = normalize(card.resposta);
+    for (const other of activeDeck.flashcards) {
+      const key = normalize(other.resposta);
+      if (key && key !== correct) candidates.set(key, other.resposta.trim());
+    }
+    const keys = shuffle([...candidates.keys()]);
+    const uses = key => legacyDistractorUses.get(key) || 0;
+    keys.sort((left, right) => uses(left) - uses(right));
+    const distractors = keys.slice(0, 3).map(key => {
+      legacyDistractorUses.set(key, uses(key) + 1);
+      return candidates.get(key);
+    });
+    for (const filler of ['Nenhuma das outras alternativas', 'Todas as alternativas estão incorretas',
+      'Não é possível determinar', 'A anotação não traz essa informação']) {
+      if (distractors.length >= 3) break;
+      if (normalize(filler) !== correct && !candidates.has(normalize(filler))) distractors.push(filler);
+    }
+    return distractors;
+  }
+
+  function shuffle(values) {
+    for (let i = values.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [values[i], values[j]] = [values[j], values[i]];
+    }
+    return values;
+  }
 
   async function answerQuestion(choice) {
     if (busy) return;

@@ -39,6 +39,7 @@ public class Usuario {
 
     private LocalDate dataNascimento;
 
+    @JsonIgnore
     private String escolaridade;
 
     private LocalDateTime termosAceitosEm;

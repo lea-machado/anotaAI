@@ -13,7 +13,10 @@ import java.util.List;
 @Service
 public class FlashcardService {
 
-    public record Cartao(String pergunta, String resposta) {
+    public record Cartao(String pergunta, String resposta, List<String> distratores) {
+        public Cartao(String pergunta, String resposta) {
+            this(pergunta, resposta, null);
+        }
     }
 
     public record Pedido(String titulo, Long anotacaoId, List<Cartao> flashcards) {
@@ -26,7 +29,8 @@ public class FlashcardService {
             int quantidade, int acertos, int erros, int cartoesComErro) {
     }
 
-    public record CartaoEstudo(int indice, String pergunta, String resposta, int acertos, int erros) {
+    public record CartaoEstudo(int indice, String pergunta, String resposta, int acertos, int erros,
+            List<String> distratores) {
     }
 
     public record Detalhe(Long id, String titulo, Long anotacaoId, LocalDateTime criadoEm,
@@ -34,7 +38,7 @@ public class FlashcardService {
     }
 
     public record CartaoComErro(Long baralhoId, String titulo, Long anotacaoId, int indice,
-            String pergunta, String resposta, int acertos, int erros) {
+            String pergunta, String resposta, int acertos, int erros, List<String> distratores) {
     }
 
     private final BaralhoRepository repository;
@@ -108,7 +112,7 @@ public class FlashcardService {
             if (card == null)
                 throw new IllegalArgumentException("Flashcard inválido.");
             baralho.getFlashcards().add(new Flashcard(texto(card.pergunta(), "Pergunta", 4000),
-                    texto(card.resposta(), "Resposta", 10000)));
+                    texto(card.resposta(), "Resposta", 10000), card.distratores()));
         }
         return detalhe(repository.save(baralho));
     }
@@ -166,7 +170,7 @@ public class FlashcardService {
                                 return card.getErros() > 0
                                         ? new CartaoComErro(deck.getId(), deck.getTitulo(), deck.getAnotacaoId(),
                                                 cardIndex, card.getPergunta(), card.getResposta(),
-                                                card.getAcertos(), card.getErros())
+                                                card.getAcertos(), card.getErros(), card.getDistratores())
                                         : null;
                             }).filter(java.util.Objects::nonNull);
                 }).toList();
@@ -182,7 +186,7 @@ public class FlashcardService {
                 java.util.stream.IntStream.range(0, b.getFlashcards().size()).mapToObj(index -> {
                     var card = b.getFlashcards().get(index);
                     return new CartaoEstudo(index, card.getPergunta(), card.getResposta(), card.getAcertos(),
-                            card.getErros());
+                            card.getErros(), card.getDistratores());
                 }).toList());
     }
 

@@ -3,6 +3,7 @@
   const form = document.getElementById('profile-form');
   const feedback = document.getElementById('profile-feedback');
   const saveButton = document.getElementById('save-profile');
+  const educationInput = document.getElementById('escolaridade');
   const deleteDialog = document.getElementById('delete-account-dialog');
   const openDeleteButton = document.getElementById('open-delete-account');
   const confirmDeleteButton = document.getElementById('confirm-delete-account');
@@ -50,7 +51,7 @@
       const user = await Api.updateCurrentUser({
         nome: document.getElementById('nome').value,
         email: document.getElementById('email').value,
-        escolaridade: document.getElementById('escolaridade').value,
+        escolaridade: educationInput.value || undefined,
         senhaAtual: document.getElementById('senha-atual').value,
         novaSenha: document.getElementById('nova-senha').value
       });
@@ -77,7 +78,7 @@
   function preencherPerfil(user) {
     document.getElementById('nome').value = user.nome || '';
     document.getElementById('email').value = user.email || '';
-    document.getElementById('escolaridade').value = user.escolaridade || '';
+    educationInput.value = user.escolaridade || '';
     document.getElementById('profile-name').textContent = user.nome || 'Estudante AnotaAI';
     document.getElementById('profile-avatar').textContent = iniciais(user.nome);
     document.getElementById('member-since').textContent = `Conta ativa desde ${new Date(user.criadoEm).toLocaleDateString('pt-BR')}`;

@@ -1,5 +1,6 @@
 package br.com.anotaai.controller;
 
+import br.com.anotaai.model.Usuario;
 import br.com.anotaai.service.AuditoriaService;
 import br.com.anotaai.service.AutenticacaoDoisFatoresService;
 import br.com.anotaai.service.UsuarioAtualService;
@@ -132,13 +133,16 @@ public class AutenticacaoController {
 
         @GetMapping("/me")
         public Map<String, Object> usuarioAtual() {
-                var usuario = usuarioAtualService.obter();
+                return dadosDoPerfil(usuarioAtualService.obter());
+        }
+
+        private Map<String, Object> dadosDoPerfil(Usuario usuario) {
                 var dados = new java.util.LinkedHashMap<String, Object>();
                 dados.put("id", usuario.getId());
                 dados.put("nome", usuario.getNome());
                 dados.put("email", usuario.getEmail());
                 dados.put("perfil", usuario.getPerfil());
-                dados.put("escolaridade", usuario.getEscolaridade() == null ? "" : usuario.getEscolaridade());
+                dados.put("escolaridade", usuario.getEscolaridade());
                 dados.put("criadoEm", usuario.getCriadoEm());
                 return dados;
         }
@@ -154,13 +158,7 @@ public class AutenticacaoController {
                         atualizarAutenticacaoDaSessao(usuario, request);
                         auditoriaService.registrar(usuario.getEmail(), "PERFIL_ATUALIZADO", "/api/auth/me", true,
                                         "Dados do perfil atualizados.", request);
-                        return ResponseEntity.ok(Map.of(
-                                        "id", usuario.getId(),
-                                        "nome", usuario.getNome(),
-                                        "email", usuario.getEmail(),
-                                        "perfil", usuario.getPerfil(),
-                                        "escolaridade", usuario.getEscolaridade(),
-                                        "criadoEm", usuario.getCriadoEm()));
+                        return ResponseEntity.ok(dadosDoPerfil(usuario));
                 } catch (IllegalArgumentException exception) {
                         auditoriaService.registrar(usuarioAtual.getEmail(), "PERFIL_ATUALIZACAO_FALHA", "/api/auth/me",
                                         false,
@@ -195,14 +193,14 @@ public class AutenticacaoController {
                                 session.invalidate();
                         SecurityContextHolder.clearContext();
                         return ResponseEntity.accepted().body(Map.of("mensagem",
-                                        "Pedido recebido. O acesso à sua conta foi encerrado. Seus dados cadastrais serão anonimizados e suas anotações, históricos e flashcards serão excluídos em até 15 dias após a solicitação."));
+                                        "Pedido recebido. O acesso à sua conta foi encerrado. Sua conta, anotações, históricos e flashcards serão excluídos em até 15 dias após a solicitação."));
                 } catch (IllegalStateException exception) {
                         return ResponseEntity.status(HttpStatus.CONFLICT)
                                         .body(Map.of("mensagem", exception.getMessage()));
                 }
         }
 
-        private void atualizarAutenticacaoDaSessao(br.com.anotaai.model.Usuario usuario, HttpServletRequest request) {
+        private void atualizarAutenticacaoDaSessao(Usuario usuario, HttpServletRequest request) {
                 var principal = org.springframework.security.core.userdetails.User
                                 .withUsername(usuario.getEmail())
                                 .password(usuario.getSenha())

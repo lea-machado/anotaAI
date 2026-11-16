@@ -7,6 +7,7 @@ import br.com.anotaai.repository.AnotacaoRepository;
 import br.com.anotaai.repository.VersaoAnotacaoRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import java.util.List;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -55,6 +56,24 @@ class AnotacaoServiceTest {
     }
 
     @Test
+    void soLiberaFlashcardsQuandoHistoricoTemResumoAprovado() {
+        var usuario = mock(Usuario.class);
+        when(usuario.getId()).thenReturn(7L);
+        when(atual.obter()).thenReturn(usuario);
+        var nota = dados();
+        when(notas.findByIdAndUsuarioId(42L, 7L)).thenReturn(Optional.of(nota));
+        var original = new VersaoAnotacao();
+        original.setTipo("ORIGINAL");
+        var aprovada = new VersaoAnotacao();
+        aprovada.setTipo("REVISADA_IA");
+        when(versoes.findByAnotacaoIdOrderByCriadoEmAsc(42L))
+                .thenReturn(List.of(original), List.of(original, aprovada));
+
+        assertThrows(IllegalStateException.class, () -> service.buscarComResumoAprovado(42L));
+        assertSame(nota, service.buscarComResumoAprovado(42L));
+    }
+
+    @Test
     void naoPermiteGravarOuLerRevisaoDeOutraConta() {
         var usuario = mock(Usuario.class);
         when(usuario.getId()).thenReturn(7L);
@@ -63,6 +82,7 @@ class AnotacaoServiceTest {
         assertThrows(RecursoNaoEncontradoException.class,
                 () -> service.atualizar(42L, dados(), "Resumo"));
         assertThrows(RecursoNaoEncontradoException.class, () -> service.listarVersoes(42L));
+        assertThrows(RecursoNaoEncontradoException.class, () -> service.buscarComResumoAprovado(42L));
         verifyNoInteractions(versoes);
     }
 }

@@ -1,5 +1,6 @@
 package br.com.anotaai.service;
 
+import br.com.anotaai.model.Flashcard;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,7 @@ import org.springframework.web.client.RestClientResponseException;
 import java.time.Duration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +53,10 @@ public class OpenRouterService {
     }
 
     public JsonNode gerar(String conteudo, String tipo, Integer quantidade) {
+        return gerar(conteudo, tipo, quantidade, null);
+    }
+
+    public JsonNode gerar(String conteudo, String tipo, Integer quantidade, String escolaridade) {
         if (conteudo == null || conteudo.isBlank() || conteudo.length() > 30000) {
             throw new IllegalArgumentException(
                     "Informe uma anotação com até 30.000 caracteres para gerar material de estudo.");
@@ -66,6 +72,7 @@ public class OpenRouterService {
 
         Map<String, Object> schema = esquema(tipo);
         var instrucao = PromptsAnotaAi.instrucao(tipo)
+                + "\n" + PromptsAnotaAi.orientacaoDidatica(escolaridade)
                 + ("flashcards".equals(tipo) ? "\nGere exatamente " + quantidade + " flashcards." : "")
                 + "\nResponda apenas com um objeto JSON válido conforme o formato solicitado.";
         try {
@@ -81,6 +88,10 @@ public class OpenRouterService {
     }
 
     public JsonNode verificarInconsistencias(String titulo, String conteudo) {
+        return verificarInconsistencias(titulo, conteudo, null);
+    }
+
+    public JsonNode verificarInconsistencias(String titulo, String conteudo, String escolaridade) {
         if (conteudo == null || conteudo.isBlank() || conteudo.length() > 30000) {
             throw new IllegalArgumentException("Informe uma anotação com até 30.000 caracteres para verificar.");
         }
@@ -101,7 +112,9 @@ public class OpenRouterService {
                         A sugestão deve substituir diretamente um trecho literal e só deve ser apresentada se fontes consultadas sustentarem a correção.
                         Se não encontrar erro factual confirmado, retorne listas vazias em sugestoes e fontes.
                         Não altere a anotação. A decisão pertence ao estudante.
-                        """;
+                        Aplique a orientação de linguagem ao motivo e à correção. Mantenha o trecho original literal.
+                        """
+                + PromptsAnotaAi.orientacaoDidatica(escolaridade);
         var entrada = encapsularDados("Título: " + (titulo == null ? "" : titulo) + "\n\nConteúdo:\n" + conteudo);
         try {
             JsonNode response = completar(instrucao, entrada, esquemaInconsistencias(), true);
@@ -204,8 +217,9 @@ public class OpenRouterService {
                     "properties", Map.of("resumo", texto), "required", List.of("resumo"));
         }
         var card = Map.of("type", "object", "additionalProperties", false,
-                "properties", Map.of("pergunta", texto, "resposta", texto),
-                "required", List.of("pergunta", "resposta"));
+                "properties", Map.of("pergunta", texto, "resposta", texto,
+                        "distratores", Map.of("type", "array", "items", texto)),
+                "required", List.of("pergunta", "resposta", "distratores"));
         return Map.of("type", "object", "additionalProperties", false,
                 "properties", Map.of("flashcards", Map.of("type", "array", "items", card)),
                 "required", List.of("flashcards"));
@@ -242,11 +256,17 @@ public class OpenRouterService {
                         || (quantidade != null && cards.size() != quantidade))
                     throw new IllegalStateException();
                 for (JsonNode card : cards) {
-                    if (!card.isObject() || card.size() != 2
+                    var alternativas = card.path("distratores");
+                    if (!card.isObject() || card.size() != 3 || !alternativas.isArray() || alternativas.size() != 3
                             || !campoValido(card.path("pergunta"), MAX_CAMPO_CARTAO)
                             || !campoValido(card.path("resposta"), MAX_CAMPO_CARTAO)) {
                         throw new IllegalStateException();
                     }
+                    var distratores = new ArrayList<String>(3);
+                    for (JsonNode alternativa : alternativas) {
+                        distratores.add(alternativa.textValue());
+                    }
+                    Flashcard.validarDistratores(card.path("resposta").asText(), distratores);
                 }
             }
             return result;
@@ -293,8 +313,6 @@ public class OpenRouterService {
         int status = exception.getStatusCode().value();
         if (status == 401 || status == 403)
             return new OpenRouterException("A chave do OpenRouter foi recusada. Confira OPENROUTER_API_KEY.");
-        if (status == 402)
-            return new OpenRouterException("O saldo ou limite de créditos do OpenRouter foi atingido.");
         if (status == 429)
             return new OpenRouterException(
                     "O limite de consultas do OpenRouter foi atingido. Tente novamente mais tarde.");
@@ -303,12 +321,23 @@ public class OpenRouterService {
                     "O modelo não foi encontrado ou não está disponível no OpenRouter. Confira OPENROUTER_MODEL.");
         if (status >= 500)
             return new OpenRouterException("O OpenRouter ou o provedor do modelo está temporariamente indisponível.");
-        String detail = "";
+        JsonNode erro = mapper.createObjectNode();
         try {
-            detail = mapper.readTree(exception.getResponseBodyAsString()).path("error").path("message").asText("");
+            erro = mapper.readTree(exception.getResponseBodyAsString()).path("error");
         } catch (Exception ignored) {
 
         }
+        if (status == 402) {
+            var mensagem = switch (erro.at("/metadata/limit_source").asText()) {
+                case "openrouter_credits" -> "O saldo de créditos da conta do OpenRouter é insuficiente.";
+                case "openrouter_key_limit" -> "O limite de créditos da chave do OpenRouter foi atingido.";
+                case "openrouter_in_flight_budget" ->
+                        "O OpenRouter atingiu o orçamento temporário para solicitações em andamento. Tente novamente em instantes.";
+                default -> "O saldo ou limite de créditos do OpenRouter foi atingido.";
+            };
+            return new OpenRouterException(mensagem);
+        }
+        String detail = erro.path("message").asText("");
         if (detail.length() > 300)
             detail = detail.substring(0, 300);
         return new OpenRouterException("O OpenRouter rejeitou a solicitação (HTTP " + status + ")"

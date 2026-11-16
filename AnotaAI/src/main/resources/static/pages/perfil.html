@@ -90,23 +90,10 @@
                                 <input class="input" id="email" name="email" maxlength="180" required type="email"
                                     value="" />
                             </div>
-                            <div class="field">
-                                <label for="senha-atual">Senha atual <span>(necessária para trocar a
-                                        senha)</span></label>
-                                <input autocomplete="current-password" class="input" id="senha-atual" name="senhaAtual"
-                                    type="password" />
-                            </div>
-                            <div class="field">
-                                <label for="nova-senha">Nova senha</label>
-                                <input autocomplete="new-password" class="input" id="nova-senha" minlength="12"
-                                    maxlength="72" name="novaSenha" type="password" />
-                                <small>Use 12 caracteres ou mais, com maiúscula, minúscula, número e símbolo. Evite
-                                    sequências como 1234 e palavras comuns.</small>
-                            </div>
                             <div class="field full">
                                 <label for="escolaridade">Escolaridade</label>
-                                <select class="input" id="escolaridade" name="escolaridade" required>
-                                    <option value="">Selecione</option>
+                                <select class="input" id="escolaridade" name="escolaridade" aria-describedby="escolaridade-ajuda">
+                                    <option value="" selected disabled>Selecione sua escolaridade</option>
                                     <option>Ensino Fundamental Incompleto</option>
                                     <option>Ensino Fundamental Completo</option>
                                     <option>Ensino Médio Incompleto</option>
@@ -117,6 +104,20 @@
                                     <option>Mestrado</option>
                                     <option>Doutorado</option>
                                 </select>
+                                <small id="escolaridade-ajuda">A IA usa essa informação para ajustar a linguagem e o nível de detalhe.</small>
+                            </div>
+                            <div class="field">
+                                <label for="senha-atual">Senha atual</label>
+                                <input autocomplete="current-password" class="input" id="senha-atual" name="senhaAtual"
+                                    type="password" aria-describedby="senha-atual-ajuda" />
+                                <small id="senha-atual-ajuda">Preencha apenas se quiser trocar a senha.</small>
+                            </div>
+                            <div class="field">
+                                <label for="nova-senha">Nova senha</label>
+                                <input autocomplete="new-password" class="input" id="nova-senha" minlength="12"
+                                    maxlength="72" name="novaSenha" type="password" aria-describedby="nova-senha-ajuda" />
+                                <small id="nova-senha-ajuda">Use 12 caracteres ou mais, com maiúscula, minúscula, número e símbolo. Evite
+                                    sequências como 1234 e palavras comuns.</small>
                             </div>
                             <p class="profile-feedback full" id="profile-feedback" role="status" aria-live="polite"></p>
                             <div class="profile-actions">

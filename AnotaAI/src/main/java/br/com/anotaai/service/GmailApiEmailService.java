@@ -46,9 +46,9 @@ public class GmailApiEmailService {
         validarConfiguracao();
         var html = """
                 <html><body style="font-family:Arial,sans-serif;color:#122838">
-                <h2>Anonimização da conta concluída</h2>
+                <h2>Exclusão da conta concluída</h2>
                 <p>Olá, %s.</p>
-                <p>Conforme solicitado, os dados cadastrais da conta foram substituídos por identificadores anônimos e o acesso foi encerrado. O conteúdo de estudo foi preservado.</p>
+                <p>Conforme solicitado, sua conta, suas anotações, seu histórico de versões e seus flashcards foram excluídos.</p>
                 <p>Esta mensagem confirma a conclusão do seu pedido.</p>
                 </body></html>
                 """
@@ -56,7 +56,7 @@ public class GmailApiEmailService {
         try {
             var rawMessage = "From: AnotaAI <%s>\r\n".formatted(remetente)
                     + "To: %s\r\n".formatted(destinatario)
-                    + "Subject: Anonimização da conta concluída - AnotaAI\r\n"
+                    + "Subject: %s\r\n".formatted(codificarAssunto("Exclusão da conta concluída - AnotaAI"))
                     + "MIME-Version: 1.0\r\n"
                     + "Content-Type: text/html; charset=UTF-8\r\n\r\n"
                     + html;
@@ -73,7 +73,7 @@ public class GmailApiEmailService {
             throw exception;
         } catch (Exception exception) {
             throw new ServicoEmailException(
-                    "A conta foi anonimizada, mas não foi possível enviar a confirmação por e-mail.", exception);
+                    "A conta foi excluída. Não foi possível enviar a confirmação por e-mail.", exception);
         }
     }
 
@@ -84,20 +84,20 @@ public class GmailApiEmailService {
         var html = """
                 <html><body style="font-family:Arial,sans-serif;color:#122838">
                 <h2>Novo pedido de exclusão de conta</h2>
-                <p>O usuário %s (%s) solicitou o encerramento e a anonimização da conta.</p>
+                <p>O usuário %s (%s) solicitou a exclusão da conta e dos dados de estudo.</p>
                 <p>O acesso já foi suspenso. Conclua o pedido no painel administrativo até %s.</p>
                 <p>O pedido também está disponível no painel administrativo do AnotaAI.</p>
                 </body></html>
                 """.formatted(escaparHtml(nomeUsuario == null ? "Estudante" : nomeUsuario),
                 escaparHtml(emailUsuario), prazo);
-        enviarHtml(destinatario, "Novo pedido de anonimização - AnotaAI", html);
+        enviarHtml(destinatario, "Novo pedido de exclusão - AnotaAI", html);
     }
 
     private void enviarHtml(String destinatario, String assunto, String html) {
         try {
             var rawMessage = "From: AnotaAI <%s>\r\n".formatted(remetente)
                     + "To: %s\r\n".formatted(destinatario)
-                    + "Subject: %s\r\n".formatted(assunto)
+                    + "Subject: %s\r\n".formatted(codificarAssunto(assunto))
                     + "MIME-Version: 1.0\r\n"
                     + "Content-Type: text/html; charset=UTF-8\r\n\r\n"
                     + html;
@@ -115,6 +115,11 @@ public class GmailApiEmailService {
         } catch (Exception exception) {
             throw new ServicoEmailException("Não foi possível enviar o aviso por e-mail.", exception);
         }
+    }
+
+    private String codificarAssunto(String assunto) {
+        var textoCodificado = Base64.getEncoder().encodeToString(assunto.getBytes(StandardCharsets.UTF_8));
+        return "=?UTF-8?B?" + textoCodificado + "?=";
     }
 
     private void enviarCodigo(String destinatario, String nome, String codigo, int minutosValidade,

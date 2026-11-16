@@ -13,6 +13,7 @@ import java.util.List;
 
 @Service
 public class AnotacaoService {
+    private static final String REVISAO_IA = "REVISADA_IA";
     private final AnotacaoRepository anotacaoRepository;
     private final VersaoAnotacaoRepository versaoAnotacaoRepository;
     private final UsuarioAtualService usuarioAtualService;
@@ -46,6 +47,17 @@ public class AnotacaoService {
     public Anotacao buscar(Long id) {
         return anotacaoRepository.findByIdAndUsuarioId(id, usuarioAtualService.obter().getId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Anotacao nao encontrada."));
+    }
+
+    @Transactional(readOnly = true)
+    public Anotacao buscarComResumoAprovado(Long id) {
+        var anotacao = buscar(id);
+        var resumoAprovado = versaoAnotacaoRepository.findByAnotacaoIdOrderByCriadoEmAsc(id).stream()
+                .anyMatch(versao -> REVISAO_IA.equals(versao.getTipo()));
+        if (!resumoAprovado) {
+            throw new IllegalStateException("Gere e aprove o resumo desta anotação antes de gerar flashcards.");
+        }
+        return anotacao;
     }
 
     @Transactional
@@ -103,7 +115,7 @@ public class AnotacaoService {
         }
         var versao = new VersaoAnotacao();
         versao.setAnotacao(anotacao);
-        versao.setTipo("REVISADA_IA");
+        versao.setTipo(REVISAO_IA);
         versao.setConteudo(conteudo.trim());
         versaoAnotacaoRepository.save(versao);
     }

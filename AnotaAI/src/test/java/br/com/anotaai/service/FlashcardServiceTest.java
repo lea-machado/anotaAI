@@ -32,10 +32,12 @@ class FlashcardServiceTest {
             return salvo;
         });
         var resultado = service.salvar(new FlashcardService.Pedido(" Biologia ", List.of(
-                new FlashcardService.Cartao(" Pergunta 1 ", " Resposta 1 "),
+                new FlashcardService.Cartao(" Pergunta 1 ", " Resposta 1 ", List.of(" A ", "B", "C")),
                 new FlashcardService.Cartao("Pergunta 2", "Resposta 2"))));
         assertEquals("Biologia", resultado.titulo());
         assertEquals("Pergunta 1", resultado.flashcards().get(0).pergunta());
+        assertEquals(List.of("A", "B", "C"), resultado.flashcards().get(0).distratores());
+        assertTrue(resultado.flashcards().get(1).distratores().isEmpty());
         assertEquals("Resposta 2", resultado.flashcards().get(1).resposta());
         verify(repository).save(any());
     }
@@ -76,20 +78,13 @@ class FlashcardServiceTest {
     void rejeitaDadosInvalidosSemSalvar() {
         var card = new FlashcardService.Cartao("Pergunta", "Resposta");
         assertThrows(IllegalArgumentException.class, () -> service.salvar(null));
-        assertThrows(IllegalArgumentException.class,
-                () -> service.salvar(new FlashcardService.Pedido("Título", List.of())));
-        assertThrows(IllegalArgumentException.class,
-                () -> service.salvar(new FlashcardService.Pedido("Título", Collections.nCopies(21, card))));
-        assertThrows(IllegalArgumentException.class,
-                () -> service.salvar(new FlashcardService.Pedido(" ", List.of(card))));
-        assertThrows(IllegalArgumentException.class,
-                () -> service.salvar(new FlashcardService.Pedido("a".repeat(121), List.of(card))));
-        assertThrows(IllegalArgumentException.class, () -> service
-                .salvar(new FlashcardService.Pedido("Título", List.of(new FlashcardService.Cartao("P", " ")))));
-        assertThrows(IllegalArgumentException.class, () -> service.salvar(
-                new FlashcardService.Pedido("Título", List.of(new FlashcardService.Cartao("a".repeat(4001), "R")))));
-        assertThrows(IllegalArgumentException.class,
-                () -> service.salvar(new FlashcardService.Pedido("Título", Collections.singletonList(null))));
+        assertThrows(IllegalArgumentException.class, () -> service.salvar(new FlashcardService.Pedido("Título", List.of())));
+        assertThrows(IllegalArgumentException.class, () -> service.salvar(new FlashcardService.Pedido("Título", Collections.nCopies(21, card))));
+        assertThrows(IllegalArgumentException.class, () -> service.salvar(new FlashcardService.Pedido(" ", List.of(card))));
+        assertThrows(IllegalArgumentException.class, () -> service.salvar(new FlashcardService.Pedido("a".repeat(121), List.of(card))));
+        assertThrows(IllegalArgumentException.class, () -> service.salvar(new FlashcardService.Pedido("Título", List.of(new FlashcardService.Cartao("P", " ")))));
+        assertThrows(IllegalArgumentException.class, () -> service.salvar(new FlashcardService.Pedido("Título", List.of(new FlashcardService.Cartao("a".repeat(4001), "R")))));
+        assertThrows(IllegalArgumentException.class, () -> service.salvar(new FlashcardService.Pedido("Título", Collections.singletonList(null))));
         verify(repository, never()).save(any());
     }
 }

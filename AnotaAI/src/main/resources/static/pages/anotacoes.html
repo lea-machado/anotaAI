@@ -89,11 +89,19 @@
                     </a>
                 </header>
                 <div class="notes-toolbar">
+                    <form class="notes-search" id="notes-search" role="search">
+                        <div class="field">
+                            <label for="notes-search-input">Buscar por título</label>
+                            <input class="input" id="notes-search-input" name="busca" type="search" />
+                        </div>
+                        <button class="button button-primary" type="submit">Buscar</button>
+                        <button class="button" id="notes-search-clear" type="button">Limpar</button>
+                    </form>
                     <div class="notes-count">
-                        <span class="dot">
+                        <span class="dot" aria-hidden="true">
                         </span>
-                        <span id="notes-count">
-                            0 anotações
+                        <span id="notes-count" role="status">
+                            Carregando anotações…
                         </span>
                     </div>
                 </div>

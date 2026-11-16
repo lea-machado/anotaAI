@@ -98,7 +98,8 @@
           </div>
           <div class="tool-group">
             <button class="button button-primary" id="generate-summary" type="button">Gerar resumo</button>
-            <button class="button button-primary" id="generate-flashcards" type="button">Gerar flashcards</button>
+            <button class="button button-primary" id="generate-flashcards" type="button"
+              aria-describedby="flashcard-requirement">Gerar flashcards</button>
             <a class="button" href="flashcards.html">Meus flashcards ↗</a>
           </div>
           <div class="flashcard-quantity-control">
@@ -110,6 +111,7 @@
               <option>20</option>
             </select>
           </div>
+          <p class="study-disclosure" id="flashcard-requirement">Para gerar flashcards, gere e aprove o resumo desta anotação.</p>
           <p class="study-disclosure">Antes de gerar o resumo, a IA consulta fontes para identificar possíveis erros
             factuais. Você decide se usa as correções sugeridas ou mantém seu texto original.</p>
           <p id="generation-status" role="status" aria-live="polite" aria-atomic="true"></p>
@@ -129,7 +131,7 @@
             <h3 id="fact-check-title">Verificação de informações</h3>
             <p id="fact-check-status" role="status" aria-live="polite"></p>
             <ul id="fact-check-list"></ul>
-            <h4>Fontes consultadas</h4>
+            <h4 id="fact-check-sources-heading">Fontes consultadas</h4>
             <ul id="fact-check-sources"></ul>
             <div class="tool-group" id="summary-choice" hidden>
               <button class="button button-primary" id="summarize-corrected" type="button">Aplicar correções e gerar

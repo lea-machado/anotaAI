@@ -150,22 +150,21 @@ public class AdminController {
                 var pedido = solicitacaoExclusaoRepository.findById(id)
                                 .orElseThrow(() -> new br.com.anotaai.service.RecursoNaoEncontradoException(
                                                 "Pedido de exclusão não encontrado."));
-                adminService.anonimizar(pedido.getUsuarioId(), administrador);
-                solicitacaoExclusaoRepository.delete(pedido);
+                adminService.excluirConta(pedido, administrador);
                 auditoriaService.registrar(administrador.getEmail(), "EXCLUSAO_CONTA_SOLICITADA_CONCLUIDA",
                                 "/api/admin/pedidos-exclusao/" + id, true,
-                                "Pedido de anonimização concluído.", request);
+                                "Pedido de exclusão concluído.", request);
                 try {
                         emailService.enviarConfirmacaoExclusao(pedido.getEmail(), pedido.getNome());
-                        return Map.of("mensagem", "Conta anonimizada. A confirmação foi enviada ao e-mail cadastrado.",
+                        return Map.of("mensagem", "Conta excluída. A confirmação foi enviada ao e-mail cadastrado.",
                                         "emailEnviado", true);
                 } catch (RuntimeException exception) {
                         auditoriaService.registrar(administrador.getEmail(), "FALHA_ENVIO_CONFIRMACAO_EXCLUSAO",
                                         "/api/admin/pedidos-exclusao/" + id, false,
-                                        "Conta anonimizada; falha ao enviar confirmação para o endereço cadastrado.",
+                                        "A conta foi excluída. Falha ao enviar confirmação para o endereço cadastrado.",
                                         request);
                         return Map.of("mensagem",
-                                        "Conta anonimizada, mas não foi possível enviar a confirmação por e-mail.",
+                                        "A conta foi excluída. Não foi possível enviar a confirmação por e-mail.",
                                         "emailEnviado", false);
                 }
         }
@@ -193,23 +192,22 @@ public class AdminController {
                                 .orElseThrow(() -> new IllegalStateException(
                                                 "A exclusão só pode ser concluída após um pedido do próprio usuário."));
                 var administrador = usuarioAtualService.obter();
-                adminService.anonimizar(id, administrador);
-                solicitacaoExclusaoRepository.delete(pedido);
+                adminService.excluirConta(pedido, administrador);
                 auditoriaService.registrar(administrador.getEmail(), "EXCLUSAO_USUARIO",
-                                "/api/admin/usuarios/anonimizacao", true, "Conta anonimizada.", request);
+                                "/api/admin/usuarios/" + id, true, "Conta excluída.", request);
                 try {
                         emailService.enviarConfirmacaoExclusao(pedido.getEmail(), pedido.getNome());
                         return Map.of("id", id, "emailEnviado", true,
                                         "mensagem",
-                                        "Conta anonimizada; a confirmação foi enviada ao e-mail cadastrado.");
+                                        "Conta excluída. A confirmação foi enviada ao e-mail cadastrado.");
                 } catch (RuntimeException exception) {
                         auditoriaService.registrar(administrador.getEmail(), "FALHA_ENVIO_CONFIRMACAO_EXCLUSAO",
-                                        "/api/admin/usuarios/anonimizacao", false,
-                                        "Conta anonimizada; falha ao enviar confirmação para o endereço cadastrado.",
+                                        "/api/admin/usuarios/" + id, false,
+                                        "A conta foi excluída. Falha ao enviar confirmação para o endereço cadastrado.",
                                         request);
                         return Map.of("id", id, "emailEnviado", false,
                                         "mensagem",
-                                        "Conta anonimizada, mas não foi possível enviar a confirmação por e-mail.");
+                                        "A conta foi excluída. Não foi possível enviar a confirmação por e-mail.");
                 }
         }
 

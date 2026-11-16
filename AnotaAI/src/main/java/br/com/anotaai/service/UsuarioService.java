@@ -79,7 +79,7 @@ public class UsuarioService {
             String senhaAtual, String novaSenha) {
         var nomeValidado = validarNome(nome);
         var emailNormalizado = validarEmail(email);
-        var escolaridadeValidada = validarEscolaridade(escolaridade);
+        var escolaridadeValidada = escolaridade == null ? usuario.getEscolaridade() : validarEscolaridade(escolaridade);
 
         usuarioRepository.findByEmailIgnoreCase(emailNormalizado)
                 .filter(outro -> !outro.getId().equals(usuario.getId()))
@@ -185,13 +185,13 @@ public class UsuarioService {
         return caractere >= 'a' && caractere <= 'z' || caractere >= '0' && caractere <= '9';
     }
 
-    public String validarEscolaridade(String escolaridade) {
+    private String validarEscolaridade(String escolaridade) {
         if (escolaridade == null || escolaridade.isBlank()) {
-            throw new IllegalArgumentException("Escolaridade e obrigatoria.");
+            throw new IllegalArgumentException("Escolaridade é obrigatória.");
         }
-        var valor = escolaridade.trim();
+        var valor = escolaridade.strip();
         if (!ESCOLARIDADES_VALIDAS.contains(valor)) {
-            throw new IllegalArgumentException("Informe uma escolaridade valida.");
+            throw new IllegalArgumentException("Informe uma escolaridade válida.");
         }
         return valor;
     }

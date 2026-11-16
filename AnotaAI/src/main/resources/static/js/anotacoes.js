@@ -3,23 +3,34 @@
   if (!grid) return;
   const empty = document.getElementById('empty-state');
   const count = document.getElementById('notes-count');
-  let apiNotes = null;
+  const searchForm = document.getElementById('notes-search');
+  const searchInput = document.getElementById('notes-search-input');
+  const clearSearch = document.getElementById('notes-search-clear');
+  let activeSearch = '';
+  let requestId = 0;
 
-  async function loadNotes() {
+  async function loadNotes(search) {
+    activeSearch = search;
+    const currentRequest = ++requestId;
+    grid.hidden = true;
+    empty.hidden = true;
+    count.textContent = 'Carregando anotações…';
     try {
-      apiNotes = await Api.listNotes();
+      const notes = await Api.listNotes(search);
+      if (currentRequest === requestId) render(notes, search);
     } catch (error) {
-      apiNotes = [];
-      App.toast(error.message || 'Não foi possível carregar suas anotações.', 'error');
+      if (currentRequest !== requestId) return;
+      count.textContent = 'Não foi possível carregar suas anotações.';
+      App.toast(error.message || count.textContent, 'error');
     }
-    render();
   }
 
-  function render() {
-    const notes = apiNotes || [];
+  function render(notes, search) {
     grid.hidden = !notes.length;
-    empty.hidden = !!notes.length;
-    count.textContent = `${notes.length} ${notes.length === 1 ? 'anotação' : 'anotações'}`;
+    empty.hidden = Boolean(search || notes.length);
+    count.textContent = search && !notes.length
+      ? 'Nenhuma anotação encontrada para esse título.'
+      : `${notes.length} ${notes.length === 1 ? 'anotação' : 'anotações'}`;
     grid.replaceChildren();
     for (const note of notes) {
       const id = String(note.id ?? '');
@@ -79,8 +90,7 @@
 
     try {
       await Api.deleteNote(id);
-      apiNotes = (apiNotes || []).filter(note => Number(note.id) !== id);
-      render();
+      loadNotes(activeSearch);
       App.toast('Anotação excluída com sucesso.');
     } catch (error) {
       button.disabled = false;
@@ -97,5 +107,15 @@
     deleteNote(deleteButton);
   });
 
-  loadNotes();
+  searchForm.addEventListener('submit', event => {
+    event.preventDefault();
+    loadNotes(searchInput.value.trim());
+  });
+  clearSearch.addEventListener('click', () => {
+    searchInput.value = '';
+    searchInput.focus();
+    loadNotes('');
+  });
+
+  loadNotes('');
 })();

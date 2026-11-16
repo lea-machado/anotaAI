@@ -10,34 +10,37 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.bson.Document;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
+                                                                                  
 @SpringBootTest
 class MongoMigratedDataIT {
-    @Autowired
-    UsuarioRepository usuarios;
-    @Autowired
-    AnotacaoRepository notas;
-    @Autowired
-    BaralhoRepository baralhos;
-    @Autowired
-    RegistroAuditoriaRepository auditoria;
-    @Autowired
-    AnotacaoService anotacoes;
-    @Autowired
-    FlashcardService flashcards;
-    @Autowired
-    DesempenhoService desempenho;
-    @Autowired
-    MongoTemplate mongo;
+    @Autowired UsuarioRepository usuarios;
+    @Autowired AnotacaoRepository notas;
+    @Autowired BaralhoRepository baralhos;
+    @Autowired RegistroAuditoriaRepository auditoria;
+    @Autowired AnotacaoService anotacoes;
+    @Autowired FlashcardService flashcards;
+    @Autowired DesempenhoService desempenho;
+    @Autowired MongoTemplate mongo;
 
-    @Test
-    void usuariosEConteudoMigradoPodemSerConsultadosPelaAplicacao() {
-        assertFalse(usuarios.findAll().isEmpty());
+    @Test void usuariosEConteudoMigradoPodemSerConsultadosPelaAplicacao() {
+        var usuariosMigrados = usuarios.findAll();
+        assumeFalse(usuariosMigrados.isEmpty(), "O banco não contém usuários migrados para verificar.");
         try {
-            for (var usuario : usuarios.findAll()) {
+            for (var usuario : usuariosMigrados) {
+                if (usuario.isAnonimizado()) {
+                    assertFalse(usuario.isAtivo());
+                    assertNull(usuario.getCriadoEm());
+                    assertNull(usuario.getSenha());
+                    continue;
+                }
                 assertNotNull(usuario.getCriadoEm());
                 assertNotNull(usuario.getSenha());
                 assertTrue(usuario.getSenha().startsWith("$2"));
+                if (!usuario.isAtivo()) {
+                    continue;
+                }
                 SecurityContextHolder.getContext().setAuthentication(
                         new UsernamePasswordAuthenticationToken(usuario.getEmail(), "", List.of()));
                 var userNotes = anotacoes.listar(null);
@@ -54,15 +57,15 @@ class MongoMigratedDataIT {
             }
             for (var collection : List.of("usuarios", "anotacoes", "versoes_anotacao", "baralhos",
                     "codigos_autenticacao", "codigos_recuperacao", "registros_auditoria")) {
-                var counter = mongo.getCollection("sequencias").find(new Document("_id", collection)).first();
-                assertNotNull(counter);
                 var largest = mongo.getCollection(collection).find().sort(new Document("_id", -1)).first();
-                if (largest != null)
-                    assertTrue(
-                            ((Number) counter.get("value")).longValue() >= ((Number) largest.get("_id")).longValue());
+                if (largest == null) {
+                    continue;
+                }
+                var counter = mongo.getCollection("sequencias").find(new Document("_id", collection)).first();
+                assertNotNull(counter, "Sequência ausente para " + collection);
+                assertTrue(((Number) counter.get("value")).longValue() >= ((Number) largest.get("_id")).longValue(),
+                        "Sequência abaixo do maior ID em " + collection);
             }
-        } finally {
-            SecurityContextHolder.clearContext();
-        }
+        } finally { SecurityContextHolder.clearContext(); }
     }
 }

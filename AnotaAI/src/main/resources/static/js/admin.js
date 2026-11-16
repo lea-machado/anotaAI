@@ -95,7 +95,7 @@
         <td>${request.solicitadaEm ? new Date(request.solicitadaEm).toLocaleString('pt-BR') : '—'}<br><small>${request.solicitadaEm ? deletionDeadline(request.solicitadaEm) : 'Data não informada'}</small></td>
         <td>${escapeHtml(request.nome)}</td>
         <td>${escapeHtml(request.email)}</td>
-        <td><button class="admin-action danger" data-deletion-request="${request.id}" data-user-id="${request.usuarioId}">Anonimizar conta</button></td>
+        <td><button class="admin-action danger" data-deletion-request="${request.id}" data-user-id="${request.usuarioId}">Excluir conta</button></td>
       </tr>`).join('');
   }
 
@@ -109,15 +109,17 @@
       : `Prazo: ${deadline.toLocaleDateString('pt-BR')} (${daysLeft} dia(s))`;
   }
 
+  function confirmAccountDeletion() {
+    return showConfirmation(
+      'Excluir esta conta?',
+      'A conta, as anotações, o histórico de versões e os flashcards serão excluídos permanentemente.',
+      'Excluir conta'
+    );
+  }
+
   async function concluirPedidoExclusao(event) {
     const button = event.target.closest('[data-deletion-request]');
-    if (!button || button.disabled) return;
-    const confirmed = await showConfirmation(
-      'Anonimizar esta conta?',
-      'Os dados cadastrais serão substituídos, o acesso será encerrado e o conteúdo de estudo será preservado.',
-      'Anonimizar conta'
-    );
-    if (!confirmed) return;
+    if (!button || button.disabled || !await confirmAccountDeletion()) return;
     button.disabled = true;
     try {
       const result = await Api.completeAdminDeletionRequest(button.dataset.deletionRequest);
@@ -262,14 +264,7 @@
     const button = event.target.closest('[data-user-action]');
     if (!button || button.disabled) return;
     const id = button.dataset.userId;
-    if (button.dataset.userAction === 'delete') {
-      const confirmed = await showConfirmation(
-        'Anonimizar esta conta?',
-        'Os dados cadastrais serão substituídos, o acesso será encerrado e o conteúdo de estudo será preservado.',
-        'Anonimizar conta'
-      );
-      if (!confirmed) return;
-    }
+    if (button.dataset.userAction === 'delete' && !await confirmAccountDeletion()) return;
     button.disabled = true;
     try {
       const result = button.dataset.userAction === 'delete'
@@ -302,8 +297,8 @@
         <td>${user.anotacoes}</td>
         <td>${user.criadoEm ? new Date(user.criadoEm).toLocaleDateString('pt-BR') : '—'}</td>
         <td class="admin-actions">
-          <button class="admin-action" data-user-action="status" data-user-id="${user.id}" ${isCurrentUser || user.pedidoExclusao || anonymized ? 'disabled' : ''}>${anonymized ? 'Conta encerrada' : (user.pedidoExclusao ? 'Aguardando anonimização' : (ativo ? 'Desativar' : 'Ativar'))}</button>
-          <button class="admin-action danger" data-user-action="delete" data-user-id="${user.id}" ${isCurrentUser || !user.pedidoExclusao ? 'disabled' : ''}>${user.pedidoExclusao ? 'Anonimizar' : 'Sem pedido'}</button>
+          <button class="admin-action" data-user-action="status" data-user-id="${user.id}" ${isCurrentUser || user.pedidoExclusao || anonymized ? 'disabled' : ''}>${anonymized ? 'Conta encerrada' : (user.pedidoExclusao ? 'Aguardando exclusão' : (ativo ? 'Desativar' : 'Ativar'))}</button>
+          <button class="admin-action danger" data-user-action="delete" data-user-id="${user.id}" ${isCurrentUser || !user.pedidoExclusao ? 'disabled' : ''}>${user.pedidoExclusao ? 'Excluir' : 'Sem pedido'}</button>
         </td>
       </tr>`;
   }

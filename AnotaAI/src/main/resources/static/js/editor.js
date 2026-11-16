@@ -133,13 +133,13 @@
           verificationUnavailable = true;
           document.getElementById('fact-check-result').classList.add('verification-failed');
           renderFactCheck([], []);
-          document.getElementById('fact-check-status').textContent = `${checkError.message} Você pode gerar o resumo com o texto original mesmo assim.`;
+          document.getElementById('fact-check-status').textContent = `${checkError.message} A tentativa de gerar o resumo sem busca também depende do OpenRouter.`;
           document.getElementById('summarize-corrected').hidden = true;
-          document.getElementById('summarize-original').textContent = 'Gerar resumo com meu texto original';
+          document.getElementById('summarize-original').textContent = 'Tentar resumo sem verificação';
           summaryChoice.hidden = false;
           document.getElementById('fact-check-result').hidden = false;
           document.getElementById('study-results').hidden = false;
-          generationStatus.textContent = `${checkError.message} Você pode gerar o resumo com seu texto original usando o botão abaixo.`;
+          generationStatus.textContent = 'A verificação de informações falhou.';
           generationStatus.dataset.state = 'info';
           App.toast(checkError.message, 'error');
           document.getElementById('fact-check-result').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -262,6 +262,7 @@
     const status = document.getElementById('fact-check-status');
     list.replaceChildren();
     sourceList.replaceChildren();
+    document.getElementById('fact-check-sources-heading').hidden = sourceList.hidden = sources.length === 0;
     if (!suggestions.length) {
       status.textContent = 'Não encontrei sugestões de correção apoiadas pelas fontes consultadas.';
     } else {

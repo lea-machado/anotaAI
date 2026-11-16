@@ -1,14 +1,14 @@
 package br.com.anotaai.service;
 
 import br.com.anotaai.model.Usuario;
+import br.com.anotaai.model.SolicitacaoExclusao;
 import br.com.anotaai.repository.UsuarioRepository;
 import br.com.anotaai.repository.AnotacaoRepository;
 import br.com.anotaai.repository.BaralhoRepository;
 import br.com.anotaai.repository.CodigoAutenticacaoRepository;
 import br.com.anotaai.repository.CodigoRecuperacaoRepository;
-import br.com.anotaai.repository.RegistroAuditoriaRepository;
+import br.com.anotaai.repository.SolicitacaoExclusaoRepository;
 import br.com.anotaai.repository.VersaoAnotacaoRepository;
-import br.com.anotaai.repository.RegistroUsoIaRepository;
 import br.com.anotaai.model.RegistroAuditoria;
 import br.com.anotaai.model.RegistroUsoIa;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -16,12 +16,10 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 import java.util.Set;
-import java.util.UUID;
 
 @Service
 public class AdminService {
@@ -33,37 +31,21 @@ public class AdminService {
     private final BaralhoRepository baralhoRepository;
     private final CodigoAutenticacaoRepository autenticacaoRepository;
     private final CodigoRecuperacaoRepository recuperacaoRepository;
-    private final RegistroAuditoriaRepository auditoriaRepository;
-    private final RegistroUsoIaRepository registroUsoIaRepository;
+    private final SolicitacaoExclusaoRepository solicitacaoExclusaoRepository;
     private final MongoTemplate mongoTemplate;
 
-    @Autowired
     public AdminService(UsuarioRepository usuarioRepository, AnotacaoRepository anotacaoRepository,
             VersaoAnotacaoRepository versaoRepository, BaralhoRepository baralhoRepository,
             CodigoAutenticacaoRepository autenticacaoRepository, CodigoRecuperacaoRepository recuperacaoRepository,
-            RegistroAuditoriaRepository auditoriaRepository, RegistroUsoIaRepository registroUsoIaRepository,
-            MongoTemplate mongoTemplate) {
+            SolicitacaoExclusaoRepository solicitacaoExclusaoRepository, MongoTemplate mongoTemplate) {
         this.usuarioRepository = usuarioRepository;
         this.anotacaoRepository = anotacaoRepository;
         this.versaoRepository = versaoRepository;
         this.baralhoRepository = baralhoRepository;
         this.autenticacaoRepository = autenticacaoRepository;
         this.recuperacaoRepository = recuperacaoRepository;
-        this.auditoriaRepository = auditoriaRepository;
-        this.registroUsoIaRepository = registroUsoIaRepository;
+        this.solicitacaoExclusaoRepository = solicitacaoExclusaoRepository;
         this.mongoTemplate = mongoTemplate;
-    }
-
-    public AdminService(UsuarioRepository usuarioRepository, AnotacaoRepository anotacaoRepository,
-            VersaoAnotacaoRepository versaoRepository, BaralhoRepository baralhoRepository,
-            CodigoAutenticacaoRepository autenticacaoRepository, CodigoRecuperacaoRepository recuperacaoRepository,
-            RegistroAuditoriaRepository auditoriaRepository, RegistroUsoIaRepository registroUsoIaRepository) {
-        this(usuarioRepository, anotacaoRepository, versaoRepository, baralhoRepository, autenticacaoRepository,
-                recuperacaoRepository, auditoriaRepository, registroUsoIaRepository, null);
-    }
-
-    public AdminService(UsuarioRepository usuarioRepository) {
-        this(usuarioRepository, null, null, null, null, null, null, null);
     }
 
     @Transactional
@@ -100,49 +82,26 @@ public class AdminService {
     }
 
     @Transactional
-    public Usuario anonimizar(Long usuarioId, Usuario administradorAtual) {
+    public void excluirConta(SolicitacaoExclusao pedido, Usuario administradorAtual) {
+        var usuarioId = pedido.getUsuarioId();
         var usuario = alvo(usuarioId, administradorAtual);
-        if (usuario.isAnonimizado())
-            return usuario;
-
-        if (anotacaoRepository != null && versaoRepository != null && baralhoRepository != null) {
-            var anotacoes = anotacaoRepository.findByUsuarioIdOrderByCriadoEmDesc(usuarioId);
-            for (var anotacao : anotacoes) {
-                versaoRepository.deleteByAnotacaoId(anotacao.getId());
-                baralhoRepository.deleteByAnotacaoId(anotacao.getId());
-            }
-            baralhoRepository.deleteByUsuarioId(usuarioId);
-            anotacaoRepository.deleteByUsuarioId(usuarioId);
-        } else if (mongoTemplate != null) {
-            throw new IllegalStateException("Não foi possível excluir os dados de estudo: repositórios indisponíveis.");
+        for (var anotacao : anotacaoRepository.findByUsuarioIdOrderByCriadoEmDesc(usuarioId)) {
+            versaoRepository.deleteByAnotacaoId(anotacao.getId());
+            baralhoRepository.deleteByAnotacaoId(anotacao.getId());
         }
+        baralhoRepository.deleteByUsuarioId(usuarioId);
+        anotacaoRepository.deleteByUsuarioId(usuarioId);
+        autenticacaoRepository.deleteByUsuarioId(usuarioId);
+        recuperacaoRepository.deleteByUsuarioId(usuarioId);
 
-        usuario.setNome("Usuário anonimizado");
-        usuario.setEmail("anonimo-" + UUID.randomUUID() + "@anonimo.invalid");
-        usuario.setSenha(null);
-        usuario.setPerfil("USER");
-        usuario.setAtivo(false);
-        usuario.setAnonimizado(true);
-        usuario.setDataNascimento(null);
-        usuario.setEscolaridade(null);
-        usuario.setTermosAceitosEm(null);
-        usuario.setMaioridadeDeclaradaEm(null);
-        usuario.setVersaoTermos(null);
-        usuario.setCriadoEm(null);
+        var porUsuario = Query.query(Criteria.where("usuario.$id").is(usuarioId));
+        mongoTemplate.updateMulti(porUsuario, new Update().unset("usuario").unset("email").unset("detalhes")
+                .unset("enderecoIp").unset("userAgent"), RegistroAuditoria.class);
+        mongoTemplate.updateMulti(Query.query(Criteria.where("usuarioId").is(usuarioId)),
+                new Update().unset("usuarioId"), RegistroUsoIa.class);
 
-        if (mongoTemplate != null) {
-            var porUsuario = Query.query(Criteria.where("usuario.$id").is(usuarioId));
-            mongoTemplate.updateMulti(porUsuario, new Update().unset("usuario").unset("email").unset("detalhes")
-                    .unset("enderecoIp").unset("userAgent"), RegistroAuditoria.class);
-            mongoTemplate.updateMulti(Query.query(Criteria.where("usuarioId").is(usuarioId)),
-                    new Update().unset("usuarioId"), RegistroUsoIa.class);
-        }
-
-        if (autenticacaoRepository != null)
-            autenticacaoRepository.deleteByUsuarioId(usuarioId);
-        if (recuperacaoRepository != null)
-            recuperacaoRepository.deleteByUsuarioId(usuarioId);
-        return usuarioRepository.save(usuario);
+        usuarioRepository.delete(usuario);
+        solicitacaoExclusaoRepository.delete(pedido);
     }
 
     private Usuario alvo(Long usuarioId, Usuario administradorAtual) {

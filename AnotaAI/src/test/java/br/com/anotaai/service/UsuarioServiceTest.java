@@ -3,6 +3,8 @@ package br.com.anotaai.service;
 import br.com.anotaai.model.Usuario;
 import br.com.anotaai.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
@@ -40,6 +42,7 @@ class UsuarioServiceTest {
         var usuario = cadastrar(nascimento);
 
         assertEquals(nascimento, usuario.getDataNascimento());
+        assertEquals("Ensino Superior Incompleto", usuario.getEscolaridade());
         verify(usuarioRepository).save(any(Usuario.class));
     }
 
@@ -51,26 +54,18 @@ class UsuarioServiceTest {
         verifyNoInteractions(usuarioRepository);
     }
 
-    @Test
-    void exigeEscolaridade() {
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "Outro nível"})
+    void rejeitaEscolaridadeVaziaOuInvalida(String escolaridade) {
         assertThrows(IllegalArgumentException.class, () -> usuarioService.criarUsuarioComum(
                 "Pessoa Adulta", "adulta@example.com", "Conta!Forte2026", LocalDate.now().minusYears(20),
-                "", true, true, UsuarioService.VERSAO_ATUAL_TERMOS));
+                escolaridade, true, true, UsuarioService.VERSAO_ATUAL_TERMOS));
         verifyNoInteractions(usuarioRepository);
-    }
-
-    @Test
-    void salvaEscolaridadeInformada() {
-        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        var usuario = cadastrar(LocalDate.now().minusYears(20));
-
-        assertEquals("Ensino Superior Incompleto", usuario.getEscolaridade());
     }
 
     private Usuario cadastrar(LocalDate dataNascimento) {
         return usuarioService.criarUsuarioComum(
                 "Pessoa Adulta", "adulta@example.com", "Conta!Forte2026", dataNascimento,
-                "Ensino Superior Incompleto", true, true, UsuarioService.VERSAO_ATUAL_TERMOS);
+                " Ensino Superior Incompleto ", true, true, UsuarioService.VERSAO_ATUAL_TERMOS);
     }
 }

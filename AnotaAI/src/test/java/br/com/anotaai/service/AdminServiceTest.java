@@ -1,8 +1,15 @@
 package br.com.anotaai.service;
 
 import br.com.anotaai.model.Usuario;
+import br.com.anotaai.repository.AnotacaoRepository;
+import br.com.anotaai.repository.BaralhoRepository;
+import br.com.anotaai.repository.CodigoAutenticacaoRepository;
+import br.com.anotaai.repository.CodigoRecuperacaoRepository;
+import br.com.anotaai.repository.SolicitacaoExclusaoRepository;
 import br.com.anotaai.repository.UsuarioRepository;
+import br.com.anotaai.repository.VersaoAnotacaoRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.util.Optional;
 
@@ -15,7 +22,10 @@ import static org.mockito.Mockito.when;
 
 class AdminServiceTest {
     private final UsuarioRepository repository = mock(UsuarioRepository.class);
-    private final AdminService service = new AdminService(repository);
+    private final AdminService service = new AdminService(repository, mock(AnotacaoRepository.class),
+            mock(VersaoAnotacaoRepository.class), mock(BaralhoRepository.class),
+            mock(CodigoAutenticacaoRepository.class), mock(CodigoRecuperacaoRepository.class),
+            mock(SolicitacaoExclusaoRepository.class), mock(MongoTemplate.class));
 
     @Test
     void administradorPodePromoverOutroUsuario() {

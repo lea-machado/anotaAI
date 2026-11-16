@@ -12,8 +12,7 @@ import static org.mockito.Mockito.*;
 
 class OpenRouterServiceTest {
     private final ObjectMapper mapper = new ObjectMapper();
-    private final OpenRouterService service = new OpenRouterService(RestClient.builder(), mapper, "",
-            "openai/gpt-4o-mini-2024-07-18");
+    private final OpenRouterService service = new OpenRouterService(RestClient.builder(), mapper, "", "openai/gpt-4o-mini-2024-07-18");
 
     @Test
     void rejeitaEntradaInvalidaAntesDeChamarOpenRouter() {
@@ -49,10 +48,11 @@ class OpenRouterServiceTest {
     void extraiResumoEFlashcards() {
         assertEquals("Resumo da aula", service.extrair(envelope("{\"resumo\":\"Resumo da aula\"}", "STOP"), "resumo")
                 .path("resumo").asText());
-        var cards = service.extrair(
-                envelope("{\"flashcards\":[{\"pergunta\":\"O quê?\",\"resposta\":\"Conceito\"}]}", "STOP"),
-                "flashcards");
+        var cards = service.extrair(envelope("""
+                {"flashcards":[{"pergunta":"O quê?","resposta":"Conceito","distratores":["A","B","C"]}]}
+                """, "STOP"), "flashcards");
         assertEquals("Conceito", cards.path("flashcards").path(0).path("resposta").asText());
+        assertEquals(3, cards.at("/flashcards/0/distratores").size());
     }
 
     @Test
@@ -60,12 +60,9 @@ class OpenRouterServiceTest {
         assertThrows(OpenRouterException.class, () -> service.extrair(mapper.createObjectNode(), "resumo"));
         assertThrows(OpenRouterException.class, () -> service.extrair(envelope("{}", "MAX_TOKENS"), "resumo"));
         assertThrows(OpenRouterException.class, () -> service.extrair(envelope("não é JSON", "STOP"), "resumo"));
-        assertThrows(OpenRouterException.class,
-                () -> service.extrair(envelope("{\"resumo\":\" \"}", "STOP"), "resumo"));
-        assertThrows(OpenRouterException.class,
-                () -> service.extrair(envelope("{\"flashcards\":[]}", "STOP"), "flashcards"));
-        assertThrows(OpenRouterException.class, () -> service
-                .extrair(envelope("{\"flashcards\":[{\"pergunta\":\"Pergunta\"}]}", "STOP"), "flashcards"));
+        assertThrows(OpenRouterException.class, () -> service.extrair(envelope("{\"resumo\":\" \"}", "STOP"), "resumo"));
+        assertThrows(OpenRouterException.class, () -> service.extrair(envelope("{\"flashcards\":[]}", "STOP"), "flashcards"));
+        assertThrows(OpenRouterException.class, () -> service.extrair(envelope("{\"flashcards\":[{\"pergunta\":\"Pergunta\"}]}", "STOP"), "flashcards"));
     }
 
     private com.fasterxml.jackson.databind.JsonNode envelope(String text, String reason) {
