@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meus flashcards — AnotaAI</title>
+    <link href="../css/global.css" rel="stylesheet" />
+    <link href="../css/sidebar.css" rel="stylesheet" />
+    <link href="../css/flashcards.css" rel="stylesheet" />
+    <link href="../css/delete-dialog.css" rel="stylesheet" />
+</head>
+
+<body data-page="flashcards">
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand"><a class="brand-link" href="anotacoes.html" aria-label="Página inicial do AnotaAI"><img
+                        class="brand-logo" src="../assets/images/logo-anotaai.png" alt="AnotaAI" /></a></div>
+            <nav class="sidebar-nav" aria-label="Navegação principal">
+                <a class="nav-item" href="anotacoes.html"><svg aria-hidden="true" class="simple-svg"
+                        viewBox="0 0 24 24">
+                        <path d="M6 3.5h10a2 2 0 0 1 2 2V20l-4-2-4 2-4-2-2 1V5.5a2 2 0 0 1 2-2Z"></path>
+                        <path d="M8 8h7M8 12h7"></path>
+                    </svg><span>Minhas anotações</span></a>
+                <a class="nav-item" href="desempenho.html"><svg aria-hidden="true" class="simple-svg"
+                        viewBox="0 0 24 24">
+                        <path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path>
+                    </svg><span>Meu desempenho</span></a>
+                <a class="nav-item" href="perfil.html"><svg aria-hidden="true" class="simple-svg" viewBox="0 0 24 24">
+                        <path d="M20 21a8 8 0 0 0-16 0"></path>
+                        <path d="M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"></path>
+                    </svg><span>Meu perfil</span></a>
+            </nav>
+            <div class="sidebar-footer"><button class="nav-item nav-button" data-action="logout"
+                    type="button">Sair</button></div>
+        </aside>
+        <header class="mobile-topbar">
+            <a class="mobile-brand" href="anotacoes.html" aria-label="AnotaAI"><img class="mobile-brand-logo"
+                    src="../assets/images/logo-anotaai.png" alt="AnotaAI" /></a>
+            <button class="icon-button" data-action="toggle-menu" type="button" aria-label="Abrir menu">☰</button>
+        </header>
+        <main class="app-main">
+            <section class="page" id="library">
+                <header class="page-header">
+                    <div>
+                        <p class="page-kicker">Revisão ativa</p>
+                        <h1>Meus flashcards</h1>
+                        <p class="page-subtitle">Seus conjuntos salvos, prontos para estudar quando quiser.</p>
+                    </div>
+                    <a class="button button-primary" href="anotacoes.html">Gerar a partir de uma anotação</a>
+                </header>
+                <p id="library-status" role="status" aria-live="polite">Carregando seus flashcards…</p>
+                <button class="button" id="retry-load" type="button" hidden>Tentar novamente</button>
+                <section class="stats-overview" aria-label="Estatísticas gerais dos flashcards">
+                    <article class="stat-tile"><span>Cartões respondidos</span><strong id="total-answered">0</strong>
+                    </article>
+                    <article class="stat-tile stat-correct"><span>Acertos no total</span><strong
+                            id="total-correct">0</strong></article>
+                    <article class="stat-tile stat-incorrect"><span>Erros no total</span><strong
+                            id="total-errors">0</strong></article>
+                </section>
+                <button class="button button-primary review-errors-button" id="review-errors" type="button">
+                    <svg class="simple-svg" aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M20 7v5h-5"></path>
+                        <path d="M20 12a8 8 0 1 1-2.34-5.66L20 8"></path>
+                    </svg>
+                    <span>Ver perguntas que já errei</span>
+                    <span class="review-button-arrow" aria-hidden="true">→</span>
+                </button>
+                <section id="error-deck-picker" class="error-deck-picker" aria-labelledby="error-deck-heading" hidden>
+                    <div class="picker-heading">
+                        <div>
+                            <h2 id="error-deck-heading">Escolha um conjunto</h2>
+                            <p>Vamos mostrar somente as perguntas erradas desse conjunto.</p>
+                        </div>
+                        <button class="button" id="cancel-error-review" type="button">Cancelar</button>
+                    </div>
+                    <div id="error-deck-list" class="error-deck-list"></div>
+                    <p id="error-deck-empty" role="status" hidden>Você ainda não errou perguntas em nenhum conjunto.</p>
+                </section>
+                <section id="decks-empty" class="deck-empty" hidden>
+                    <h2>Seu próximo estudo começa com uma anotação</h2>
+                    <p>Abra uma anotação, clique em “Gerar flashcards”, revise o resultado e escolha “Salvar em Meus
+                        flashcards”.</p>
+                    <a class="button button-primary" href="anotacoes.html">Abrir minhas anotações</a>
+                </section>
+                <div id="decks-grid" class="decks-grid"></div>
+            </section>
+            <section class="page page-narrow" id="study" aria-labelledby="deck-heading" hidden>
+                <button class="button" id="back-library" type="button">← Meus flashcards</button>
+                <h1 id="deck-heading" tabindex="-1"></h1>
+                <p id="card-progress" aria-live="polite"></p>
+                <article class="study-card">
+                    <p class="page-kicker">Pergunta</p>
+                    <h2 id="card-question"></h2>
+                    <p class="quiz-instruction">Escolha uma das quatro respostas:</p>
+                    <div id="quiz-options" class="quiz-options"></div>
+                    <p id="quiz-feedback" class="quiz-feedback" role="status" aria-live="polite" hidden></p>
+                    <p id="card-answer" hidden></p>
+                    <p class="card-score" id="card-score"></p>
+                </article>
+                <div class="study-navigation">
+                    <button class="button" id="previous-card" type="button">← Anterior</button>
+                    <button class="button button-primary" id="next-card" type="button">Próximo →</button>
+                </div>
+            </section>
+        </main>
+    </div>
+    <dialog class="delete-dialog" id="delete-dialog" aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-name delete-dialog-description">
+        <div class="delete-dialog-icon" aria-hidden="true">
+            <svg class="simple-svg" viewBox="0 0 24 24">
+                <path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"></path>
+            </svg>
+        </div>
+        <h2 id="delete-dialog-title">Excluir conjunto de flashcards?</h2>
+        <p class="delete-dialog-name" id="delete-dialog-name"></p>
+        <p class="delete-dialog-description" id="delete-dialog-description">
+            O conjunto e todos os seus flashcards serão excluídos permanentemente.
+        </p>
+        <p class="delete-dialog-error" id="delete-dialog-error" role="alert"></p>
+        <div class="delete-dialog-actions">
+            <button class="button button-secondary" id="delete-dialog-cancel" type="button" autofocus>Cancelar</button>
+            <button class="button delete-dialog-confirm" id="delete-dialog-confirm" type="button">Excluir conjunto</button>
+        </div>
+    </dialog>
+    <script src="../js/api.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/delete-dialog.js"></script>
+    <script src="../js/flashcards.js"></script>
+</body>
+
+</html>

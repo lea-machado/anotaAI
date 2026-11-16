@@ -20,7 +20,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        useMainMethod = SpringBootTest.UseMainMethod.ALWAYS)
 @ActiveProfiles("test")
 class CadastroControllerHttpIntegracaoTest {
 
@@ -50,7 +51,7 @@ class CadastroControllerHttpIntegracaoTest {
         return Map.of(
                 "nome", "Usuario",
                 "email", email,
-                "senha", "senha1234",
+                "senha", "Conta!Forte2026",
                 "dataNascimento", nascimento,
                 "escolaridade", "Ensino Superior Incompleto",
                 "aceitouTermos", true,

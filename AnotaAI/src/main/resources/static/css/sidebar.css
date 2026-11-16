@@ -5,8 +5,11 @@
 .nav-item { width: 100%; min-height: 44px; display: flex; align-items: center; gap: 11px; padding: 0 12px; border: 0; border-radius: 7px; color: #9fb0bd; font-size: 12px; font-weight: 600; position: relative; transition: .17s ease; }
 .nav-item svg { stroke-width: 1.7; }
 .nav-item:hover { background: rgba(255,255,255,.055); color: #fff; }
-.nav-item.active { color: #fff; background: rgba(255,255,255,.075); }
+.sidebar-nav .nav-item:not(.active) { background: transparent; }
+.sidebar-nav .nav-item:not(.active):hover { background: rgba(255,255,255,.055); color: #fff; }
+.sidebar-nav .nav-item.active, .sidebar-nav .nav-item[aria-current="page"] { color: #fff; background: rgba(255,255,255,.075); }
 .nav-item.active::before { content: ''; position: absolute; left: 0; width: 2px; height: 18px; border-radius: 999px; background: #9fc0d9; }
+.nav-item:focus-visible { outline: 2px solid #9fc0d9; outline-offset: 2px; }
 .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); }
 .nav-button { background: transparent; text-align: left; }
 

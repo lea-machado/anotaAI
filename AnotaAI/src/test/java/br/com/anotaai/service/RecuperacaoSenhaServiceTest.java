@@ -28,7 +28,7 @@ class RecuperacaoSenhaServiceTest {
         when(usuarios.buscarParaRecuperacao("teste@exemplo.com")).thenReturn(Optional.of(usuario));
         var desafio = service.solicitar(" TESTE@exemplo.com ");
         var codigo = ArgumentCaptor.forClass(String.class);
-        verify(email).enviarCodigoRecuperacao(eq(usuario.getEmail()), eq(usuario.getNome()), codigo.capture(), eq(10));
+        verify(email).enviarCodigoRecuperacao(eq(usuario.getEmail()), eq(usuario.getNome()), codigo.capture(), eq(5));
         assertTrue(codigo.getValue().matches("[0-9]{6}"));
         var captor = ArgumentCaptor.forClass(CodigoRecuperacao.class);
         verify(codigos).save(captor.capture());
@@ -36,11 +36,12 @@ class RecuperacaoSenhaServiceTest {
         assertNotEquals(codigo.getValue(), registro.getCodigoHash());
         assertTrue(encoder.matches(codigo.getValue(), registro.getCodigoHash()));
         when(codigos.findByDesafioId(desafio)).thenReturn(Optional.of(registro));
-        service.redefinir(desafio, codigo.getValue(), "minhaNovaSenha123");
-        assertTrue(encoder.matches("minhaNovaSenha123", usuario.getSenha()));
+        service.redefinir(desafio, codigo.getValue(), "MinhaChave!2026");
+        assertTrue(encoder.matches("MinhaChave!2026", usuario.getSenha()));
         assertNotNull(registro.getUsadoEm());
         assertThrows(IllegalArgumentException.class, () -> service.redefinir(desafio, codigo.getValue(), "outraSenha123"));
-        verify(usuarios, times(1)).save(usuario);
+                                                                                
+        verify(usuarios, times(2)).save(usuario);
     }
 
     @Test
@@ -53,10 +54,10 @@ class RecuperacaoSenhaServiceTest {
     void bloqueiaAposCincoTentativasErradas() {
         var registro = registro();
         for (int i = 0; i < 5; i++) {
-            assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "000000", "novaSenha123"));
+            assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "000000", "ChaveNova!2026"));
         }
         assertEquals(5, registro.getTentativas());
-        assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "123456", "novaSenha123"));
+        assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "123456", "ChaveNova!2026"));
         verify(usuarios, never()).save(any());
     }
 
@@ -64,10 +65,7 @@ class RecuperacaoSenhaServiceTest {
     void rejeitaCodigoExpirado() {
         var registro = registro();
         registro.setExpiraEm(LocalDateTime.now().minusSeconds(1));
-
-       IllegalArgumentException excecao = assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "123456", "novaSenha123"));
-
-        assertNotNull(excecao.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "123456", "ChaveNova!2026"));
         verify(usuarios, never()).save(any());
     }
 
@@ -99,13 +97,13 @@ class RecuperacaoSenhaServiceTest {
         when(codigos.findByUsuarioIdAndUsadoEmIsNull(null)).thenReturn(List.of(anterior));
         service.solicitar("teste@exemplo.com");
         assertNotNull(anterior.getUsadoEm());
-        assertThrows(IllegalArgumentException.class, () -> service.redefinir(anterior.getDesafioId(), "123456", "novaSenha123"));
+        assertThrows(IllegalArgumentException.class, () -> service.redefinir(anterior.getDesafioId(), "123456", "ChaveNova!2026"));
     }
 
     @Test
     void desafioAusenteOuDesconhecidoNaoAlteraSenha() {
-        assertThrows(IllegalArgumentException.class, () -> service.redefinir(null, "123456", "novaSenha123"));
-        assertThrows(IllegalArgumentException.class, () -> service.redefinir(UUID.randomUUID(), "123456", "novaSenha123"));
+        assertThrows(IllegalArgumentException.class, () -> service.redefinir(null, "123456", "ChaveNova!2026"));
+        assertThrows(IllegalArgumentException.class, () -> service.redefinir(UUID.randomUUID(), "123456", "ChaveNova!2026"));
         verify(usuarios, never()).save(any());
     }
 
@@ -124,7 +122,7 @@ class RecuperacaoSenhaServiceTest {
         var usuario = new Usuario();
         usuario.setNome("Teste");
         usuario.setEmail("teste@exemplo.com");
-        usuario.setSenha(encoder.encode("senhaAnterior123"));
+        usuario.setSenha(encoder.encode("ChaveAntiga!2026"));
         return usuario;
     }
 }

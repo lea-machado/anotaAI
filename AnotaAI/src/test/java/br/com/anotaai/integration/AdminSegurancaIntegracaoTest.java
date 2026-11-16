@@ -56,7 +56,7 @@ class AdminSegurancaIntegracaoTest {
 
         private void cadastrar(String email) throws Exception {
                 String dados = """
-                                {"nome":"Usuario","email":"%s","senha":"senha1234",
+                                {"nome":"Usuario","email":"%s","senha":"Conta!Forte2026",
                                 "dataNascimento":"2000-09-10","escolaridade":"Ensino Superior Incompleto",
                                 "aceitouTermos":true,"declarouMaioridade":true,"versaoTermos":"2026-09-25"}
                                 """.formatted(email);
@@ -67,7 +67,7 @@ class AdminSegurancaIntegracaoTest {
 
         private HttpSession autenticar(String email) throws Exception {
                 String dados = """
-                                {"email":"%s","senha":"senha1234"}
+                                {"email":"%s","senha":"Conta!Forte2026"}
                                 """.formatted(email);
                 var login = mockMvc.perform(post("/api/auth/login").with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON).content(dados))
@@ -143,6 +143,7 @@ class AdminSegurancaIntegracaoTest {
         @Test
         void auditoria_comAdministrador_deveRetornarRegistrosDeAtividade() throws Exception {
                 HttpSession sessao = autenticar(emailAdmin);
+                var administrador = usuarioRepository.findByEmailIgnoreCase(emailAdmin).orElseThrow();
                 var usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario).orElseThrow();
 
                 mockMvc.perform(put("/api/admin/usuarios/{id}/perfil", usuario.getId())
@@ -156,6 +157,6 @@ class AdminSegurancaIntegracaoTest {
                                 .session((org.springframework.mock.web.MockHttpSession) sessao))
                                 .andExpect(status().isOk())
                                 .andExpect(content().string(containsString("ALTERACAO_PERFIL_USUARIO")))
-                                .andExpect(content().string(containsString(emailAdmin)));
+                                .andExpect(content().string(containsString("Conta " + administrador.getId())));
         }
 }

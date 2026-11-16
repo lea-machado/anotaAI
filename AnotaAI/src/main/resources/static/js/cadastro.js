@@ -11,6 +11,7 @@
   const feedback = document.getElementById('register-feedback');
   const button = document.getElementById('register-button');
   const birthDateInput = document.getElementById('data-nascimento');
+  const educationInput = document.getElementById('escolaridade');
   const today = new Date();
   const minimumBirthYear = today.getFullYear() - 18;
   const minimumBirthDay = Math.min(today.getDate(), new Date(minimumBirthYear, today.getMonth() + 1, 0).getDate());
@@ -18,6 +19,11 @@
     .map((part, index) => index === 0 ? String(part) : String(part).padStart(2, '0'))
     .join('-');
   birthDateInput.max = maximumBirthDate;
+
+  educationInput.addEventListener('invalid', () => {
+    educationInput.setCustomValidity('Selecione sua escolaridade para criar a conta.');
+  });
+  educationInput.addEventListener('change', () => educationInput.setCustomValidity(''));
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
@@ -51,7 +57,7 @@
           nome: document.getElementById('nome').value,
           email: document.getElementById('email').value,
           dataNascimento: birthDateInput.value,
-          escolaridade: document.getElementById('escolaridade').value,
+          escolaridade: educationInput.value,
           senha,
           aceitouTermos: true,
           declarouMaioridade: true,
@@ -68,7 +74,7 @@
       button.disabled = false;
       button.textContent = 'Criar conta';
     }
-  });
+  });                                                                                               
 
   function showFeedback(message) {
     feedback.textContent = message;

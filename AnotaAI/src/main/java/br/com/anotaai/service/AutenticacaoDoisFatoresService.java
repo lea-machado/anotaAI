@@ -22,14 +22,15 @@ public class AutenticacaoDoisFatoresService {
     private final GmailApiEmailService emailService;
 
     public AutenticacaoDoisFatoresService(CodigoAutenticacaoRepository codigoRepository,
-                                           PasswordEncoder passwordEncoder,
-                                           GmailApiEmailService emailService) {
+            PasswordEncoder passwordEncoder,
+            GmailApiEmailService emailService) {
         this.codigoRepository = codigoRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
     }
 
     @Transactional
+
     public Desafio criarDesafio(Usuario usuario) {
         var agora = LocalDateTime.now();
         codigoRepository.findTopByUsuarioIdOrderByCriadoEmDesc(usuario.getId()).ifPresent(ultimo -> {
@@ -62,6 +63,7 @@ public class AutenticacaoDoisFatoresService {
     }
 
     @Transactional(noRollbackFor = IllegalArgumentException.class)
+
     public Usuario validar(UUID desafioId, String codigo) {
         var registro = codigoRepository.findByDesafioId(desafioId)
                 .orElseThrow(() -> new IllegalArgumentException("Solicitacao de verificacao invalida."));
@@ -75,6 +77,11 @@ public class AutenticacaoDoisFatoresService {
         }
         if (registro.getTentativas() >= MAXIMO_TENTATIVAS) {
             throw new IllegalArgumentException("Limite de tentativas excedido. Inicie o login novamente.");
+        }
+        if (!registro.getUsuario().isAtivo()) {
+            registro.setUsadoEm(agora);
+            codigoRepository.save(registro);
+            throw new IllegalArgumentException("A conta está desativada.");
         }
         if (codigo == null || !codigo.matches("\\d{6}") || !passwordEncoder.matches(codigo, registro.getCodigoHash())) {
             registro.setTentativas(registro.getTentativas() + 1);
@@ -93,5 +100,6 @@ public class AutenticacaoDoisFatoresService {
         return inicio + "***@" + partes[1];
     }
 
-    public record Desafio(UUID id, String emailMascarado, int expiraEmSegundos) {}
+    public record Desafio(UUID id, String emailMascarado, int expiraEmSegundos) {
+    }
 }

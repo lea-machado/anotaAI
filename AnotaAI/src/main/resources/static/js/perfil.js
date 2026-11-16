@@ -3,6 +3,32 @@
   const form = document.getElementById('profile-form');
   const feedback = document.getElementById('profile-feedback');
   const saveButton = document.getElementById('save-profile');
+  const educationInput = document.getElementById('escolaridade');
+  const deleteDialog = document.getElementById('delete-account-dialog');
+  const openDeleteButton = document.getElementById('open-delete-account');
+  const confirmDeleteButton = document.getElementById('confirm-delete-account');
+  const deleteFeedback = document.getElementById('delete-account-feedback');
+
+  openDeleteButton.addEventListener('click', () => deleteDialog.showModal());
+  document.getElementById('cancel-delete-account').addEventListener('click', () => deleteDialog.close());
+  confirmDeleteButton.addEventListener('click', async () => {
+    confirmDeleteButton.disabled = true;
+    confirmDeleteButton.textContent = 'Enviando pedido...';
+    try {
+      const response = await Api.requestAccountDeletion();
+      deleteFeedback.textContent = response.mensagem;
+      deleteFeedback.hidden = false;
+      deleteFeedback.className = 'delete-account-feedback success';
+      document.getElementById('cancel-delete-account').hidden = true;
+      window.setTimeout(() => window.location.assign('/pages/login.html'), 2500);
+    } catch (error) {
+      deleteFeedback.textContent = error.message;
+      deleteFeedback.hidden = false;
+      deleteFeedback.className = 'delete-account-feedback error';
+      confirmDeleteButton.disabled = false;
+      confirmDeleteButton.textContent = 'Tentar novamente';
+    }
+  });
 
   try {
     const [user, audit, performance] = await Promise.all([Api.getCurrentUser(), Api.getAudit(), Api.getPerformance()]);
@@ -25,8 +51,12 @@
       const user = await Api.updateCurrentUser({
         nome: document.getElementById('nome').value,
         email: document.getElementById('email').value,
-        escolaridade: document.getElementById('escolaridade').value
+        escolaridade: educationInput.value || undefined,
+        senhaAtual: document.getElementById('senha-atual').value,
+        novaSenha: document.getElementById('nova-senha').value
       });
+      document.getElementById('senha-atual').value = '';
+      document.getElementById('nova-senha').value = '';
       preencherPerfil(user);
       feedback.textContent = 'Perfil atualizado com sucesso.';
       feedback.classList.add('success');
@@ -34,7 +64,7 @@
       try {
         renderAudit(await Api.getAudit());
       } catch (_) {
-        // A atualização do perfil já foi concluída; a auditoria é apenas complementar.
+                                                                                       
       }
     } catch (error) {
       feedback.textContent = error.message;
@@ -48,7 +78,7 @@
   function preencherPerfil(user) {
     document.getElementById('nome').value = user.nome || '';
     document.getElementById('email').value = user.email || '';
-    document.getElementById('escolaridade').value = user.escolaridade || '';
+    educationInput.value = user.escolaridade || '';
     document.getElementById('profile-name').textContent = user.nome || 'Estudante AnotaAI';
     document.getElementById('profile-avatar').textContent = iniciais(user.nome);
     document.getElementById('member-since').textContent = `Conta ativa desde ${new Date(user.criadoEm).toLocaleDateString('pt-BR')}`;
@@ -57,7 +87,7 @@
   function iniciais(nome) {
     const partes = (nome || 'EA').trim().split(/\s+/).filter(Boolean);
     return partes.slice(0, 2).map(parte => parte[0]).join('').toUpperCase() || 'EA';
-  }
+  }                                                                                                  
 
   function renderAudit(audit) {
     auditList.innerHTML = audit.length ? audit.map(item => `
@@ -69,7 +99,7 @@
 
   function formatAction(action) {
     return action.toLowerCase().replaceAll('_', ' ').replace(/^./, value => value.toUpperCase());
-  }
+  }                                                                                                      
 
   function addAdminNavigation() {
     const navigation = document.querySelector('.sidebar-nav');

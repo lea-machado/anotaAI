@@ -19,7 +19,7 @@ public class RecuperacaoSenhaService {
     private final SecureRandom random = new SecureRandom();
 
     public RecuperacaoSenhaService(CodigoRecuperacaoRepository codigos, UsuarioRepository usuarios,
-                                   PasswordEncoder encoder, GmailApiEmailService emailService) {
+            PasswordEncoder encoder, GmailApiEmailService emailService) {
         this.codigos = codigos;
         this.usuarios = usuarios;
         this.encoder = encoder;
@@ -27,12 +27,14 @@ public class RecuperacaoSenhaService {
     }
 
     @Transactional
+
     public UUID solicitar(String email) {
         var normalizado = UsuarioService.validarEmail(email);
         var desafio = UUID.randomUUID();
         var usuario = usuarios.buscarParaRecuperacao(normalizado).orElse(null);
-        // A resposta publica nao revela se o e-mail esta cadastrado.
-        if (usuario == null) return desafio;
+        if (usuario == null)
+            return desafio;
+        usuarios.save(usuario);
         var agora = LocalDateTime.now();
         var ultimo = codigos.findTopByUsuarioIdOrderByCriadoEmDesc(usuario.getId());
         if (ultimo.isPresent() && ultimo.get().getCriadoEm().plusMinutes(1).isAfter(agora)) {
@@ -48,20 +50,23 @@ public class RecuperacaoSenhaService {
         registro.setUsuario(usuario);
         registro.setCodigoHash(encoder.encode(codigo));
         registro.setCriadoEm(agora);
-        registro.setExpiraEm(agora.plusMinutes(10));
+        registro.setExpiraEm(agora.plusMinutes(5));
         codigos.save(registro);
-        emailService.enviarCodigoRecuperacao(usuario.getEmail(), usuario.getNome(), codigo, 10);
+        emailService.enviarCodigoRecuperacao(usuario.getEmail(), usuario.getNome(), codigo, 5);
         return desafio;
     }
 
     @Transactional(noRollbackFor = IllegalArgumentException.class)
+
     public void redefinir(UUID desafioId, String codigo, String novaSenha) {
         UsuarioService.validarSenha(novaSenha);
-        if (desafioId == null) throw invalido();
+        if (desafioId == null)
+            throw invalido();
         var registro = codigos.findByDesafioId(desafioId).orElseThrow(this::invalido);
         var agora = LocalDateTime.now();
         if (registro.getUsadoEm() != null || !agora.isBefore(registro.getExpiraEm())
-                || registro.getTentativas() >= 5) throw invalido();
+                || registro.getTentativas() >= 5)
+            throw invalido();
         if (codigo == null || !codigo.matches("[0-9]{6}") || !encoder.matches(codigo, registro.getCodigoHash())) {
             registro.setTentativas(registro.getTentativas() + 1);
             codigos.save(registro);
@@ -74,6 +79,7 @@ public class RecuperacaoSenhaService {
     }
 
     private IllegalArgumentException invalido() {
-        return new IllegalArgumentException("Código inválido, expirado ou bloqueado. Confira o código ou solicite outro.");
+        return new IllegalArgumentException(
+                "Código inválido, expirado ou bloqueado. Confira o código ou solicite outro.");
     }
 }

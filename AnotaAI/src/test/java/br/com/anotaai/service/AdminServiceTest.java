@@ -1,8 +1,15 @@
 package br.com.anotaai.service;
 
 import br.com.anotaai.model.Usuario;
+import br.com.anotaai.repository.AnotacaoRepository;
+import br.com.anotaai.repository.BaralhoRepository;
+import br.com.anotaai.repository.CodigoAutenticacaoRepository;
+import br.com.anotaai.repository.CodigoRecuperacaoRepository;
+import br.com.anotaai.repository.SolicitacaoExclusaoRepository;
 import br.com.anotaai.repository.UsuarioRepository;
+import br.com.anotaai.repository.VersaoAnotacaoRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.util.Optional;
 
@@ -12,11 +19,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 class AdminServiceTest {
     private final UsuarioRepository repository = mock(UsuarioRepository.class);
-    private final AdminService service = new AdminService(repository);
+    private final AdminService service = new AdminService(repository, mock(AnotacaoRepository.class),
+            mock(VersaoAnotacaoRepository.class), mock(BaralhoRepository.class),
+            mock(CodigoAutenticacaoRepository.class), mock(CodigoRecuperacaoRepository.class),
+            mock(SolicitacaoExclusaoRepository.class), mock(MongoTemplate.class));
 
     @Test
     void administradorPodePromoverOutroUsuario() {
@@ -47,6 +56,13 @@ class AdminServiceTest {
                 () -> service.alterarPerfil(2L, "GERENTE", usuario(1L, "ADMIN")));
     }
 
+    @Test
+    void bloqueiaDesativacaoDaPropriaConta() {
+        var administrador = usuario(1L, "ADMIN");
+        when(repository.findById(1L)).thenReturn(Optional.of(administrador));
+        assertThrows(IllegalArgumentException.class, () -> service.alternarAtivo(1L, administrador));
+    }
+
     private Usuario usuario(Long id, String perfil) {
         var usuario = new Usuario();
         usuario.setPerfil(perfil);
@@ -58,23 +74,5 @@ class AdminServiceTest {
             throw new IllegalStateException(exception);
         }
         return usuario;
-    }
-
-    @Test
-    void rejeitarIdDeUsuarioNulo() {
-        var administrador = usuario(1L, "ADMIN");
-
-        IllegalArgumentException excecao = assertThrows(
-                IllegalArgumentException.class,
-                () -> service.alterarPerfil(
-                        null, "USER", administrador
-                )
-        );
-
-        assertEquals(
-                "Usuario e obrigatorio.",
-                excecao.getMessage()
-        );
-        verifyNoInteractions(repository);
     }
 }

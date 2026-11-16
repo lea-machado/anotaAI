@@ -44,13 +44,13 @@ class CadastroIntegracaoTest {
                 String email = "integracao-" + UUID.randomUUID()
                                 + "@teste.com";
 
-                String senha = "senha1234";
+                String senha = "Conta!Forte2026";
 
                 String json = """
                                 {
                                   "nome": "Usuario Integracao",
                                   "email": "%s",
-                                  "senha": "senha1234",
+                                  "senha": "Conta!Forte2026",
                                   "dataNascimento": "2000-01-01",
                                   "escolaridade": "Ensino Superior Incompleto",
                                   "aceitouTermos": true,
@@ -82,10 +82,7 @@ class CadastroIntegracaoTest {
                 assertEquals(
                                 "Usuario Integracao",
                                 usuarioSalvo.getNome());
-
-                assertEquals(
-                                "Ensino Superior Incompleto",
-                                usuarioSalvo.getEscolaridade());
+                assertEquals("Ensino Superior Incompleto", usuarioSalvo.getEscolaridade());
 
                 assertEquals(
                                 "USER",
@@ -112,7 +109,7 @@ class CadastroIntegracaoTest {
                                 {
                                   "nome": "Menor",
                                   "email": "%s",
-                                  "senha": "senha1234",
+                                  "senha": "Conta!Forte2026",
                                   "dataNascimento": "2015-01-01",
                                   "escolaridade": "Ensino Fundamental Completo",
                                   "aceitouTermos": true,
@@ -144,7 +141,7 @@ class CadastroIntegracaoTest {
                                 {
                                   "nome": "E-mail Duplicado",
                                   "email": "%s",
-                                  "senha": "senha1234",
+                                  "senha": "Conta!Forte2026",
                                   "dataNascimento": "2000-01-01",
                                   "escolaridade": "Ensino Superior Incompleto",
                                   "aceitouTermos": true,

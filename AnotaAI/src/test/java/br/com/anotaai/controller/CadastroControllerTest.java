@@ -2,10 +2,12 @@
 package br.com.anotaai.controller;
 
 import br.com.anotaai.model.Usuario;
+import br.com.anotaai.repository.UsuarioRepository;
 import br.com.anotaai.service.AuditoriaService;
 import br.com.anotaai.service.UsuarioService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -49,7 +51,7 @@ class CadastroControllerTest {
                 {
                   "nome": "Teste",
                   "email": "teste@teste.com",
-                  "senha": "senha1234",
+                  "senha": "Conta!Forte2026",
                   "dataNascimento": "2000-01-01",
                   "escolaridade": "Ensino Superior Incompleto",
                   "aceitouTermos": true,
@@ -67,6 +69,7 @@ class CadastroControllerTest {
         .andExpect(jsonPath("$.id").value(1))
         .andExpect(jsonPath("$.nome").value("Teste"))
         .andExpect(jsonPath("$.email").value("teste@teste.com"))
+        .andExpect(jsonPath("$.escolaridade").doesNotExist())
         .andExpect(jsonPath("$.mensagem")
                 .value("Conta criada com sucesso."));
         verify(usuarioService).criarUsuarioComum(
@@ -74,7 +77,7 @@ class CadastroControllerTest {
                 anyString(),
                 anyString(),
                 any(LocalDate.class),
-                anyString(),
+                eq("Ensino Superior Incompleto"),
                 anyBoolean(),
                 anyBoolean(),
                 anyString()
@@ -109,7 +112,7 @@ class CadastroControllerTest {
                 {
                 "nome": "Menor",
                 "email": "menor@teste.com",
-                "senha": "senha1234",
+                "senha": "Conta!Forte2026",
                 "dataNascimento": "2015-01-01",
                 "escolaridade": "Ensino Fundamental Completo",
                 "aceitouTermos": true,
@@ -129,4 +132,28 @@ class CadastroControllerTest {
         ))
         .andExpect(jsonPath("$.momento").exists());
         }
+
+    @Test
+    void retorna400QuandoEscolaridadeNaoForInformada() throws Exception {
+        var repositorio = mock(UsuarioRepository.class);
+        var usuarioService = new UsuarioService(repositorio, mock(PasswordEncoder.class));
+        var mvc = MockMvcBuilders.standaloneSetup(new CadastroController(usuarioService, mock(AuditoriaService.class)))
+                .setControllerAdvice(new ApiExceptionHandler())
+                .build();
+
+        mvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON).content("""
+                {
+                  "nome": "Teste",
+                  "email": "teste@example.com",
+                  "senha": "Conta!Forte2026",
+                  "dataNascimento": "2000-01-01",
+                  "aceitouTermos": true,
+                  "declarouMaioridade": true,
+                  "versaoTermos": "2026-09-25"
+                }
+                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensagem").value("Escolaridade é obrigatória."));
+        verifyNoInteractions(repositorio);
+    }
 }

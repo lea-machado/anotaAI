@@ -1,9 +1,13 @@
 .notes-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; padding: 0 2px 12px; border-bottom: 1px solid var(--line); }
+.notes-search { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; width: min(100%, 540px); }
+.notes-search .field { flex: 1 1 200px; min-width: 0; }
+.notes-search .button { min-height: 46px; }
 .notes-count { display: inline-flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; font-weight: 600; }
 .dot { width: 20px; height: 1px; background: var(--blue-600); }
 .compact { min-height: 34px; font-size: 11px; background: transparent; border-color: transparent; padding-inline: 8px; color: var(--muted); }
 .compact:hover { background: rgba(255,255,255,.45); border-color: var(--line); }
 .notes-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 18px; align-items: stretch; }
+.notes-grid[hidden] { display: none; }
 .note-card { position: relative; grid-column: span 6; min-height: 236px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(11,29,43,.045); transition: .2s ease; overflow: hidden; }
 .note-card:nth-child(1) { grid-column: span 7; min-height: 270px; }
 .note-card:nth-child(2) { grid-column: span 5; }
@@ -58,10 +62,6 @@
   outline: 2px solid var(--danger);
   outline-offset: 2px;
 }
-.note-delete:disabled {
-  opacity: .55;
-}
-
 @media (max-width: 700px) {
   .note-delete { right: 18px; bottom: 16px; }
 }
