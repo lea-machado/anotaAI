@@ -76,7 +76,7 @@
     }),
     toggleAdminUserStatus: id => request(`/admin/usuarios/${id}/status`, { method: 'PATCH' }),
     deleteAdminUser: id => request(`/admin/usuarios/${id}`, { method: 'DELETE' }),
-    getAdminAudit: () => request('/admin/auditoria'),
+    getAdminAudit: query => request(`/admin/auditoria${query ? `?${query}` : ''}`),
     logout: () => request('/auth/logout', { method: 'POST' })
   };
 })();

@@ -40,7 +40,7 @@ class AdminControllerTest {
         var deck = new Baralho(); org.springframework.test.util.ReflectionTestUtils.setField(deck,"criadoEm",dia.atStartOfDay()); deck.getFlashcards().add(new Flashcard("P","R"));
         var vazio = new Baralho(); org.springframework.test.util.ReflectionTestUtils.setField(vazio,"flashcards",null); org.springframework.test.util.ReflectionTestUtils.setField(vazio,"criadoEm",dia.atStartOfDay());
         when(decks.findAll()).thenReturn(List.of(deck,vazio));
-        when(registros.countByCriadoEmBetween(any(),any())).thenReturn(8L); when(registros.countBySucessoFalseAndCriadoEmBetween(any(),any())).thenReturn(2L);
+        when(registros.countByCriadoEmBetween(any())).thenReturn(8L); when(registros.countBySucessoFalseAndCriadoEmBetween(any())).thenReturn(2L);
         when(usos.countByCriadoEmBetween(any(),any())).thenReturn(3L);
         assertThat(controller.resumo(dia,dia)).containsEntry("usuarios",2L).containsEntry("usuariosDesativados",1L)
                 .containsEntry("administradores",1L).containsEntry("anotacoes",1L).containsEntry("flashcards",1L)
@@ -100,7 +100,7 @@ class AdminControllerTest {
         var anonimo = usuario(2L); anonimo.setAnonimizado(true);
         var lista = new ArrayList<RegistroAuditoria>();
         for (var u : Arrays.asList(anonimo,null,new Usuario(),admin)) { var r = new RegistroAuditoria(); r.setUsuario(u); lista.add(r); }
-        when(auditoria.listarTodos()).thenReturn(lista); var result = controller.auditoria();
+        when(auditoria.listarTodos(null, null, null)).thenReturn(lista); var result = controller.auditoria(null, null, null);
         assertThat(result.get(0)).containsEntry("email","Conta anonimizada");
         assertThat(result.get(1)).containsEntry("email","Não identificado");
         assertThat(result.get(2)).containsEntry("email","Não identificado");

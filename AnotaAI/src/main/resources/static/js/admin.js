@@ -11,19 +11,18 @@
   let finishConfirmation = null;
   let currentUser;
   let allUsers = [];
-  let allAudit = [];
   const summaryCache = new Map();
+  const auditCache = new Map();
+  let filterRequest = 0;
 
   try {
-    const [loggedInUser, users, audit, deletionRequests] = await Promise.all([
+    const [loggedInUser, users, deletionRequests] = await Promise.all([
       Api.getCurrentUser(),
       Api.getAdminUsers(),
-      Api.getAdminAudit(),
       Api.getAdminDeletionRequests()
     ]);
     currentUser = loggedInUser;
     allUsers = users;
-    allAudit = audit;
     renderDeletionRequests(deletionRequests);
     usersBody.addEventListener('change', alterarPerfil);
     usersBody.addEventListener('click', executarAcao);
@@ -74,11 +73,11 @@
     const button = document.getElementById('dashboard-refresh');
     button.disabled = true;
     try {
-      const [users, audit, requests] = await Promise.all([Api.getAdminUsers(), Api.getAdminAudit(), Api.getAdminDeletionRequests()]);
+      const [users, requests] = await Promise.all([Api.getAdminUsers(), Api.getAdminDeletionRequests()]);
       allUsers = users;
-      allAudit = audit;
       renderDeletionRequests(requests);
       summaryCache.clear();
+      auditCache.clear();
       await applyFilters();
     } catch (error) {
       showFeedback(error.message, 'error');
@@ -136,6 +135,7 @@
   }
 
   async function applyFilters() {
+    const request = ++filterRequest;
     const period = document.getElementById('dashboard-period').value;
     const custom = period === 'custom';
     document.querySelectorAll('.custom-date-filter').forEach(label => { label.hidden = !custom; });
@@ -175,6 +175,7 @@
       const query = params.toString();
       const cacheKey = query || 'all';
       if (!summaryCache.has(cacheKey)) summaryCache.set(cacheKey, await Api.getAdminSummary(query));
+      if (request !== filterRequest) return;
       const summary = summaryCache.get(cacheKey);
       renderDashboard(summary);
                                                                                    
@@ -185,7 +186,6 @@
         return value >= start && value <= end;
       };
       const usersPeriod = allUsers.filter(user => matchesPeriod(user.criadoEm));
-      const auditPeriod = allAudit.filter(item => matchesPeriod(item.criadoEm));
       const userSearch = document.getElementById('users-search').value.trim().toLocaleLowerCase('pt-BR');
       const role = document.getElementById('users-role-filter').value;
       const status = document.getElementById('users-status-filter').value;
@@ -198,20 +198,31 @@
       usersBody.innerHTML = filteredUsers.map(user => userRow(user, currentUser.id)).join('');
       document.getElementById('users-result-count').textContent = `${filteredUsers.length} de ${usersPeriod.length} usuários no período`;
 
-      const auditSearch = document.getElementById('audit-search').value.trim().toLocaleLowerCase('pt-BR');
-      const auditStatus = document.getElementById('audit-status-filter').value;
-      const filteredAudit = auditPeriod.filter(item => {
-        const text = `${item.email} ${item.acao} ${item.recurso} ${item.enderecoIp}`.toLocaleLowerCase('pt-BR');
-        return (!auditSearch || text.includes(auditSearch))
-          && (auditStatus === 'all' || (auditStatus === 'success' ? item.sucesso : !item.sucesso));
-      });
-      document.getElementById('audit-body').innerHTML = filteredAudit.map(auditRow).join('');
-      document.getElementById('audit-result-count').textContent = `${filteredAudit.length} eventos exibidos (até 100 recentes)`;
       renderSignupChart(usersPeriod, start, end, period);
       document.getElementById('dashboard-period-label').textContent = periodLabel(start, end, period);
+      await renderAudit(params, request);
     } catch (error) {
-      showFeedback(error.message, 'error');
+      if (request === filterRequest) showFeedback(error.message, 'error');
     }
+  }
+
+  async function renderAudit(params, request) {
+    const status = document.getElementById('audit-status-filter').value;
+    if (status !== 'all') params.set('sucesso', String(status === 'success'));
+    const query = params.toString();
+    if (!auditCache.has(query)) {
+      const audit = await Api.getAdminAudit(query);
+      if (request !== filterRequest) return;
+      auditCache.set(query, audit);
+    }
+    const search = document.getElementById('audit-search').value.trim().toLocaleLowerCase('pt-BR');
+    const items = auditCache.get(query).filter(item => {
+      const text = `${item.email} ${item.acao ?? ''} ${item.recurso ?? ''} ${item.enderecoIp}`.toLocaleLowerCase('pt-BR');
+      return text.includes(search);
+    });
+    document.getElementById('audit-body').innerHTML = items.length ? items.map(auditRow).join('')
+      : '<tr><td colspan="6">Nenhum evento encontrado para os filtros selecionados.</td></tr>';
+    document.getElementById('audit-result-count').textContent = `${items.length} eventos exibidos (até 100 recentes)`;
   }
 
   function renderDashboard(summary) {
@@ -233,7 +244,7 @@
   }
 
   function auditRow(item) {
-    return `<tr><td>${new Date(item.criadoEm).toLocaleString('pt-BR')}</td><td>${escapeHtml(item.email)}</td><td>${formatAction(item.acao)}</td><td>${escapeHtml(item.recurso)}</td><td>${escapeHtml(item.enderecoIp)}</td><td><span class="status-badge ${item.sucesso ? 'success' : 'failure'}">${item.sucesso ? 'Sucesso' : 'Falha'}</span></td></tr>`;
+    return `<tr><td>${item.criadoEm ? new Date(item.criadoEm).toLocaleString('pt-BR') : '—'}</td><td>${escapeHtml(item.email)}</td><td>${escapeHtml(formatAction(item.acao ?? '') || '—')}</td><td>${escapeHtml(item.recurso ?? '—')}</td><td>${escapeHtml(item.enderecoIp)}</td><td><span class="status-badge ${item.sucesso ? 'success' : 'failure'}">${item.sucesso ? 'Sucesso' : 'Falha'}</span></td></tr>`;
   }
 
   async function alterarPerfil(event) {
