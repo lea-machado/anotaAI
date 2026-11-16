@@ -4,6 +4,8 @@ O AnotaAI usa o `refresh token` do Gmail para enviar códigos por e-mail.
 
 Gere a credencial no painel oficial e configure as variáveis no processo que inicia o backend.
 
+https://cloud.google.com/
+
 ## Gmail API
 
 ### Configure o projeto no Google Cloud
