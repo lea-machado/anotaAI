@@ -8,6 +8,15 @@
   const clearSearch = document.getElementById('notes-search-clear');
   let activeSearch = '';
   let requestId = 0;
+  const openDeleteDialog = createDeleteDialog({
+    remove: Api.deleteNote,
+    errorMessage: 'Não foi possível excluir a anotação.',
+    onDeleted() {
+      searchInput.focus();
+      loadNotes(activeSearch);
+      App.toast('Anotação excluída com sucesso.');
+    }
+  });
 
   async function loadNotes(search) {
     activeSearch = search;
@@ -79,32 +88,13 @@
     }
   }
 
-  async function deleteNote(button) {
-    const id = Number(button.dataset.deleteNote);
-    const title = button.dataset.noteTitle || 'esta anotação';
-
-    const confirmed = window.confirm(`Deseja realmente excluir a anotação "${title}"?`);
-    if (!confirmed) return;
-
-    button.disabled = true;
-
-    try {
-      await Api.deleteNote(id);
-      loadNotes(activeSearch);
-      App.toast('Anotação excluída com sucesso.');
-    } catch (error) {
-      button.disabled = false;
-      App.toast(error.message || 'Não foi possível excluir a anotação.', 'error');
-    }
-  }
-
   grid.addEventListener('click', event => {
     const deleteButton = event.target.closest('[data-delete-note]');
     if (!deleteButton) return;
 
     event.preventDefault();
     event.stopPropagation();
-    deleteNote(deleteButton);
+    openDeleteDialog(Number(deleteButton.dataset.deleteNote), deleteButton.dataset.noteTitle || 'Anotação sem título');
   });
 
   searchForm.addEventListener('submit', event => {

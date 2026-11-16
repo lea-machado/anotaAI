@@ -7,6 +7,7 @@
     <link href="../css/global.css" rel="stylesheet" />
     <link href="../css/sidebar.css" rel="stylesheet" />
     <link href="../css/anotacoes.css" rel="stylesheet" />
+    <link href="../css/delete-dialog.css" rel="stylesheet" />
     <title>
         Minhas anotações — AnotaAI
     </title>
@@ -132,10 +133,29 @@
             </section>
         </main>
     </div>
+    <dialog class="delete-dialog" id="delete-dialog" aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-name delete-dialog-description">
+        <div class="delete-dialog-icon" aria-hidden="true">
+            <svg class="simple-svg" viewBox="0 0 24 24">
+                <path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"></path>
+            </svg>
+        </div>
+        <h2 id="delete-dialog-title">Excluir anotação?</h2>
+        <p class="delete-dialog-name" id="delete-dialog-name"></p>
+        <p class="delete-dialog-description" id="delete-dialog-description">
+            A anotação, o histórico de versões e os flashcards vinculados serão excluídos permanentemente.
+        </p>
+        <p class="delete-dialog-error" id="delete-dialog-error" role="alert"></p>
+        <div class="delete-dialog-actions">
+            <button class="button button-secondary" id="delete-dialog-cancel" type="button" autofocus>Cancelar</button>
+            <button class="button delete-dialog-confirm" id="delete-dialog-confirm" type="button">Excluir anotação</button>
+        </div>
+    </dialog>
     <script src="../js/api.js">
     </script>
     <script src="../js/main.js">
     </script>
+    <script src="../js/delete-dialog.js"></script>
     <script src="../js/anotacoes.js">
     </script>
 </body>

@@ -17,6 +17,16 @@
   const optionsByCard = new Map();
   const legacyDistractorUses = new Map();
   const answeredCards = new Map();
+  const openDeleteDialog = createDeleteDialog({
+    remove: Api.deleteFlashcards,
+    errorMessage: 'Não foi possível excluir o conjunto.',
+    onDeleted(id) {
+      decks = decks.filter(deck => deck.id !== id);
+      render();
+      reviewButton.focus();
+      App.toast('Conjunto excluído.');
+    }
+  });
 
   function element(tag, text, className) {
     const node = document.createElement(tag);
@@ -58,10 +68,12 @@
       const open = element('button', 'Estudar', 'button button-primary');
       open.type = 'button';
       open.addEventListener('click', () => openDeck(deck.id, open));
-      const remove = element('button', 'Excluir', 'button');
+      const remove = element('button', 'Excluir', 'button button-danger');
       remove.type = 'button';
       remove.setAttribute('aria-label', `Excluir conjunto ${deck.titulo}`);
-      remove.addEventListener('click', () => deleteDeck(deck, remove));
+      remove.addEventListener('click', () => {
+        if (!busy) openDeleteDialog(deck.id, deck.titulo || 'Conjunto sem título');
+      });
       actions.append(open, remove);
       card.append(actions);
       grid.append(card);
@@ -147,19 +159,6 @@
       busy = false;
       reviewButton.disabled = false;
     }
-  }
-
-  async function deleteDeck(deck, button) {
-    if (busy || !window.confirm(`Excluir o conjunto "${deck.titulo}" e seus flashcards?`)) return;
-    busy = true;
-    button.disabled = true;
-    try {
-      await Api.deleteFlashcards(deck.id);
-      decks = decks.filter(item => item.id !== deck.id);
-      render();
-      App.toast('Conjunto excluído.');
-    } catch (error) { App.toast(error.message, 'error'); }
-    finally { busy = false; button.disabled = false; }
   }
 
   function renderCard() {

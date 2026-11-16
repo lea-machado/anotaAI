@@ -6,8 +6,9 @@ const vm = require('node:vm');
 const { setImmediate } = require('node:timers/promises');
 
 const script = fs.readFileSync(path.join(__dirname, '../../main/resources/static/js/flashcards.js'), 'utf8');
+const dialog = fs.readFileSync(path.join(__dirname, '../../main/resources/static/js/delete-dialog.js'), 'utf8');
 
-async function quiz(cards) {
+async function quiz(cards, deleteFlashcards) {
   function element() {
     return {
       children: [],
@@ -17,6 +18,8 @@ async function quiz(cards) {
       replaceChildren() { this.children = []; },
       setAttribute() {},
       focus() {},
+      showModal() { this.open = true; },
+      close() { this.open = false; },
       addEventListener(event, handler) { this.handlers[event] = handler; },
       click() { return this.handlers.click(); }
     };
@@ -28,20 +31,23 @@ async function quiz(cards) {
   };
   const deck = { id: 1, titulo: 'Baralho', quantidade: cards.length, cartoesComErro: cards.length };
   const errors = [];
-  vm.runInNewContext(script, {
+  vm.runInNewContext(dialog + '\n' + script, {
     document: { getElementById: get, createElement: element },
     location: { search: '' },
     URLSearchParams,
     Api: {
       async listFlashcards() { return [deck]; },
       async getFlashcards() { return { ...deck, flashcards: cards }; },
-      async reviewFlashcardErrors() { return cards; }
+      async reviewFlashcardErrors() { return cards; },
+      deleteFlashcards
     },
     App: { toast(message) { errors.push(message); } }
   });
   await setImmediate();
   return {
     open: () => get('decks-grid').children[0].children[3].children[0].click(),
+    remove: () => get('decks-grid').children[0].children[3].children[1].click(),
+    get,
     review: () => get('error-deck-list').children[0].click(),
     next: () => get('next-card').click(),
     previous: () => get('previous-card').click(),
@@ -49,6 +55,26 @@ async function quiz(cards) {
     errors
   };
 }
+
+test('exclui o conjunto selecionado somente após confirmar', async () => {
+  const deleted = [];
+  const session = await quiz([], async id => { deleted.push(id); });
+  const dialog = session.get('delete-dialog');
+
+  session.remove();
+  assert.equal(dialog.open, true);
+  assert.equal(session.get('delete-dialog-name').textContent, 'Baralho');
+  session.get('delete-dialog-cancel').click();
+  assert.equal(dialog.open, false);
+  assert.deepEqual(deleted, []);
+
+  session.remove();
+  await session.get('delete-dialog-confirm').click();
+  assert.deepEqual(deleted, [1]);
+  assert.equal(dialog.open, false);
+  assert.equal(session.get('decks-grid').children.length, 0);
+  assert.equal(session.get('decks-empty').hidden, false);
+});
 
 test('usa as alternativas da própria pergunta no estudo e na revisão de erros', async () => {
   const cards = [
