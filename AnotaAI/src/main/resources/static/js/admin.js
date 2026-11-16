@@ -42,11 +42,15 @@
         (document.activeElement === confirmationCancel ? confirmationAccept : confirmationCancel).focus();
       }
     });
-    ['dashboard-period', 'dashboard-start', 'dashboard-end', 'users-search', 'users-role-filter', 'users-status-filter', 'audit-search', 'audit-status-filter'].forEach(id => {
+    ['dashboard-period', 'dashboard-start', 'dashboard-end', 'audit-search', 'audit-status-filter'].forEach(id => {
       document.getElementById(id).addEventListener('input', applyFilters);
       document.getElementById(id).addEventListener('change', applyFilters);
     });
+    document.getElementById('users-search').addEventListener('input', renderUsers);
+    document.getElementById('users-role-filter').addEventListener('change', renderUsers);
+    document.getElementById('users-status-filter').addEventListener('change', renderUsers);
     document.getElementById('dashboard-refresh').addEventListener('click', refreshDashboard);
+    renderUsers();
     applyFilters();
   } catch (error) {
     document.getElementById('admin-content').innerHTML = `<p class="admin-error">${escapeHtml(error.message)}</p>`;
@@ -75,6 +79,7 @@
     try {
       const [users, requests] = await Promise.all([Api.getAdminUsers(), Api.getAdminDeletionRequests()]);
       allUsers = users;
+      renderUsers();
       renderDeletionRequests(requests);
       summaryCache.clear();
       auditCache.clear();
@@ -185,25 +190,26 @@
         const value = new Date(date);
         return value >= start && value <= end;
       };
-      const usersPeriod = allUsers.filter(user => matchesPeriod(user.criadoEm));
-      const userSearch = document.getElementById('users-search').value.trim().toLocaleLowerCase('pt-BR');
-      const role = document.getElementById('users-role-filter').value;
-      const status = document.getElementById('users-status-filter').value;
-      const filteredUsers = usersPeriod.filter(user => {
-        const text = `${user.nome} ${user.email}`.toLocaleLowerCase('pt-BR');
-        return (!userSearch || text.includes(userSearch))
-          && (role === 'all' || user.perfil === role)
-          && (status === 'all' || (status === 'active' ? user.ativo !== false : user.ativo === false));
-      });
-      usersBody.innerHTML = filteredUsers.map(user => userRow(user, currentUser.id)).join('');
-      document.getElementById('users-result-count').textContent = `${filteredUsers.length} de ${usersPeriod.length} usuários no período`;
-
-      renderSignupChart(usersPeriod, start, end, period);
+      renderSignupChart(allUsers.filter(user => matchesPeriod(user.criadoEm)), start, end, period);
       document.getElementById('dashboard-period-label').textContent = periodLabel(start, end, period);
       await renderAudit(params, request);
     } catch (error) {
       if (request === filterRequest) showFeedback(error.message, 'error');
     }
+  }
+
+  function renderUsers() {
+    const search = document.getElementById('users-search').value.trim().toLocaleLowerCase('pt-BR');
+    const role = document.getElementById('users-role-filter').value;
+    const status = document.getElementById('users-status-filter').value;
+    const users = allUsers.filter(user => {
+      const text = `${user.nome} ${user.email}`.toLocaleLowerCase('pt-BR');
+      return text.includes(search)
+        && (role === 'all' || user.perfil === role)
+        && (status === 'all' || (status === 'active' ? user.ativo !== false : user.ativo === false));
+    });
+    usersBody.innerHTML = users.map(user => userRow(user, currentUser.id)).join('');
+    document.getElementById('users-result-count').textContent = `${users.length} de ${allUsers.length} usuários`;
   }
 
   async function renderAudit(params, request) {
