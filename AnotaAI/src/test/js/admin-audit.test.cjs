@@ -7,7 +7,7 @@ const { setImmediate } = require('node:timers/promises');
 
 const script = fs.readFileSync(path.join(__dirname, '../../main/resources/static/js/admin.js'), 'utf8');
 
-test('solicita a auditoria do período selecionado e exibe registros sem ação', async () => {
+async function adminPage(users = []) {
   const values = {
     'dashboard-period': 'custom', 'dashboard-start': '2026-11-15', 'dashboard-end': '2026-11-15',
     'audit-status-filter': 'all', 'users-role-filter': 'all', 'users-status-filter': 'all'
@@ -31,7 +31,7 @@ test('solicita a auditoria do período selecionado e exibe registros sem ação'
     },
     Api: {
       getCurrentUser: async () => ({ id: 1 }),
-      getAdminUsers: async () => [],
+      getAdminUsers: async () => users,
       getAdminDeletionRequests: async () => [],
       getAdminSummary: async () => ({ usuarios: 0 }),
       getAdminAudit: async query => {
@@ -43,6 +43,11 @@ test('solicita a auditoria do período selecionado e exibe registros sem ação'
     }
   });
   await setImmediate();
+  return { get, queries };
+}
+
+test('solicita a auditoria do período selecionado e exibe registros sem ação', async () => {
+  const { get, queries } = await adminPage();
   assert.match(get('audit-body').innerHTML, /Conta 1.*—.*Sucesso/);
   assert.equal(queries[0], 'inicio=2026-11-15&fim=2026-11-15');
 
@@ -50,4 +55,34 @@ test('solicita a auditoria do período selecionado e exibe registros sem ação'
   await get('audit-status-filter').handlers.change();
   assert.equal(queries[1], 'inicio=2026-11-15&fim=2026-11-15&sucesso=false');
   assert.match(get('audit-body').innerHTML, /Nenhum evento encontrado/);
+});
+
+test('lista usuários de qualquer data e atualiza a lista mantendo os filtros próprios', async () => {
+  const users = [
+    { id: 2, nome: 'Conta recente', perfil: 'USER', criadoEm: '2026-11-15T12:00:00' },
+    { id: 3, nome: 'Conta antiga', perfil: 'ADMIN', criadoEm: '2026-09-30T12:00:00' },
+    { id: 4, nome: 'Conta sem data', perfil: 'USER', ativo: false }
+  ];
+  const { get, queries } = await adminPage(users);
+  assert.match(get('users-body').innerHTML, /Conta antiga/);
+  assert.match(get('users-body').innerHTML, /Conta sem data/);
+  assert.equal(get('users-result-count').textContent, '3 de 3 usuários');
+
+  get('dashboard-period').value = 'all';
+  await get('dashboard-period').handlers.change();
+  assert.equal(queries.at(-1), '');
+  assert.equal(get('users-result-count').textContent, '3 de 3 usuários');
+
+  get('users-role-filter').value = 'USER';
+  get('users-role-filter').handlers.change();
+  get('users-status-filter').value = 'active';
+  get('users-status-filter').handlers.change();
+  get('users-search').value = 'RECENTE';
+  get('users-search').handlers.input();
+  assert.equal(get('users-result-count').textContent, '1 de 3 usuários');
+
+  users.push({ id: 5, nome: 'Cadastro recente', perfil: 'USER', criadoEm: '2026-11-16T12:00:00' });
+  await get('dashboard-refresh').handlers.click();
+  assert.match(get('users-body').innerHTML, /Cadastro recente/);
+  assert.equal(get('users-result-count').textContent, '2 de 4 usuários');
 });
