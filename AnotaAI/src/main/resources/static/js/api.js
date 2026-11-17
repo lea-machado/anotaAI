@@ -1,6 +1,7 @@
 (function () {
   const base = '/api';
   let csrf = null;
+  let currentUserRequest = null;
 
   async function getCsrf() {
     if (csrf) return csrf;
@@ -62,7 +63,9 @@
     deleteNote: id => request(`/anotacoes/${id}`, { method: 'DELETE' }),
     getVersions: id => request(`/anotacoes/${id}/versoes`),
     getPerformance: () => request('/desempenho'),
-    getCurrentUser: () => request('/auth/me'),
+    getCurrentUser: () => currentUserRequest ??= request('/auth/me').finally(() => {
+      currentUserRequest = null;
+    }),
     requestAccountDeletion: () => request('/auth/exclusao', { method: 'POST' }),
     updateCurrentUser: data => request('/auth/me', { method: 'PUT', body: JSON.stringify(data) }),
     getAudit: () => request('/auditoria'),

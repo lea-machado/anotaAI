@@ -1,5 +1,6 @@
 (function () {
-  document.querySelectorAll('.sidebar-nav').forEach(nav => {
+  const navigations = Array.from(document.querySelectorAll('.sidebar-nav'));
+  navigations.forEach(nav => {
     if (!nav.querySelector('a[href$="/flashcards.html"], a[href="flashcards.html"]')) {
       const link = document.createElement('a');
       link.className = 'nav-item';
@@ -32,6 +33,28 @@
       else item.removeAttribute('aria-current');
     });
   });
+
+  const navigationsWithoutAdmin = navigations.filter(nav =>
+    !nav.querySelector('a[href="admin.html"], a[href="/pages/admin.html"]'));
+  if (navigationsWithoutAdmin.length) {
+    Api.getCurrentUser().then(user => {
+      if (user.perfil !== 'ADMIN') return;
+      navigationsWithoutAdmin.forEach(nav => {
+        const link = document.createElement('a');
+        link.className = 'nav-item';
+        link.href = '/pages/admin.html';
+        link.innerHTML = `
+          <svg aria-hidden="true" class="simple-svg" viewBox="0 0 24 24">
+            <path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7l-8-4Z"></path>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
+          <span>Administração</span>`;
+        nav.appendChild(link);
+      });
+    }).catch(() => {
+      // A navegação administrativa depende da confirmação do perfil pela API.
+    });
+  }
 
   function toast(message, type = 'success') {
     let wrap = document.querySelector('.toast-wrap');
