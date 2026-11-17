@@ -34,7 +34,6 @@
     const [user, audit, performance] = await Promise.all([Api.getCurrentUser(), Api.getAudit(), Api.getPerformance()]);
     preencherPerfil(user);
     document.getElementById('profile-notes-count').textContent = String(performance.anotacoes).padStart(2, '0');
-    if (user.perfil === 'ADMIN') addAdminNavigation();
     renderAudit(audit);
   } catch (error) {
     auditList.innerHTML = `<li><div><strong>${error.message}</strong></div></li>`;
@@ -101,18 +100,4 @@
     return action.toLowerCase().replaceAll('_', ' ').replace(/^./, value => value.toUpperCase());
   }                                                                                                      
 
-  function addAdminNavigation() {
-    const navigation = document.querySelector('.sidebar-nav');
-    if (navigation.querySelector('a[href="admin.html"]')) return;
-    const link = document.createElement('a');
-    link.className = 'nav-item';
-    link.href = 'admin.html';
-    link.innerHTML = `
-      <svg aria-hidden="true" class="simple-svg" viewBox="0 0 24 24">
-        <path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7l-8-4Z"></path>
-        <path d="m9 12 2 2 4-4"></path>
-      </svg>
-      <span>Administração</span>`;
-    navigation.appendChild(link);
-  }
 })();
