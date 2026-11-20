@@ -12,19 +12,27 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-                                                                                  
 @SpringBootTest
 class MongoMigratedDataIT {
-    @Autowired UsuarioRepository usuarios;
-    @Autowired AnotacaoRepository notas;
-    @Autowired BaralhoRepository baralhos;
-    @Autowired RegistroAuditoriaRepository auditoria;
-    @Autowired AnotacaoService anotacoes;
-    @Autowired FlashcardService flashcards;
-    @Autowired DesempenhoService desempenho;
-    @Autowired MongoTemplate mongo;
+    @Autowired
+    UsuarioRepository usuarios;
+    @Autowired
+    AnotacaoRepository notas;
+    @Autowired
+    BaralhoRepository baralhos;
+    @Autowired
+    RegistroAuditoriaRepository auditoria;
+    @Autowired
+    AnotacaoService anotacoes;
+    @Autowired
+    FlashcardService flashcards;
+    @Autowired
+    DesempenhoService desempenho;
+    @Autowired
+    MongoTemplate mongo;
 
-    @Test void usuariosEConteudoMigradoPodemSerConsultadosPelaAplicacao() {
+    @Test
+    void usuariosEConteudoMigradoPodemSerConsultadosPelaAplicacao() {
         var usuariosMigrados = usuarios.findAll();
         assumeFalse(usuariosMigrados.isEmpty(), "O banco não contém usuários migrados para verificar.");
         try {
@@ -66,6 +74,8 @@ class MongoMigratedDataIT {
                 assertTrue(((Number) counter.get("value")).longValue() >= ((Number) largest.get("_id")).longValue(),
                         "Sequência abaixo do maior ID em " + collection);
             }
-        } finally { SecurityContextHolder.clearContext(); }
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 }

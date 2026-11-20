@@ -1,11 +1,14 @@
 package br.com.anotaai.controller;
 
 import br.com.anotaai.model.Usuario;
+import br.com.anotaai.model.SolicitacaoExclusao;
 import br.com.anotaai.service.AuditoriaService;
 import br.com.anotaai.service.AutenticacaoDoisFatoresService;
 import br.com.anotaai.service.UsuarioAtualService;
 import br.com.anotaai.service.UsuarioService;
 import br.com.anotaai.service.SolicitacaoExclusaoService;
+import br.com.anotaai.service.TermosService;
+import org.springframework.beans.factory.annotation.Autowired;
 import br.com.anotaai.service.GmailApiEmailService;
 import br.com.anotaai.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -39,6 +43,8 @@ public class AutenticacaoController {
         private final UsuarioService usuarioService;
         private final SolicitacaoExclusaoService solicitacaoExclusaoService;
         private final GmailApiEmailService emailService;
+        @Autowired
+        private TermosService termosService;
 
         public AutenticacaoController(AuthenticationManager authenticationManager,
                         UsuarioAtualService usuarioAtualService,
@@ -92,7 +98,13 @@ public class AutenticacaoController {
         @PostMapping("/2fa/verify")
         public ResponseEntity<?> verificarCodigo(@RequestBody VerificacaoRequest dados, HttpServletRequest request) {
                 try {
-                        var usuario = doisFatoresService.validar(dados.desafioId(), dados.codigo());
+                        var usuarioValidado = doisFatoresService.validar(dados.desafioId(), dados.codigo());
+                        var usuario = usuarioRepository.findById(usuarioValidado.getId())
+                                        .orElseThrow(() -> new IllegalArgumentException("Conta não encontrada."));
+                        Optional<SolicitacaoExclusao> pedidoPendente = usuario.isAtivo() ? Optional.empty()
+                                        : solicitacaoExclusaoService.pedidoVigente(usuario.getId());
+                        if (!usuario.isAtivo() && pedidoPendente.isEmpty())
+                                throw new IllegalArgumentException("Esta conta está desativada ou o prazo expirou.");
                         var principal = org.springframework.security.core.userdetails.User
                                         .withUsername(usuario.getEmail())
                                         .password(usuario.getSenha())
@@ -101,10 +113,22 @@ public class AutenticacaoController {
                         var authentication = new UsernamePasswordAuthenticationToken(
                                         principal, null, principal.getAuthorities());
                         criarSessaoAutenticada(authentication, request);
+                        if (pedidoPendente.isPresent()) {
+                                request.getSession().setAttribute("EXCLUSAO_RECUPERACAO_USUARIO_ID", usuario.getId());
+                                auditoriaService.registrar(usuario.getEmail(), "LOGIN_2FA_CONTA_EM_EXCLUSAO",
+                                                "/api/auth/2fa/verify", true,
+                                                "Verificação concluída com acesso restrito à recuperação.", request);
+                                return ResponseEntity.ok(Map.of("contaEmExclusao", true,
+                                                "exclusaoEm",
+                                                SolicitacaoExclusaoService.dataExclusao(pedidoPendente.get()),
+                                                "mensagem", "Acesso restrito à recuperação da conta."));
+                        }
                         auditoriaService.registrar(usuario.getEmail(), "LOGIN_2FA_SUCESSO", "/api/auth/2fa/verify",
                                         true,
                                         "Autenticacao em dois fatores concluida.", request);
-                        return ResponseEntity.ok(Map.of("mensagem", "Login realizado com sucesso."));
+                        return ResponseEntity.ok(Map.of("mensagem", "Login realizado com sucesso.",
+                                        "termosPendentes",
+                                        termosService != null && !termosService.aceitouVigentes(usuario)));
                 } catch (IllegalArgumentException exception) {
                         auditoriaService.registrar(null, "LOGIN_2FA_FALHA", "/api/auth/2fa/verify", false,
                                         exception.getMessage(), request);
@@ -193,11 +217,32 @@ public class AutenticacaoController {
                                 session.invalidate();
                         SecurityContextHolder.clearContext();
                         return ResponseEntity.accepted().body(Map.of("mensagem",
-                                        "Pedido recebido. O acesso à sua conta foi encerrado. Sua conta, anotações, históricos e flashcards serão excluídos em até 15 dias após a solicitação."));
+                                        "Pedido recebido. O acesso à sua conta foi encerrado. Seus dados serão excluídos após 15 dias. Durante esse prazo, você poderá recuperar a conta fazendo login novamente."));
                 } catch (IllegalStateException exception) {
                         return ResponseEntity.status(HttpStatus.CONFLICT)
                                         .body(Map.of("mensagem", exception.getMessage()));
                 }
+        }
+
+        @GetMapping("/exclusao/status")
+        public Map<String, Object> statusExclusao() {
+                var usuario = usuarioRepository.findByEmailIgnoreCase(
+                                SecurityContextHolder.getContext().getAuthentication().getName())
+                                .orElseThrow(() -> new IllegalStateException("Conta não encontrada."));
+                var pedido = solicitacaoExclusaoService.pedidoVigente(usuario.getId())
+                                .orElseThrow(() -> new IllegalStateException("A conta não está em exclusão."));
+                return Map.of("contaEmExclusao", true,
+                                "exclusaoEm", SolicitacaoExclusaoService.dataExclusao(pedido));
+        }
+
+        @PostMapping("/exclusao/recuperar")
+        public Map<String, String> recuperarConta(HttpServletRequest request) {
+                var email = SecurityContextHolder.getContext().getAuthentication().getName();
+                var usuario = usuarioRepository.findByEmailIgnoreCase(email)
+                                .orElseThrow(() -> new IllegalStateException("Conta não encontrada."));
+                solicitacaoExclusaoService.recuperar(usuario.getId(), request);
+                encerrarSessaoExistente(request);
+                return Map.of("mensagem", "Sua conta foi recuperada com todos os dados. Entre novamente.");
         }
 
         private void atualizarAutenticacaoDaSessao(Usuario usuario, HttpServletRequest request) {

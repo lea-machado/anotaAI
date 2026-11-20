@@ -24,7 +24,7 @@ class AutenticacaoDoisFatoresServiceTest {
     private final CodigoAutenticacaoRepository repository = mock(CodigoAutenticacaoRepository.class);
     private final GmailApiEmailService emailService = mock(GmailApiEmailService.class);
     private final AutenticacaoDoisFatoresService service = new AutenticacaoDoisFatoresService(
-            repository, new BCryptPasswordEncoder(4), emailService);
+            repository, new BCryptPasswordEncoder(4), emailService, mock(SolicitacaoExclusaoService.class));
 
     @Test
     void deveGerarEnviarEValidarCodigoDeSeisDigitos() {

@@ -10,6 +10,7 @@ import org.mockito.ArgumentCaptor;
 import java.util.List;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class AnotacaoServiceTest {
@@ -67,7 +68,8 @@ class AnotacaoServiceTest {
         var aprovada = new VersaoAnotacao();
         aprovada.setTipo("REVISADA_IA");
         when(versoes.findByAnotacaoIdOrderByCriadoEmAsc(42L))
-                .thenReturn(List.of(original), List.of(original, aprovada));
+                .thenReturn(List.of(original))
+                .thenReturn(List.of(original, aprovada));
 
         assertThrows(IllegalStateException.class, () -> service.buscarComResumoAprovado(42L));
         assertSame(nota, service.buscarComResumoAprovado(42L));

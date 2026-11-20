@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <link href="../css/global.css" rel="stylesheet" />
+    <link href="../css/auth.css" rel="stylesheet" />
+    <link href="../css/delete-dialog.css" rel="stylesheet" />
+    <title>Exclusão de conta - AnotaAI</title>
+</head>
+
+<body>
+    <main class="auth-page">
+        <section class="auth-hero auth-hero-login">
+            <a aria-label="AnotaAI" href="login.html">
+                <img alt="AnotaAI" class="auth-logo" src="../assets/images/logo-anotaai.png" />
+            </a>
+            <div class="auth-copy">
+                <p class="page-kicker">Privacidade e segurança</p>
+                <h1>Sua conta está aguardando exclusão</h1>
+                <p>Você pode recuperar sua conta e continuar seus estudos antes do fim do prazo.</p>
+            </div>
+        </section>
+        <section class="auth-panel-wrap">
+            <div class="panel auth-panel">
+                <h2>Exclusão solicitada</h2>
+                <p id="deletion-message" aria-live="polite">Consultando sua solicitação...</p>
+                <p class="auth-feedback" id="recovery-feedback" role="alert" hidden></p>
+                <div class="auth-form">
+                    <button class="button button-primary" id="recover-account" type="button" disabled>Recuperar minha
+                        conta</button>
+                    <button class="button button-secondary" id="leave-platform" type="button">Sair da
+                        plataforma</button>
+                </div>
+            </div>
+        </section>
+    </main>
+    <dialog class="delete-dialog recovery-dialog" id="recover-account-dialog" aria-labelledby="recover-dialog-title"
+        aria-describedby="recover-dialog-description">
+        <div class="delete-dialog-icon" aria-hidden="true">
+            <svg class="simple-svg" viewBox="0 0 24 24">
+                <path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7l-8-4Z"></path>
+                <path d="m9 12 2 2 4-4"></path>
+            </svg>
+        </div>
+        <h2 id="recover-dialog-title">Recuperar minha conta?</h2>
+        <p class="delete-dialog-description" id="recover-dialog-description">
+            Deseja cancelar a solicitação de exclusão? Sua conta será reativada e você poderá acessar
+            suas anotações, flashcards e demais dados normalmente.
+        </p>
+        <p class="delete-dialog-error" id="recover-dialog-error" role="alert"></p>
+        <div class="delete-dialog-actions">
+            <button class="button button-secondary" id="cancel-recover-account" type="button"
+                autofocus>Cancelar</button>
+            <button class="button button-primary" id="confirm-recover-account" type="button">Sim, recuperar
+                conta</button>
+        </div>
+    </dialog>
+    <script src="../js/conta-em-exclusao.js"></script>
+</body>
+
+</html>

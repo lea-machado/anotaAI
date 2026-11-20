@@ -12,12 +12,19 @@
   try {
     const current = await fetch('/api/auth/me', { credentials: 'same-origin' });
     if (current.ok) redirectAuthenticated(await current.json());
+    else if (current.status === 403) {
+      const result = await current.json().catch(() => ({}));
+      if (result.codigo === 'TERMOS_PENDENTES') location.replace('/pages/aceite-termos.html');
+    }
   } catch (_) {
-                            
+
   }
 
   const params = new URLSearchParams(location.search);
   if (params.has('expirada')) showFeedback(loginFeedback, 'Sua sessão expirou. Entre novamente.');
+  if (params.get('recuperada') === '1') {
+    showFeedback(loginFeedback, 'Sua conta foi recuperada com todos os seus dados. Faça login novamente.', 'success');
+  }
   if (params.get('cadastro') === 'sucesso') {
     showFeedback(loginFeedback, 'Conta criada com sucesso. Agora entre com seu e-mail e senha.', 'success');
   }
@@ -56,6 +63,14 @@
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.mensagem || 'Código inválido.');
+      if (data.contaEmExclusao) {
+        window.location.replace('/pages/conta-em-exclusao.html');
+        return;
+      }
+      if (data.termosPendentes) {
+        location.replace('/pages/aceite-termos.html');
+        return;
+      }
       const user = await fetch('/api/auth/me', { credentials: 'same-origin' }).then(result => result.json());
       redirectAuthenticated(user);
     } catch (error) {
@@ -106,7 +121,7 @@
   function startCountdown(totalSeconds) {
     const expiration = document.getElementById('code-expiration');
     let remaining = totalSeconds;
-                                                                          
+
     const render = () => {
       const minutes = Math.floor(remaining / 60);
       const seconds = String(remaining % 60).padStart(2, '0');

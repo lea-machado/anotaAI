@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <link href="../css/global.css" rel="stylesheet" />
+    <link href="../css/auth.css" rel="stylesheet" />
+    <title>Confirmar e-mail - AnotaAI</title>
+</head>
+<body>
+    <main class="auth-page">
+        <section class="auth-hero">
+            <a aria-label="AnotaAI" href="login.html"><img alt="AnotaAI" class="auth-logo" src="../assets/images/logo-anotaai.png" /></a>
+            <div class="auth-copy"><p class="page-kicker">Confirmação de cadastro</p><h1>Seu espaço de estudos está quase pronto</h1></div>
+        </section>
+        <section class="auth-panel-wrap">
+            <div class="panel auth-panel">
+                <h2 id="verification-title">Confirmando seu e-mail...</h2>
+                <p id="verification-message" role="status" aria-live="polite">Aguarde enquanto concluímos seu cadastro.</p>
+                <button class="button button-primary" id="verification-retry" type="button" hidden>Tentar novamente</button>
+                <p><a class="auth-link" id="verification-next" href="cadastro.html?novo=1" hidden>Voltar ao cadastro</a></p>
+            </div>
+        </section>
+    </main>
+    <script src="../js/verificar-email.js"></script>
+</body>
+</html>

@@ -63,9 +63,7 @@ class AdminSegurancaIntegracaoTest {
                                 "dataNascimento":"2000-09-10","escolaridade":"Ensino Superior Incompleto",
                                 "aceitouTermos":true,"declarouMaioridade":true,"versaoTermos":"2026-09-25"}
                                 """.formatted(email);
-                mockMvc.perform(post("/api/auth/cadastro").with(csrf())
-                                .contentType(MediaType.APPLICATION_JSON).content(dados))
-                                .andExpect(status().isCreated());
+                CadastroTestSupport.cadastrarConfirmado(mockMvc, emailService, dados).andExpect(status().isCreated());
         }
 
         private HttpSession autenticar(String email) throws Exception {
@@ -139,7 +137,8 @@ class AdminSegurancaIntegracaoTest {
                                 .andExpect(jsonPath("$.perfil").value("ADMIN"))
                                 .andExpect(jsonPath("$.mensagem").value("Perfil atualizado com sucesso."));
 
-                org.assertj.core.api.Assertions.assertThat(usuarioRepository.findById(usuario.getId()).orElseThrow().getPerfil())
+                org.assertj.core.api.Assertions
+                                .assertThat(usuarioRepository.findById(usuario.getId()).orElseThrow().getPerfil())
                                 .isEqualTo("ADMIN");
         }
 

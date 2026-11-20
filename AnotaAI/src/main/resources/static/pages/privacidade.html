@@ -6,7 +6,7 @@
     <meta content="width=device-width, initial-scale=1" name="viewport" />
     <link href="../css/global.css" rel="stylesheet" />
     <link href="../css/legal.css" rel="stylesheet" />
-    <title>Termos de Uso e Privacidade - AnotaAI</title>
+    <title>Termos de Uso e Política de Privacidade - AnotaAI</title>
 </head>
 
 <body class="legal-page">
@@ -17,9 +17,10 @@
     <main class="legal-content legal-content-wide">
         <header class="legal-hero">
             <p class="page-kicker">Informações legais</p>
-            <h1>Termos de Uso e Privacidade</h1>
+            <h1>Termos de Uso e Política de Privacidade</h1>
         </header>
-        <div class="legal-document" aria-label="Termo de Uso e Privacidade">
+        <p class="legal-updated" id="legal-version">Carregando versão atual...</p>
+        <div class="legal-document" id="legal-document" aria-label="Termo de Uso e Privacidade">
             <p class="legal-intro">Esse Termo de Uso e Privacidade estabelece as condições para o uso da aplicação
                 AnotaAI e descreve informações sobre a coleta, uso, armazenamento e proteção dos dados do usuário.</p>
             <p class="legal-intro">O AnotaAI é uma plataforma desenvolvida para estudantes e tem como objetivo permitir
@@ -257,8 +258,10 @@
                 antes de fornecer informações e realizar alterações para prevenir acessos não autorizados.</p>
             <h2 class="legal-heading">Exclusão de dados</h2>
             <p class="legal-paragraph">O usuário poderá solicitar a exclusão da conta diretamente na plataforma. Após a
-                solicitação, o acesso à conta será desativado imediatamente. O prazo informado para conclusão do
-                procedimento é de até 15 dias corridos após a solicitação.</p>
+                solicitação, o acesso à conta será desativado imediatamente. A exclusão será realizada automaticamente
+                após 15 dias corridos da solicitação.
+                Durante esse período, o usuário poderá autenticar-se para consultar a data prevista e cancelar o pedido,
+                recuperando a conta e seus dados. Após o prazo, a recuperação não será mais permitida.</p>
             <p class="legal-paragraph">Na conclusão do pedido, serão excluídos permanentemente do banco de dados da
                 aplicação:</p>
             <ul class="legal-list">
@@ -312,12 +315,17 @@
                 <li>Direitos em relação aos dados.</li>
             </ul>
         </div>
+        <section class="legal-history" aria-labelledby="legal-history-title">
+            <h2 id="legal-history-title">Versões anteriores</h2>
+            <p>Consulte o histórico de publicações do documento.</p>
+            <div id="legal-version-list" class="legal-version-list"></div>
+        </section>
         <section class="legal-acceptance" id="legal-acceptance" hidden aria-labelledby="acceptance-title">
             <h2 id="acceptance-title">Aceite obrigatório para criar sua conta</h2>
             <p>Para continuar, confirme o aceite dos termos e declare que possui 18 anos ou mais.</p>
             <label class="legal-check" for="accept-terms">
                 <input id="accept-terms" type="checkbox" />
-                <span>Li e aceito os Termos de Uso do AnotaAI.</span>
+                <span>Li e aceito os Termos de Uso e a Política de Privacidade vigentes do AnotaAI.</span>
             </label>
             <label class="legal-check" for="confirm-adult">
                 <input id="confirm-adult" type="checkbox" />

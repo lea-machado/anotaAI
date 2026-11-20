@@ -1,159 +1,96 @@
-
 package br.com.anotaai.controller;
 
 import br.com.anotaai.model.Usuario;
 import br.com.anotaai.repository.UsuarioRepository;
-import br.com.anotaai.service.AuditoriaService;
-import br.com.anotaai.service.UsuarioService;
+import br.com.anotaai.service.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.time.LocalDate;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.concurrent.atomic.AtomicReference;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class CadastroControllerTest {
+    UsuarioRepository repository = mock(UsuarioRepository.class);
+    GmailApiEmailService email = mock(GmailApiEmailService.class);
+    AuditoriaService auditoria = mock(AuditoriaService.class);
+    AtomicReference<String> link = new AtomicReference<>();
+    MockMvc mvc;
+    String json = """
+            {"nome":"Estudante","email":"estudante@example.com","senha":"Conta!Forte2026",
+            "dataNascimento":"2000-01-01","escolaridade":"Ensino Superior Incompleto",
+            "aceitouTermos":true,"declarouMaioridade":true,"versaoTermos":"2026-09-25"}
+            """;
 
-    @Test
-    void retornar201QuandoCadastroForValido() throws Exception {
-        UsuarioService usuarioService = mock(UsuarioService.class);
-        AuditoriaService auditoriaService = mock(AuditoriaService.class);
-        Usuario usuario = new Usuario();
-        usuario.setNome("Teste");
-        usuario.setEmail("teste@teste.com");
-        usuario.setPerfil("USER");
-        var campoId = Usuario.class.getDeclaredField("id");
-        campoId.setAccessible(true);
-        campoId.set(usuario, 1L);
-        when(usuarioService.criarUsuarioComum(
-                anyString(),
-                anyString(),
-                anyString(),
-                any(LocalDate.class),
-                anyString(),
-                anyBoolean(),
-                anyBoolean(),
-                anyString()
-        )).thenReturn(usuario);
-        CadastroController controller =
-                new CadastroController(usuarioService, auditoriaService);
-        MockMvc mockMvc = MockMvcBuilders
-                .standaloneSetup(controller)
-                .setControllerAdvice(new ApiExceptionHandler())
-                .build();
-        String json = """
-                {
-                  "nome": "Teste",
-                  "email": "teste@teste.com",
-                  "senha": "Conta!Forte2026",
-                  "dataNascimento": "2000-01-01",
-                  "escolaridade": "Ensino Superior Incompleto",
-                  "aceitouTermos": true,
-                  "declarouMaioridade": true,
-                  "versaoTermos": "2026-09-25"
-                }
-                """;
-
-        mockMvc.perform(
-                post("/api/auth/cadastro")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        )
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").value(1))
-        .andExpect(jsonPath("$.nome").value("Teste"))
-        .andExpect(jsonPath("$.email").value("teste@teste.com"))
-        .andExpect(jsonPath("$.escolaridade").doesNotExist())
-        .andExpect(jsonPath("$.mensagem")
-                .value("Conta criada com sucesso."));
-        verify(usuarioService).criarUsuarioComum(
-                anyString(),
-                anyString(),
-                anyString(),
-                any(LocalDate.class),
-                eq("Ensino Superior Incompleto"),
-                anyBoolean(),
-                anyBoolean(),
-                anyString()
-        );
+    @BeforeEach
+    void preparar() throws Exception {
+        var service = new VerificacaoCadastroService(new UsuarioService(repository, new BCryptPasswordEncoder(4)),
+                email, "https://anotaai.example");
+        mvc = MockMvcBuilders.standaloneSetup(new CadastroController(service, auditoria))
+                .setControllerAdvice(new ApiExceptionHandler()).build();
+        doAnswer(i -> { link.set(i.getArgument(2)); return null; }).when(email)
+                .enviarVerificacaoCadastro(anyString(), anyString(), anyString(), anyInt());
+        when(repository.save(any())).thenAnswer(i -> {
+            Usuario usuario = i.getArgument(0);
+            var field = Usuario.class.getDeclaredField("id");
+            field.setAccessible(true);
+            field.set(usuario, 1L);
+            return usuario;
+        });
     }
-    
-        @Test
-        void retornar400QuandoUsuarioForMenorDeIdade() throws Exception {
-        UsuarioService usuarioService = mock(UsuarioService.class);
-        AuditoriaService auditoriaService = mock(AuditoriaService.class);
-        when(usuarioService.criarUsuarioComum(
-                anyString(),
-                anyString(),
-                anyString(),
-                any(LocalDate.class),
-                anyString(),
-                anyBoolean(),
-                anyBoolean(),
-                anyString()
-        )).thenThrow(
-                new IllegalArgumentException(
-                        "E necessario ter pelo menos 18 anos para criar uma conta."
-                )
-        );
-        CadastroController controller =
-                new CadastroController(usuarioService, auditoriaService);
-        MockMvc mockMvc = MockMvcBuilders
-                .standaloneSetup(controller)
-                .setControllerAdvice(new ApiExceptionHandler())
-                .build();
-        String json = """
-                {
-                "nome": "Menor",
-                "email": "menor@teste.com",
-                "senha": "Conta!Forte2026",
-                "dataNascimento": "2015-01-01",
-                "escolaridade": "Ensino Fundamental Completo",
-                "aceitouTermos": true,
-                "declarouMaioridade": true,
-                "versaoTermos": "2026-09-25"
-                }
-                """;
-
-        mockMvc.perform(
-                post("/api/auth/cadastro")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json)
-        )
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.mensagem").value(
-                "E necessario ter pelo menos 18 anos para criar uma conta."
-        ))
-        .andExpect(jsonPath("$.momento").exists());
-        }
 
     @Test
-    void retorna400QuandoEscolaridadeNaoForInformada() throws Exception {
-        var repositorio = mock(UsuarioRepository.class);
-        var usuarioService = new UsuarioService(repositorio, mock(PasswordEncoder.class));
-        var mvc = MockMvcBuilders.standaloneSetup(new CadastroController(usuarioService, mock(AuditoriaService.class)))
-                .setControllerAdvice(new ApiExceptionHandler())
-                .build();
+    void aceitaCadastroSemGravarEConfirmaSomenteComLinkDoEmail() throws Exception {
+        var result = mvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON).content(json))
+                .andExpect(status().isAccepted()).andExpect(jsonPath("$.desafioId").isString())
+                .andExpect(jsonPath("$.token").doesNotExist()).andExpect(jsonPath("$.id").doesNotExist()).andReturn();
+        verify(repository, never()).save(any());
+        verifyNoInteractions(auditoria);
+        var id = new ObjectMapper().readTree(result.getResponse().getContentAsString()).get("desafioId").asText();
+        mvc.perform(post("/api/auth/cadastro/confirmar").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"" + id + "\"}")).andExpect(status().isBadRequest());
+        var token = link.get().split("#token=", 2)[1];
+        mvc.perform(post("/api/auth/cadastro/confirmar").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"" + token + "\"}"))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.perfil").value("USER"));
+        verify(repository).save(any());
+        verify(auditoria).registrar(eq("estudante@example.com"), eq("CADASTRO_USUARIO"), anyString(),
+                eq(true), anyString(), any());
+        mvc.perform(post("/api/auth/cadastro/confirmar").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"" + token + "\"}")).andExpect(status().isBadRequest());
+    }
 
-        mvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON).content("""
-                {
-                  "nome": "Teste",
-                  "email": "teste@example.com",
-                  "senha": "Conta!Forte2026",
-                  "dataNascimento": "2000-01-01",
-                  "aceitouTermos": true,
-                  "declarouMaioridade": true,
-                  "versaoTermos": "2026-09-25"
-                }
-                """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.mensagem").value("Escolaridade é obrigatória."));
-        verifyNoInteractions(repositorio);
+    @Test
+    void menorDeIdadeNaoRecebeEmailENaoESalvo() throws Exception {
+        mvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)
+                .content(json.replace("2000-01-01", "2015-01-01")))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.mensagem").value(
+                        "E necessario ter pelo menos 18 anos para criar uma conta."));
+        verifyNoInteractions(repository, email, auditoria);
+    }
+
+    @Test
+    void escolaridadeObrigatoria() throws Exception {
+        mvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)
+                .content(json.replace("Ensino Superior Incompleto", "")))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.mensagem").value("Escolaridade é obrigatória."));
+        verifyNoInteractions(repository, email, auditoria);
+    }
+
+    @Test
+    void falhaNoEmailRetorna503SemSalvar() throws Exception {
+        doThrow(new ServicoEmailException("Falha no envio", new RuntimeException())).when(email)
+                .enviarVerificacaoCadastro(anyString(), anyString(), anyString(), anyInt());
+        mvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON).content(json))
+                .andExpect(status().isServiceUnavailable());
+        verify(repository, never()).save(any());
+        verifyNoInteractions(auditoria);
     }
 }

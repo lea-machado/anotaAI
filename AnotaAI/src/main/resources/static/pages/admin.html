@@ -7,6 +7,7 @@
     <link href="../css/global.css" rel="stylesheet" />
     <link href="../css/sidebar.css" rel="stylesheet" />
     <link href="../css/admin.css" rel="stylesheet" />
+    <link href="../css/legal.css" rel="stylesheet" />
     <title>Administração - AnotaAI</title>
 </head>
 
@@ -133,6 +134,34 @@
                     <p class="empty-requests" hidden id="empty-deletion-requests">Não há pedidos de exclusão
                         pendentes.</p>
                 </section>
+                <section class="panel admin-section" id="admin-legal-section">
+                    <div class="admin-section-head">
+                        <h2>Termos de Uso e Política de Privacidade</h2><span>Publicação e histórico de versões</span>
+                    </div>
+                    <div class="admin-legal-grid">
+                        <form id="admin-legal-form" class="admin-legal-form">
+                            <p id="admin-legal-current" class="legal-updated"></p>
+                            <label>Texto da nova versão
+                                <textarea id="admin-legal-text" rows="13" minlength="100" maxlength="50000" required
+                                    placeholder="Digite o texto completo da nova versão"></textarea>
+                            </label>
+                            <label class="legal-check" for="admin-legal-confirm">
+                                <input id="admin-legal-confirm" type="checkbox" required />
+                                <span>Entendo que todos os usuários, incluindo administradores, precisarão aceitar esta
+                                    versão para continuar usando a plataforma.</span>
+                            </label>
+                            <p class="admin-feedback" id="admin-legal-feedback" hidden role="alert"></p>
+                            <button class="button button-primary" id="admin-legal-publish" type="submit">Publicar nova
+                                versão</button>
+                        </form>
+                        <div class="admin-legal-history">
+                            <h3>Versões publicadas</h3>
+                            <div id="admin-legal-versions" class="legal-version-list"></div>
+                            <p id="admin-legal-view-title" class="legal-updated"></p>
+                            <div id="admin-legal-view" class="admin-legal-preview"></div>
+                        </div>
+                    </div>
+                </section>
                 <section class="panel admin-section">
                     <div class="admin-section-head">
                         <h2>Usuários</h2><span id="users-result-count">Contas, acesso e ações administrativas</span>
@@ -220,6 +249,7 @@
     <script src="../js/api.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/admin.js"></script>
+    <script src="../js/admin-termos.js"></script>
 </body>
 
 </html>

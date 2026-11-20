@@ -21,16 +21,28 @@ class AdminPrivacidadeTest {
     final BaralhoRepository baralhos = mock(BaralhoRepository.class);
     final SolicitacaoExclusaoRepository pedidos = mock(SolicitacaoExclusaoRepository.class);
     final MongoTemplate mongo = mock(MongoTemplate.class);
-    final AdminService service = new AdminService(usuarios, anotacoes, versoes, baralhos, codigos, recuperacao, pedidos, mongo);
+    final AdminService service = new AdminService(usuarios, anotacoes, versoes, baralhos, codigos, recuperacao, pedidos,
+            mongo);
     Usuario admin, u;
-    @BeforeEach void preparar() {
-        admin = new Usuario(); org.springframework.test.util.ReflectionTestUtils.setField(admin,"id",1L);
-        u = new Usuario(); org.springframework.test.util.ReflectionTestUtils.setField(u,"id",2L); u.setEmail("pessoa@example.com");
-        when(usuarios.findById(2L)).thenReturn(Optional.of(u)); when(usuarios.save(any())).thenAnswer(i -> i.getArgument(0));
+
+    @BeforeEach
+    void preparar() {
+        admin = new Usuario();
+        org.springframework.test.util.ReflectionTestUtils.setField(admin, "id", 1L);
+        u = new Usuario();
+        org.springframework.test.util.ReflectionTestUtils.setField(u, "id", 2L);
+        u.setEmail("pessoa@example.com");
+        when(usuarios.findById(2L)).thenReturn(Optional.of(u));
+        when(usuarios.save(any())).thenAnswer(i -> i.getArgument(0));
     }
-    @Test void excluiContaPedidoEDadosDeEstudo() {
+
+    @Test
+    void excluiContaPedidoEDadosDeEstudo() {
         var pedido = new SolicitacaoExclusao();
         pedido.setUsuarioId(2L);
+        pedido.setSolicitadaEm(java.time.LocalDateTime.now().minusDays(16));
+        u.setAtivo(false);
+        when(pedidos.findByUsuarioId(2L)).thenReturn(Optional.of(pedido));
         var anotacao = new Anotacao();
         ReflectionTestUtils.setField(anotacao, "id", 42L);
         when(anotacoes.findByUsuarioIdOrderByCriadoEmDesc(2L)).thenReturn(List.of(anotacao));
@@ -39,7 +51,8 @@ class AdminPrivacidadeTest {
         verify(usuarios).delete(u);
         verify(usuarios, never()).save(any());
         verify(pedidos).delete(pedido);
-        verify(codigos).deleteByUsuarioId(2L); verify(recuperacao).deleteByUsuarioId(2L);
+        verify(codigos).deleteByUsuarioId(2L);
+        verify(recuperacao).deleteByUsuarioId(2L);
         verify(versoes).deleteByAnotacaoId(42L);
         verify(baralhos).deleteByAnotacaoId(42L);
         verify(baralhos).deleteByUsuarioId(2L);
@@ -50,37 +63,77 @@ class AdminPrivacidadeTest {
         verify(mongo).updateMulti(query.capture(), update.capture(), eq(RegistroAuditoria.class));
         assertThat(query.getValue().getQueryObject().get("usuario.$id")).isEqualTo(2L);
         assertThat(update.getValue().getUpdateObject().get("$unset", Document.class))
-                .containsKeys("usuario","email","detalhes","enderecoIp","userAgent");
+                .containsKeys("usuario", "email", "detalhes", "enderecoIp", "userAgent");
         verify(mongo).updateMulti(query.capture(), update.capture(), eq(RegistroUsoIa.class));
         assertThat(query.getValue().getQueryObject().get("usuarioId")).isEqualTo(2L);
         assertThat(update.getValue().getUpdateObject().get("$unset", Document.class)).containsKey("usuarioId");
 
+        verify(mongo).remove(query.capture(), eq(LimiteTokensIaService.COLECAO));
+        assertThat(query.getValue().getQueryObject()).containsEntry("usuarioId", 2L).hasSize(1);
+        var cotaQuery = ArgumentCaptor.forClass(Query.class);
+        verify(mongo).remove(cotaQuery.capture(), eq(LimiteTokensIaService.COLECAO));
+        assertThat(cotaQuery.getValue().getQueryObject()).containsEntry("usuarioId", 2L).hasSize(1);
         verifyNoMoreInteractions(mongo);
     }
-    @Test void naoRemovePedidoSeExclusaoDaContaFalhar() {
+
+    @Test
+    void naoRemovePedidoSeExclusaoDaContaFalhar() {
         var pedido = new SolicitacaoExclusao();
         pedido.setUsuarioId(2L);
+        pedido.setSolicitadaEm(java.time.LocalDateTime.now().minusDays(16));
+        u.setAtivo(false);
+        when(pedidos.findByUsuarioId(2L)).thenReturn(Optional.of(pedido));
         doThrow(new org.springframework.dao.OptimisticLockingFailureException("Conta alterada em paralelo"))
                 .when(usuarios).delete(u);
 
         assertThatThrownBy(() -> service.excluirConta(pedido, admin))
                 .isInstanceOf(org.springframework.dao.OptimisticLockingFailureException.class);
-        verifyNoInteractions(pedidos);
+        verify(pedidos, never()).delete(any());
     }
-    @Test void statusAlternaEBloqueiaContaAnonimizada() {
-        assertThat(service.alternarAtivo(2L,admin).isAtivo()).isFalse();
-        assertThat(service.alternarAtivo(2L,admin).isAtivo()).isTrue();
+
+    @Test
+    void naoPermiteExclusaoAntesDosQuinzeDias() {
+        var pedido = new SolicitacaoExclusao();
+        pedido.setUsuarioId(2L);
+        pedido.setSolicitadaEm(java.time.LocalDateTime.now().minusDays(3));
+        u.setAtivo(false);
+        when(pedidos.findByUsuarioId(2L)).thenReturn(Optional.of(pedido));
+        assertThatThrownBy(() -> service.excluirConta(pedido, admin))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("15 dias");
+        verify(usuarios, never()).delete(any());
+        verify(pedidos, never()).delete(any());
+    }
+
+    @Test
+    void naoApagaContaSePedidoFoiCancelado() {
+        var pedido = new SolicitacaoExclusao();
+        pedido.setUsuarioId(2L);
+        pedido.setSolicitadaEm(java.time.LocalDateTime.now().minusDays(16));
+        u.setAtivo(false);
+        assertThatThrownBy(() -> service.excluirContaAutomatica(pedido))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("cancelada");
+        verify(usuarios, never()).delete(any());
+    }
+
+    @Test
+    void statusAlternaEBloqueiaContaAnonimizada() {
+        assertThat(service.alternarAtivo(2L, admin).isAtivo()).isFalse();
+        assertThat(service.alternarAtivo(2L, admin).isAtivo()).isTrue();
         u.setAnonimizado(true);
-        assertThatThrownBy(() -> service.alternarAtivo(2L,admin)).isInstanceOf(IllegalStateException.class);
-        assertThatThrownBy(() -> service.alterarPerfil(2L,"USER",admin)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> service.alternarAtivo(2L, admin)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> service.alterarPerfil(2L, "USER", admin)).isInstanceOf(IllegalStateException.class);
     }
-    @Test void rejeitaIdentificadorAusenteInexistenteEProprio() {
-        assertThatThrownBy(() -> service.alternarAtivo(null,admin)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> service.alternarAtivo(1L,admin)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> service.alternarAtivo(99L,admin)).isInstanceOf(RecursoNaoEncontradoException.class);
-        assertThatThrownBy(() -> service.alterarPerfil(null,"USER",admin)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> service.alterarPerfil(2L,null,admin)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> service.alterarPerfil(99L,"USER",admin)).isInstanceOf(RecursoNaoEncontradoException.class);
-        verify(usuarios,never()).save(any());
+
+    @Test
+    void rejeitaIdentificadorAusenteInexistenteEProprio() {
+        assertThatThrownBy(() -> service.alternarAtivo(null, admin)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> service.alternarAtivo(1L, admin)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> service.alternarAtivo(99L, admin)).isInstanceOf(RecursoNaoEncontradoException.class);
+        assertThatThrownBy(() -> service.alterarPerfil(null, "USER", admin))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> service.alterarPerfil(2L, null, admin)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> service.alterarPerfil(99L, "USER", admin))
+                .isInstanceOf(RecursoNaoEncontradoException.class);
+        verify(usuarios, never()).save(any());
     }
 }

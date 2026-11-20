@@ -196,3 +196,112 @@
     padding: 24px;
   }
 }
+
+.recovery-dialog .delete-dialog-icon {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.auth-panel [hidden] { display: none; }
+
+.birth-date-help {
+  display: none;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.birth-date-field:focus-within .birth-date-help {
+  display: block;
+}
+
+.register-intro > p {
+  margin: 0 0 28px;
+  color: var(--muted);
+  line-height: 1.65;
+  font-size: 14px;
+}
+
+.registration-verification {
+  padding-top: 4px;
+  text-align: center;
+}
+
+.verification-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 24px;
+  border: 1px solid #cddfe9;
+  border-radius: 22px;
+  background: var(--blue-50);
+  color: var(--blue-700);
+}
+
+.verification-kicker {
+  margin: 0 0 10px;
+  color: var(--blue-700);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .13em;
+}
+
+.registration-verification h2 {
+  margin: 0 0 14px;
+  font-size: clamp(28px, 4vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -.025em;
+}
+
+.verification-description {
+  margin: 0 auto 24px;
+  max-width: 34ch;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.verification-instructions {
+  padding: 20px 16px;
+  border: 1px solid #d6e3eb;
+  border-radius: 12px;
+  background: var(--blue-50);
+}
+
+.verification-instructions p {
+  margin: 0 0 14px;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.verification-instructions strong { color: var(--navy-900); }
+
+.verification-validity {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #47657b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.verification-validity svg { flex-shrink: 0; }
+
+.verification-help {
+  margin: 24px 0 20px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.verification-help strong { color: var(--ink); font-weight: 600; }
+.verification-actions .button { width: 100%; min-height: 48px; padding: 12px 16px; font-size: 14px; line-height: 1.5; }
+.verification-actions .button:disabled { cursor: wait; opacity: .65; }
+.verification-resend-note { margin: 9px 0 16px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.verification-restart { display: inline-block; padding: 8px 12px; font-size: 14px; }
+.verification-restart:hover { text-decoration: underline; }
+.verification-restart:focus-visible { outline: 2px solid var(--blue-700); outline-offset: 3px; border-radius: 4px; }
+.verification-assurance { margin: 18px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.auth-panel .register-footer { margin: 24px 0 0; padding-top: 20px; border-top: 1px solid var(--line); }
+.auth-panel-register > .auth-feedback { margin-top: 20px; }

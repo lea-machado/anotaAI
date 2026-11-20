@@ -129,8 +129,8 @@
                     <aside class="profile-summary">
                         <article class="panel summary-card account-deletion-card">
                             <span>Excluir conta</span>
-                            <p>Peça a exclusão da sua conta e dos dados vinculados. Seu acesso será encerrado assim que
-                                confirmar; o administrador concluirá a remoção.</p>
+                            <p>Peça a exclusão da sua conta e dos dados vinculados. Seu acesso será suspenso assim que
+                                confirmar; a remoção ocorrerá automaticamente em 15 dias, podendo ser cancelada até lá.</p>
                             <button class="button button-danger" id="open-delete-account" type="button">Solicitar
                                 exclusão da conta</button>
                         </article>
@@ -151,8 +151,7 @@
                         <article class="panel summary-card">
                             <span>Privacidade e LGPD</span>
                             <div class="legal-links">
-                                <a href="privacidade.html">Termos de Uso</a>
-                                <a href="privacidade.html">Política de Privacidade</a>
+                                <a href="privacidade.html">Termos de Uso e Política de Privacidade</a>
                             </div>
                         </article>
                         <article class="panel summary-card">
@@ -169,8 +168,8 @@
         <form method="dialog">
             <p class="page-kicker">Ação permanente</p>
             <h2 id="delete-account-title">Solicitar exclusão da conta?</h2>
-            <p>Ao confirmar, você perderá imediatamente o acesso à sua conta. O administrador receberá seu pedido e
-                excluirá sua conta e os dados vinculados. Essa ação não pode ser desfeita.</p>
+            <p>Ao confirmar, seu acesso será suspenso imediatamente. Sua conta e os dados vinculados serão excluídos
+                automaticamente após 15 dias. Durante esse prazo, você poderá entrar para cancelar a exclusão e recuperar todos os seus dados.</p>
             <p aria-live="polite" class="delete-account-feedback" hidden id="delete-account-feedback"></p>
             <div class="delete-account-actions">
                 <button class="button button-secondary" id="cancel-delete-account" type="button">Cancelar</button>
@@ -182,6 +181,7 @@
     <script src="../js/api.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/perfil.js"></script>
+    <script src="../js/password-visibility.js"></script>
 </body>
 
 </html>

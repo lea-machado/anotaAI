@@ -99,7 +99,7 @@
         <td>${request.solicitadaEm ? new Date(request.solicitadaEm).toLocaleString('pt-BR') : '—'}<br><small>${request.solicitadaEm ? deletionDeadline(request.solicitadaEm) : 'Data não informada'}</small></td>
         <td>${escapeHtml(request.nome)}</td>
         <td>${escapeHtml(request.email)}</td>
-        <td><button class="admin-action danger" data-deletion-request="${request.id}" data-user-id="${request.usuarioId}">Excluir conta</button></td>
+        <td><button class="admin-action danger" data-deletion-request="${request.id}" data-user-id="${request.usuarioId}" ${!request.solicitadaEm || new Date(request.solicitadaEm).getTime() + 15 * 86400000 > Date.now() ? 'disabled title="Exclusão automática após 15 dias"' : ''}>Excluir conta</button></td>
       </tr>`).join('');
   }
 
@@ -295,6 +295,14 @@
     }
   }
 
+  function maskEmail(email) {
+    if (typeof email !== 'string') return '—';
+    const separator = email.lastIndexOf('@');
+    if (separator < 1) return email;
+    const local = email.slice(0, separator);
+    return `${local.slice(0, 3)}${local.length > 3 ? '***' : ''}${email.slice(separator)}`;
+  }
+
   function userRow(user, currentUserId) {
     const isCurrentUser = user.id === currentUserId;
     const anonymized = user.anonimizado === true;
@@ -302,7 +310,7 @@
     return `
       <tr>
         <td>${escapeHtml(user.nome)}${isCurrentUser ? '<span class="current-user-label">Você</span>' : ''}${anonymized ? '<span class="current-user-label">Anonimizado</span>' : ''}</td>
-        <td>${escapeHtml(user.email)}</td>
+        <td>${escapeHtml(maskEmail(user.email))}</td>
         <td>
           <select class="role-select" data-current-role="${user.perfil}" data-role-select data-user-id="${user.id}"
                   aria-label="Perfil de ${escapeHtml(user.nome)}" ${isCurrentUser || anonymized ? 'disabled title="Conta anonimizada"' : ''}>
@@ -315,7 +323,7 @@
         <td>${user.criadoEm ? new Date(user.criadoEm).toLocaleDateString('pt-BR') : '—'}</td>
         <td class="admin-actions">
           <button class="admin-action" data-user-action="status" data-user-id="${user.id}" ${isCurrentUser || user.pedidoExclusao || anonymized ? 'disabled' : ''}>${anonymized ? 'Conta encerrada' : (user.pedidoExclusao ? 'Aguardando exclusão' : (ativo ? 'Desativar' : 'Ativar'))}</button>
-          <button class="admin-action danger" data-user-action="delete" data-user-id="${user.id}" ${isCurrentUser || !user.pedidoExclusao ? 'disabled' : ''}>${user.pedidoExclusao ? 'Excluir' : 'Sem pedido'}</button>
+          <button class="admin-action danger" data-user-action="delete" data-user-id="${user.id}" disabled title="Exclusão automática após 15 dias">${user.pedidoExclusao ? 'Exclusão programada' : 'Sem pedido'}</button>
         </td>
       </tr>`;
   }

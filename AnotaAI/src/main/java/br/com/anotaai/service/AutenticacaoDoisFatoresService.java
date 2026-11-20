@@ -20,13 +20,15 @@ public class AutenticacaoDoisFatoresService {
     private final CodigoAutenticacaoRepository codigoRepository;
     private final PasswordEncoder passwordEncoder;
     private final GmailApiEmailService emailService;
+    private final SolicitacaoExclusaoService exclusaoService;
 
     public AutenticacaoDoisFatoresService(CodigoAutenticacaoRepository codigoRepository,
             PasswordEncoder passwordEncoder,
-            GmailApiEmailService emailService) {
+            GmailApiEmailService emailService, SolicitacaoExclusaoService exclusaoService) {
         this.codigoRepository = codigoRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.exclusaoService = exclusaoService;
     }
 
     @Transactional
@@ -78,7 +80,8 @@ public class AutenticacaoDoisFatoresService {
         if (registro.getTentativas() >= MAXIMO_TENTATIVAS) {
             throw new IllegalArgumentException("Limite de tentativas excedido. Inicie o login novamente.");
         }
-        if (!registro.getUsuario().isAtivo()) {
+        if (!registro.getUsuario().isAtivo()
+                && exclusaoService.pedidoVigente(registro.getUsuario().getId()).isEmpty()) {
             registro.setUsadoEm(agora);
             codigoRepository.save(registro);
             throw new IllegalArgumentException("A conta está desativada.");

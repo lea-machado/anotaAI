@@ -151,4 +151,5 @@ public class Usuario {
     public void setVersaoTermos(String versaoTermos) {
         this.versaoTermos = versaoTermos;
     }
+
 }

@@ -27,9 +27,20 @@
       window.location.href = '/pages/login.html?expirada=1';
       throw new Error('Sua sessão expirou. Entre novamente.');
     }
+    if (response.status === 403) {
+      const denied = await response.json().catch(() => ({}));
+      if (denied.codigo === 'TERMOS_PENDENTES') {
+        window.location.replace('/pages/aceite-termos.html');
+        throw new Error('Aceite os termos atualizados para continuar.');
+      }
+      throw new Error(denied.mensagem || 'Acesso não autorizado.');
+    }
     if (!response.ok) {
       const error = await response.json().catch(() => ({ mensagem: 'Erro na requisicao.' }));
-      throw new Error(error.mensagem || 'Erro na requisicao.');
+      const failure = new Error(error.mensagem || 'Erro na requisicao.');
+      failure.codigo = error.codigo;
+      failure.reiniciaEm = error.reiniciaEm;
+      throw failure;
     }
     if (response.status === 204) return null;
     return response.json();
@@ -63,6 +74,11 @@
     deleteNote: id => request(`/anotacoes/${id}`, { method: 'DELETE' }),
     getVersions: id => request(`/anotacoes/${id}/versoes`),
     getPerformance: () => request('/desempenho'),
+    getCurrentLegalDocuments: () => request('/termos/atuais'),
+    getLegalVersions: () => request('/termos/versoes'),
+    getLegalStatus: () => request('/termos/status'),
+    acceptLegalTerms: data => request('/termos/aceitar', { method: 'POST', body: JSON.stringify(data) }),
+    publishLegalTerms: data => request('/admin/termos', { method: 'POST', body: JSON.stringify(data) }),
     getCurrentUser: () => currentUserRequest ??= request('/auth/me').finally(() => {
       currentUserRequest = null;
     }),

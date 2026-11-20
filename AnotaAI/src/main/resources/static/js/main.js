@@ -1,5 +1,18 @@
 (function () {
   const navigations = Array.from(document.querySelectorAll('.sidebar-nav'));
+  async function verifyTerms() {
+    try {
+      const status = await Api.getLegalStatus();
+      if (status.precisaAceitar) location.replace('/pages/aceite-termos.html');
+    } catch (_) {
+    }
+  }
+  verifyTerms();
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) verifyTerms();
+  });
+  if (typeof window.setInterval === 'function') window.setInterval(verifyTerms, 30000);
+
   navigations.forEach(nav => {
     if (!nav.querySelector('a[href$="/flashcards.html"], a[href="flashcards.html"]')) {
       const link = document.createElement('a');
@@ -23,9 +36,9 @@
     const page = document.body.dataset.page;
     const currentTarget = page === 'flashcards' ? 'flashcards.html'
       : page === 'desempenho' ? 'desempenho.html'
-      : page === 'perfil' ? 'perfil.html'
-      : page === 'admin' ? 'admin.html'
-      : 'anotacoes.html';
+        : page === 'perfil' ? 'perfil.html'
+          : page === 'admin' ? 'admin.html'
+            : 'anotacoes.html';
     nav.querySelectorAll('a.nav-item[href]').forEach(item => {
       const active = new URL(item.href, location.href).pathname.endsWith(`/${currentTarget}`);
       item.classList.toggle('active', active);

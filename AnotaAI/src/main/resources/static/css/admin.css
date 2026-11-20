@@ -70,3 +70,13 @@
 @media (max-width: 800px) { .admin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.admin-overview { grid-template-columns: 1fr; }.admin-section { padding: 16px; }.admin-section-head { align-items: flex-start; flex-direction: column; }.filter-result { margin-left: 0; } }
 @media (max-width: 480px) { .admin-grid { grid-template-columns: 1fr; } }
 @media (max-width: 480px) { .admin-confirm-dialog { padding: 24px 20px; border-radius: 16px; }.confirm-actions { flex-direction: column-reverse; }.confirm-actions .button { width: 100%; } }
+.admin-legal-grid { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(280px, 1fr); gap: 22px; }
+.admin-legal-form { display: grid; gap: 12px; align-content: start; }
+.admin-legal-form > label:not(.legal-check) { display: grid; gap: 7px; font-size: 12px; color: var(--muted); font-weight: 700; }
+.admin-legal-form select, .admin-legal-form textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 11px 12px; font: inherit; }
+.admin-legal-form textarea { resize: vertical; min-height: 230px; line-height: 1.6; }
+.admin-legal-form .legal-check { font-weight: 400; }
+.admin-legal-history h3 { margin: 0 0 12px; font-size: 17px; }
+.admin-legal-preview { max-height: 420px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 18px; }
+.admin-legal-preview .legal-heading { margin: 22px 0 12px; padding-top: 12px; font-size: 18px; }
+@media (max-width: 940px) { .admin-legal-grid { grid-template-columns: 1fr; } }

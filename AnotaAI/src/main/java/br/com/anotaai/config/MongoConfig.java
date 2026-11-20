@@ -65,6 +65,10 @@ public class MongoConfig {
             }
             mongo.indexOps(VersaoAnotacao.class).ensureIndex(new Index().on("anotacao.$id", Sort.Direction.ASC)
                     .on("criadoEm", Sort.Direction.ASC));
+            mongo.indexOps(br.com.anotaai.service.LimiteTokensIaService.COLECAO)
+                    .ensureIndex(new Index().on("expiraEm", Sort.Direction.ASC).expire(java.time.Duration.ZERO));
+            mongo.indexOps(br.com.anotaai.service.LimiteTokensIaService.COLECAO)
+                    .ensureIndex(new Index().on("usuarioId", Sort.Direction.ASC));
         };
     }
 }

@@ -29,305 +29,282 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class AnotacaoControllerIntegracaoTest {
 
-    private static final String BASE_PATH = "/api/anotacoes";
+        private static final String BASE_PATH = "/api/anotacoes";
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private AnotacaoRepository anotacaoRepository;
+        @Autowired
+        private AnotacaoRepository anotacaoRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+        @Autowired
+        private UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private VersaoAnotacaoRepository versaoAnotacaoRepository;
+        @Autowired
+        private VersaoAnotacaoRepository versaoAnotacaoRepository;
 
-    @MockitoBean
-    private GmailApiEmailService emailService;
+        @MockitoBean
+        private GmailApiEmailService emailService;
 
-    private String email;
+        private String email;
 
-    @BeforeEach
-    void prepararUsuario() throws Exception {
+        @BeforeEach
+        void prepararUsuario() throws Exception {
 
-        email = "anotacao-" + UUID.randomUUID() + "@teste.com";
+                email = "anotacao-" + UUID.randomUUID() + "@teste.com";
 
-        mockMvc.perform(
-                post("/api/auth/cadastro")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(cadastroJson(email))
-        ).andExpect(status().isCreated());
-    }
+                CadastroTestSupport.cadastrarConfirmado(mockMvc, emailService, cadastroJson(email)).andExpect(status().isCreated());
+        }
 
-    private String cadastroJson(String email) {
-        return """
-                {
-                    "nome": "Usuario",
-                    "email": "%s",
-                    "senha": "Conta!Forte2026",
-                    "dataNascimento": "2002-05-02",
-                    "escolaridade": "Ensino Superior Incompleto",
-                    "aceitouTermos": true,
-                    "declarouMaioridade": true,
-                    "versaoTermos": "2026-09-25"
-                }
-                """.formatted(email);
-    }
+        private String cadastroJson(String email) {
+                return """
+                                {
+                                    "nome": "Usuario",
+                                    "email": "%s",
+                                    "senha": "Conta!Forte2026",
+                                    "dataNascimento": "2002-05-02",
+                                    "escolaridade": "Ensino Superior Incompleto",
+                                    "aceitouTermos": true,
+                                    "declarouMaioridade": true,
+                                    "versaoTermos": "2026-09-25"
+                                }
+                                """.formatted(email);
+        }
 
-    private String anotacaoJson(String titulo, String conteudo) {
-        return """
-                {
-                    "titulo": "%s",
-                    "conteudo": "%s"
-                }
-                """.formatted(titulo, conteudo);
-    }
+        private String anotacaoJson(String titulo, String conteudo) {
+                return """
+                                {
+                                    "titulo": "%s",
+                                    "conteudo": "%s"
+                                }
+                                """.formatted(titulo, conteudo);
+        }
 
-    private long criarAnotacao(String titulo) throws Exception {
+        private long criarAnotacao(String titulo) throws Exception {
 
-        var resposta = mockMvc.perform(
-                post(BASE_PATH)
-                        .with(user(email).roles("USER"))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(anotacaoJson(titulo, "Conteudo da aula"))
-        )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").isNumber())
-                .andReturn();
+                var resposta = mockMvc.perform(
+                                post(BASE_PATH)
+                                                .with(user(email).roles("USER"))
+                                                .with(csrf())
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(anotacaoJson(titulo, "Conteudo da aula")))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.id").isNumber())
+                                .andReturn();
 
-        return new com.fasterxml.jackson.databind.ObjectMapper()
-                .readTree(resposta.getResponse().getContentAsString())
-                .get("id")
-                .asLong();
-    }
+                return new com.fasterxml.jackson.databind.ObjectMapper()
+                                .readTree(resposta.getResponse().getContentAsString())
+                                .get("id")
+                                .asLong();
+        }
 
-    @Test
-    void criar_comDadosValidos_deveRetornar201EPersistir() throws Exception {
+        @Test
+        void criar_comDadosValidos_deveRetornar201EPersistir() throws Exception {
 
-        String titulo = "Aula " + UUID.randomUUID();
-        long id = criarAnotacao(titulo);
+                String titulo = "Aula " + UUID.randomUUID();
+                long id = criarAnotacao(titulo);
 
-        var anotacao = anotacaoRepository.findById(id).orElseThrow();
+                var anotacao = anotacaoRepository.findById(id).orElseThrow();
 
-        assertThat(anotacao.getTitulo()).isEqualTo(titulo);
-        assertThat(anotacao.getConteudo()).isEqualTo("Conteudo da aula");
+                assertThat(anotacao.getTitulo()).isEqualTo(titulo);
+                assertThat(anotacao.getConteudo()).isEqualTo("Conteudo da aula");
 
-        Long usuarioId = usuarioRepository
-                .findByEmailIgnoreCase(email)
-                .orElseThrow()
-                .getId();
+                Long usuarioId = usuarioRepository
+                                .findByEmailIgnoreCase(email)
+                                .orElseThrow()
+                                .getId();
 
-        assertThat(anotacao.getUsuario().getId()).isEqualTo(usuarioId);
-    }
+                assertThat(anotacao.getUsuario().getId()).isEqualTo(usuarioId);
+        }
 
-    @Test
-    void listar_comAnotacaoCriada_deveRetornar200ComDados() throws Exception {
+        @Test
+        void listar_comAnotacaoCriada_deveRetornar200ComDados() throws Exception {
 
-        long id = criarAnotacao("Anotação teste");
+                long id = criarAnotacao("Anotação teste");
 
-        mockMvc.perform(
-                get(BASE_PATH)
-                        .with(user(email).roles("USER"))
-        )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id == " + id + ")].titulo")
-                        .value(org.hamcrest.Matchers.hasItem("Anotação teste")));
-    }
+                mockMvc.perform(
+                                get(BASE_PATH)
+                                                .with(user(email).roles("USER")))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[?(@.id == " + id + ")].titulo")
+                                                .value(org.hamcrest.Matchers.hasItem("Anotação teste")));
+        }
 
-    @Test
-    void listar_comBusca_deveFiltrarPorTitulo() throws Exception {
+        @Test
+        void listar_comBusca_deveFiltrarPorTitulo() throws Exception {
 
-        criarAnotacao("Minha anotação" + UUID.randomUUID());
+                criarAnotacao("Minha anotação" + UUID.randomUUID());
 
-        mockMvc.perform(
-                get(BASE_PATH)
-                        .param("busca", "Minha anotação")
-                        .with(user(email).roles("USER"))
-        )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].titulo")
-                        .value(org.hamcrest.Matchers.startsWith("Minha anotação")));
-    }
+                mockMvc.perform(
+                                get(BASE_PATH)
+                                                .param("busca", "Minha anotação")
+                                                .with(user(email).roles("USER")))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].titulo")
+                                                .value(org.hamcrest.Matchers.startsWith("Minha anotação")));
+        }
 
-    @Test
-    void buscar_comIdExistente_deveRetornar200ComCorpo() throws Exception {
+        @Test
+        void buscar_comIdExistente_deveRetornar200ComCorpo() throws Exception {
 
-        long id = criarAnotacao("Aula de Testes");
+                long id = criarAnotacao("Aula de Testes");
 
-        mockMvc.perform(
-                get(BASE_PATH + "/" + id)
-                        .with(user(email).roles("USER"))
-        )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.titulo").value("Aula de Testes"))
-                .andExpect(jsonPath("$.conteudo").value("Conteudo da aula"));
-    }
+                mockMvc.perform(
+                                get(BASE_PATH + "/" + id)
+                                                .with(user(email).roles("USER")))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(id))
+                                .andExpect(jsonPath("$.titulo").value("Aula de Testes"))
+                                .andExpect(jsonPath("$.conteudo").value("Conteudo da aula"));
+        }
 
-    @Test
-    void atualizar_comDadosValidos_deveRetornar200EPersistir() throws Exception {
+        @Test
+        void atualizar_comDadosValidos_deveRetornar200EPersistir() throws Exception {
 
-        long id = criarAnotacao("Antes");
+                long id = criarAnotacao("Antes");
 
-        mockMvc.perform(
-                put(BASE_PATH + "/" + id)
-                        .with(user(email).roles("USER"))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(anotacaoJson("Depois", "Conteudo atualizado"))
-        )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.titulo").value("Depois"))
-                .andExpect(jsonPath("$.conteudo").value("Conteudo atualizado"));
+                mockMvc.perform(
+                                put(BASE_PATH + "/" + id)
+                                                .with(user(email).roles("USER"))
+                                                .with(csrf())
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(anotacaoJson("Depois", "Conteudo atualizado")))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.titulo").value("Depois"))
+                                .andExpect(jsonPath("$.conteudo").value("Conteudo atualizado"));
 
-        assertThat(anotacaoRepository.findById(id).orElseThrow().getTitulo())
-                .isEqualTo("Depois");
-    }
+                assertThat(anotacaoRepository.findById(id).orElseThrow().getTitulo())
+                                .isEqualTo("Depois");
+        }
 
-    @Test
-    void versoes_comAnotacaoAtualizada_deveRetornar200ComHistorico() throws Exception {
+        @Test
+        void versoes_comAnotacaoAtualizada_deveRetornar200ComHistorico() throws Exception {
 
-        long id = criarAnotacao("Aula");
+                long id = criarAnotacao("Aula");
 
-        mockMvc.perform(
-                put(BASE_PATH + "/" + id)
-                        .with(user(email).roles("USER"))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(anotacaoJson("Aula", "Novo conteudo"))
-        ).andExpect(status().isOk());
+                mockMvc.perform(
+                                put(BASE_PATH + "/" + id)
+                                                .with(user(email).roles("USER"))
+                                                .with(csrf())
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(anotacaoJson("Aula", "Novo conteudo")))
+                                .andExpect(status().isOk());
 
-        mockMvc.perform(
-                get(BASE_PATH + "/" + id + "/versoes")
-                        .with(user(email).roles("USER"))
-        )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].tipo").value("ORIGINAL"))
-                .andExpect(jsonPath("$[0].conteudo").value("Conteudo da aula"))
-                .andExpect(jsonPath("$[1].conteudo").value("Novo conteudo"));
+                mockMvc.perform(
+                                get(BASE_PATH + "/" + id + "/versoes")
+                                                .with(user(email).roles("USER")))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].tipo").value("ORIGINAL"))
+                                .andExpect(jsonPath("$[0].conteudo").value("Conteudo da aula"))
+                                .andExpect(jsonPath("$[1].conteudo").value("Novo conteudo"));
 
-        assertThat(versaoAnotacaoRepository.findByAnotacaoIdOrderByCriadoEmAsc(id))
-                .hasSize(2);
-    }
+                assertThat(versaoAnotacaoRepository.findByAnotacaoIdOrderByCriadoEmAsc(id))
+                                .hasSize(2);
+        }
 
-    @Test
-    void excluir_comIdExistente_deveRetornar204ERemover() throws Exception {
+        @Test
+        void excluir_comIdExistente_deveRetornar204ERemover() throws Exception {
 
-        long id = criarAnotacao("Para excluir");
+                long id = criarAnotacao("Para excluir");
 
-        mockMvc.perform(
-                delete(BASE_PATH + "/" + id)
-                        .with(user(email).roles("USER"))
-                        .with(csrf())
-        ).andExpect(status().isNoContent());
+                mockMvc.perform(
+                                delete(BASE_PATH + "/" + id)
+                                                .with(user(email).roles("USER"))
+                                                .with(csrf()))
+                                .andExpect(status().isNoContent());
 
-        assertThat(anotacaoRepository.findById(id)).isEmpty();
-    }
+                assertThat(anotacaoRepository.findById(id)).isEmpty();
+        }
 
-    @Test
-    void criar_semTitulo_deveRetornar400ComMensagem() throws Exception {
+        @Test
+        void criar_semTitulo_deveRetornar400ComMensagem() throws Exception {
 
-        mockMvc.perform(
-                post(BASE_PATH)
-                        .with(user(email).roles("USER"))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(anotacaoJson("", "Conteudo"))
-        )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.mensagem")
-                        .value("Titulo e obrigatorio."));
-    }
+                mockMvc.perform(
+                                post(BASE_PATH)
+                                                .with(user(email).roles("USER"))
+                                                .with(csrf())
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(anotacaoJson("", "Conteudo")))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.mensagem")
+                                                .value("Titulo e obrigatorio."));
+        }
 
-    @Test
-    void criar_semConteudo_deveRetornar400ComMensagem() throws Exception {
+        @Test
+        void criar_semConteudo_deveRetornar400ComMensagem() throws Exception {
 
-        mockMvc.perform(
-                post(BASE_PATH)
-                        .with(user(email).roles("USER"))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(anotacaoJson("Titulo", ""))
-        )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.mensagem")
-                        .value("Conteudo e obrigatorio."));
-    }
+                mockMvc.perform(
+                                post(BASE_PATH)
+                                                .with(user(email).roles("USER"))
+                                                .with(csrf())
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(anotacaoJson("Titulo", "")))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.mensagem")
+                                                .value("Conteudo e obrigatorio."));
+        }
 
-    @Test
-    void buscar_comIdInexistente_deveRetornar404ComMensagem() throws Exception {
+        @Test
+        void buscar_comIdInexistente_deveRetornar404ComMensagem() throws Exception {
 
-        mockMvc.perform(
-                get(BASE_PATH + "/999999999")
-                        .with(user(email).roles("USER"))
-        )
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.mensagem")
-                        .value("Anotacao nao encontrada."));
-    }
+                mockMvc.perform(
+                                get(BASE_PATH + "/999999999")
+                                                .with(user(email).roles("USER")))
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.mensagem")
+                                                .value("Anotacao nao encontrada."));
+        }
 
-    @Test
-    void atualizar_comIdInexistente_deveRetornar404ComMensagem() throws Exception {
+        @Test
+        void atualizar_comIdInexistente_deveRetornar404ComMensagem() throws Exception {
 
-        mockMvc.perform(
-                put(BASE_PATH + "/999999999")
-                        .with(user(email).roles("USER"))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(anotacaoJson("Titulo", "Conteudo"))
-        )
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.mensagem")
-                        .value("Anotacao nao encontrada."));
-    }
+                mockMvc.perform(
+                                put(BASE_PATH + "/999999999")
+                                                .with(user(email).roles("USER"))
+                                                .with(csrf())
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(anotacaoJson("Titulo", "Conteudo")))
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.mensagem")
+                                                .value("Anotacao nao encontrada."));
+        }
 
-    @Test
-    void excluir_comIdInexistente_deveRetornar404ComMensagem() throws Exception {
+        @Test
+        void excluir_comIdInexistente_deveRetornar404ComMensagem() throws Exception {
 
-        mockMvc.perform(
-                delete(BASE_PATH + "/999999999")
-                        .with(user(email).roles("USER"))
-                        .with(csrf())
-        )
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.mensagem")
-                        .value("Anotacao nao encontrada."));
-    }
+                mockMvc.perform(
+                                delete(BASE_PATH + "/999999999")
+                                                .with(user(email).roles("USER"))
+                                                .with(csrf()))
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.mensagem")
+                                                .value("Anotacao nao encontrada."));
+        }
 
-    @Test
-    void versoes_comIdInexistente_deveRetornar404ComMensagem() throws Exception {
+        @Test
+        void versoes_comIdInexistente_deveRetornar404ComMensagem() throws Exception {
 
-        mockMvc.perform(
-                get(BASE_PATH + "/999999999/versoes")
-                        .with(user(email).roles("USER"))
-        )
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.mensagem")
-                        .value("Anotacao nao encontrada."));
-    }
+                mockMvc.perform(
+                                get(BASE_PATH + "/999999999/versoes")
+                                                .with(user(email).roles("USER")))
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.mensagem")
+                                                .value("Anotacao nao encontrada."));
+        }
 
-    @Test
-    void listar_comUsuarioDiferente_deveIsolarAnotacoes() throws Exception {
+        @Test
+        void listar_comUsuarioDiferente_deveIsolarAnotacoes() throws Exception {
 
-        criarAnotacao("Privada");
+                criarAnotacao("Privada");
 
-        String outro = "outro-" + UUID.randomUUID() + "@teste.com";
+                String outro = "outro-" + UUID.randomUUID() + "@teste.com";
 
-        mockMvc.perform(
-                post("/api/auth/cadastro")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(cadastroJson(outro))
-        ).andExpect(status().isCreated());
+                CadastroTestSupport.cadastrarConfirmado(mockMvc, emailService, cadastroJson(outro)).andExpect(status().isCreated());
 
-        mockMvc.perform(
-                get(BASE_PATH)
-                        .with(user(outro).roles("USER"))
-        )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isEmpty());
-    }
+                mockMvc.perform(
+                                get(BASE_PATH)
+                                                .with(user(outro).roles("USER")))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$").isEmpty());
+        }
 }
