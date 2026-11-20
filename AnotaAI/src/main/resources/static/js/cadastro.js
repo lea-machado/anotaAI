@@ -1,8 +1,17 @@
-(function () {
-  const TERMS_VERSION = '2026-09-25';
+(async function () {
   const TERMS_ACCEPTANCE_KEY = 'anotaai.termosCadastroAceitos';
 
-  if (sessionStorage.getItem(TERMS_ACCEPTANCE_KEY) !== TERMS_VERSION) {
+  let accepted;
+  try {
+    accepted = JSON.parse(sessionStorage.getItem(TERMS_ACCEPTANCE_KEY) || 'null');
+    const response = await fetch('/api/termos/atuais', { credentials: 'same-origin', cache: 'no-store' });
+    if (!response.ok) throw new Error('Não foi possível consultar os termos.');
+    const current = await response.json();
+    if (!accepted || accepted.versao !== current.versao) {
+      window.location.replace('/pages/privacidade.html?cadastro=1');
+      return;
+    }
+  } catch (_) {
     window.location.replace('/pages/privacidade.html?cadastro=1');
     return;
   }
@@ -61,7 +70,7 @@
           senha,
           aceitouTermos: true,
           declarouMaioridade: true,
-          versaoTermos: TERMS_VERSION
+          versaoTermos: accepted.versao
         })
       });
 
@@ -74,10 +83,10 @@
       button.disabled = false;
       button.textContent = 'Criar conta';
     }
-  });                                                                                               
+  });
 
   function showFeedback(message) {
     feedback.textContent = message;
     feedback.hidden = false;
   }
-})();
+})()

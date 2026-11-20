@@ -85,11 +85,12 @@ public class GmailApiEmailService {
                 <html><body style="font-family:Arial,sans-serif;color:#122838">
                 <h2>Novo pedido de exclusão de conta</h2>
                 <p>O usuário %s (%s) solicitou a exclusão da conta e dos dados de estudo.</p>
-                <p>O acesso já foi suspenso. Conclua o pedido no painel administrativo até %s.</p>
+                <p>O acesso já foi suspenso. A exclusão será realizada automaticamente a partir de %s, salvo recuperação da conta pelo titular.</p>
                 <p>O pedido também está disponível no painel administrativo do AnotaAI.</p>
                 </body></html>
-                """.formatted(escaparHtml(nomeUsuario == null ? "Estudante" : nomeUsuario),
-                escaparHtml(emailUsuario), prazo);
+                """
+                .formatted(escaparHtml(nomeUsuario == null ? "Estudante" : nomeUsuario),
+                        escaparHtml(emailUsuario), prazo);
         enviarHtml(destinatario, "Novo pedido de exclusão - AnotaAI", html);
     }
 

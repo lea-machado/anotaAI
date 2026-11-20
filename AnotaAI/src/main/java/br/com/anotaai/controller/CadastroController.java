@@ -2,6 +2,8 @@ package br.com.anotaai.controller;
 
 import br.com.anotaai.service.AuditoriaService;
 import br.com.anotaai.service.UsuarioService;
+import br.com.anotaai.service.TermosService;
+import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import org.springframework.http.HttpStatus;
@@ -18,10 +20,18 @@ import java.util.Map;
 public class CadastroController {
     private final UsuarioService usuarioService;
     private final AuditoriaService auditoriaService;
+    private final TermosService termosService;
 
     public CadastroController(UsuarioService usuarioService, AuditoriaService auditoriaService) {
+        this(usuarioService, auditoriaService, null);
+    }
+
+    @Autowired
+    public CadastroController(UsuarioService usuarioService, AuditoriaService auditoriaService,
+            TermosService termosService) {
         this.usuarioService = usuarioService;
         this.auditoriaService = auditoriaService;
+        this.termosService = termosService;
     }
 
     @PostMapping
@@ -30,6 +40,9 @@ public class CadastroController {
     public Map<String, Object> cadastrar(@RequestBody CadastroRequest dados, HttpServletRequest request) {
         var emailInformado = dados.email() == null ? "" : dados.email().trim().toLowerCase();
         try {
+            if (termosService != null) {
+                termosService.validarCadastro(dados.aceitouTermos(), dados.versaoTermos());
+            }
             var usuario = usuarioService.criarUsuarioComum(
                     dados.nome(), dados.email(), dados.senha(), dados.dataNascimento(), dados.escolaridade(),
                     dados.aceitouTermos(), dados.declarouMaioridade(), dados.versaoTermos());

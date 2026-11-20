@@ -83,8 +83,31 @@ public class AdminService {
 
     @Transactional
     public void excluirConta(SolicitacaoExclusao pedido, Usuario administradorAtual) {
+        alvo(pedido.getUsuarioId(), administradorAtual);
+        excluirContaVerificada(pedido);
+    }
+
+    @Transactional
+    public void excluirContaAutomatica(SolicitacaoExclusao pedido) {
+        excluirContaVerificada(pedido);
+    }
+
+    private void excluirContaVerificada(SolicitacaoExclusao pedido) {
+        if (pedido.getSolicitadaEm() == null || SolicitacaoExclusaoService.vigente(pedido)) {
+            throw new IllegalStateException("A exclusão só poderá ocorrer após os 15 dias de recuperação.");
+        }
         var usuarioId = pedido.getUsuarioId();
-        var usuario = alvo(usuarioId, administradorAtual);
+        var pedidoAtual = solicitacaoExclusaoRepository.findByUsuarioId(usuarioId)
+                .orElseThrow(() -> new IllegalStateException("A exclusão foi cancelada."));
+        if (!java.util.Objects.equals(pedidoAtual.getId(), pedido.getId())
+                || !java.util.Objects.equals(pedidoAtual.getSolicitadaEm(), pedido.getSolicitadaEm())) {
+            throw new IllegalStateException("O pedido de exclusão foi substituído.");
+        }
+        var usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario nao encontrado."));
+        if (usuario.isAtivo()) {
+            throw new IllegalStateException("A conta está ativa e não pode ser excluída.");
+        }
         for (var anotacao : anotacaoRepository.findByUsuarioIdOrderByCriadoEmDesc(usuarioId)) {
             versaoRepository.deleteByAnotacaoId(anotacao.getId());
             baralhoRepository.deleteByAnotacaoId(anotacao.getId());

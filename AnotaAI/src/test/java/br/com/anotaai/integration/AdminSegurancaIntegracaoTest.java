@@ -139,7 +139,8 @@ class AdminSegurancaIntegracaoTest {
                                 .andExpect(jsonPath("$.perfil").value("ADMIN"))
                                 .andExpect(jsonPath("$.mensagem").value("Perfil atualizado com sucesso."));
 
-                org.assertj.core.api.Assertions.assertThat(usuarioRepository.findById(usuario.getId()).orElseThrow().getPerfil())
+                org.assertj.core.api.Assertions
+                                .assertThat(usuarioRepository.findById(usuario.getId()).orElseThrow().getPerfil())
                                 .isEqualTo("ADMIN");
         }
 

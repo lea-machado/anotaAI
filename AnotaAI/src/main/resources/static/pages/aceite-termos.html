@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="../css/global.css" />
+    <link rel="stylesheet" href="../css/legal.css" />
+    <title>Atualização dos termos - AnotaAI</title>
+</head>
+<body class="legal-page">
+    <header class="legal-topbar">
+        <img alt="AnotaAI" class="legal-logo" src="../assets/images/logo-anotaai.png" />
+        <button id="legal-logout" class="button button-secondary" type="button">Sair da plataforma</button>
+    </header>
+    <main class="legal-content legal-content-wide">
+        <header class="legal-hero">
+            <p class="page-kicker">Atualização obrigatória</p>
+            <h1>Atualização dos Termos de Uso e Política de Privacidade</h1>
+            <p>Para continuar usando o AnotaAI, leia e aceite a versão vigente do documento.</p>
+        </header>
+        <section class="legal-review">
+            <h2>Termos de Uso e Política de Privacidade <small id="review-terms-version"></small></h2>
+            <div class="legal-review-document" id="review-terms-content"></div>
+            <label class="legal-check" for="review-terms-check">
+                <input id="review-terms-check" type="checkbox" />
+                <span>Li e aceito os Termos de Uso e a Política de Privacidade vigentes.</span>
+            </label>
+        </section>
+        <p class="legal-notice" id="review-feedback" hidden role="alert"></p>
+        <div class="legal-actions">
+            <button class="button button-primary" id="review-accept" type="button" disabled>Aceitar e continuar</button>
+        </div>
+    </main>
+    <script src="../js/api.js"></script>
+    <script src="../js/aceite-termos.js"></script>
+</body>
+</html>

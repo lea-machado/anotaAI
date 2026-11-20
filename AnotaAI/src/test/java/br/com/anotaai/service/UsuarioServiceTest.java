@@ -55,7 +55,7 @@ class UsuarioServiceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", " ", "Outro nível"})
+    @ValueSource(strings = { "", " ", "Outro nível" })
     void rejeitaEscolaridadeVaziaOuInvalida(String escolaridade) {
         assertThrows(IllegalArgumentException.class, () -> usuarioService.criarUsuarioComum(
                 "Pessoa Adulta", "adulta@example.com", "Conta!Forte2026", LocalDate.now().minusYears(20),

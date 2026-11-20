@@ -196,3 +196,8 @@
     padding: 24px;
   }
 }
+
+.recovery-dialog .delete-dialog-icon {
+  background: var(--success-bg);
+  color: var(--success);
+}

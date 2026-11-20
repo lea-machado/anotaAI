@@ -58,8 +58,9 @@
                     <div class="field"><label for="confirmar-senha">Confirmar senha</label><input
                             autocomplete="new-password" class="input" id="confirmar-senha" minlength="12" maxlength="72"
                             placeholder="Digite a senha novamente" required type="password" /></div>
-                    <p class="auth-consent">Termos de Uso aceitos para este cadastro. Você também pode consultar a <a
-                            class="auth-link" href="privacidade.html" target="_blank">Política de Privacidade</a>.</p>
+                    <p class="auth-consent">Documento aceito para este cadastro: <a class="auth-link"
+                            href="privacidade.html" target="_blank" rel="noopener noreferrer">Termos de Uso e Política
+                            de Privacidade</a>.</p>
                     <p class="auth-feedback" hidden id="register-feedback" role="alert"></p>
                     <button class="button button-primary" id="register-button" type="submit">Criar conta</button>
                 </form>
@@ -68,6 +69,7 @@
         </section>
     </main>
     <script src="../js/cadastro.js"></script>
+    <script src="../js/password-visibility.js"></script>
 </body>
 
 </html>

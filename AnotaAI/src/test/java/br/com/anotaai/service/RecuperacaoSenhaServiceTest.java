@@ -39,8 +39,9 @@ class RecuperacaoSenhaServiceTest {
         service.redefinir(desafio, codigo.getValue(), "MinhaChave!2026");
         assertTrue(encoder.matches("MinhaChave!2026", usuario.getSenha()));
         assertNotNull(registro.getUsadoEm());
-        assertThrows(IllegalArgumentException.class, () -> service.redefinir(desafio, codigo.getValue(), "outraSenha123"));
-                                                                                
+        assertThrows(IllegalArgumentException.class,
+                () -> service.redefinir(desafio, codigo.getValue(), "outraSenha123"));
+
         verify(usuarios, times(2)).save(usuario);
     }
 
@@ -54,10 +55,12 @@ class RecuperacaoSenhaServiceTest {
     void bloqueiaAposCincoTentativasErradas() {
         var registro = registro();
         for (int i = 0; i < 5; i++) {
-            assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "000000", "ChaveNova!2026"));
+            assertThrows(IllegalArgumentException.class,
+                    () -> service.redefinir(registro.getDesafioId(), "000000", "ChaveNova!2026"));
         }
         assertEquals(5, registro.getTentativas());
-        assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "123456", "ChaveNova!2026"));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.redefinir(registro.getDesafioId(), "123456", "ChaveNova!2026"));
         verify(usuarios, never()).save(any());
     }
 
@@ -65,15 +68,18 @@ class RecuperacaoSenhaServiceTest {
     void rejeitaCodigoExpirado() {
         var registro = registro();
         registro.setExpiraEm(LocalDateTime.now().minusSeconds(1));
-        assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "123456", "ChaveNova!2026"));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.redefinir(registro.getDesafioId(), "123456", "ChaveNova!2026"));
         verify(usuarios, never()).save(any());
     }
 
     @Test
     void validaSenhaAntesDeConsumirCodigo() {
         var registro = registro();
-        assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "123456", "curta"));
-        assertThrows(IllegalArgumentException.class, () -> service.redefinir(registro.getDesafioId(), "123456", "á".repeat(37)));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.redefinir(registro.getDesafioId(), "123456", "curta"));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.redefinir(registro.getDesafioId(), "123456", "á".repeat(37)));
         assertNull(registro.getUsadoEm());
         verify(usuarios, never()).save(any());
     }
@@ -97,13 +103,15 @@ class RecuperacaoSenhaServiceTest {
         when(codigos.findByUsuarioIdAndUsadoEmIsNull(null)).thenReturn(List.of(anterior));
         service.solicitar("teste@exemplo.com");
         assertNotNull(anterior.getUsadoEm());
-        assertThrows(IllegalArgumentException.class, () -> service.redefinir(anterior.getDesafioId(), "123456", "ChaveNova!2026"));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.redefinir(anterior.getDesafioId(), "123456", "ChaveNova!2026"));
     }
 
     @Test
     void desafioAusenteOuDesconhecidoNaoAlteraSenha() {
         assertThrows(IllegalArgumentException.class, () -> service.redefinir(null, "123456", "ChaveNova!2026"));
-        assertThrows(IllegalArgumentException.class, () -> service.redefinir(UUID.randomUUID(), "123456", "ChaveNova!2026"));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.redefinir(UUID.randomUUID(), "123456", "ChaveNova!2026"));
         verify(usuarios, never()).save(any());
     }
 

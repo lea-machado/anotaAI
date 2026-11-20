@@ -4,6 +4,7 @@ import br.com.anotaai.model.Usuario;
 import br.com.anotaai.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
@@ -30,14 +31,21 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TermosService termosService;
 
     public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+        this(usuarioRepository, passwordEncoder, null);
+    }
+
+    @Autowired
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
+            TermosService termosService) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.termosService = termosService;
     }
 
     @Transactional
-
     public Usuario criarUsuarioComum(
             String nome,
             String email,
@@ -53,6 +61,9 @@ public class UsuarioService {
         validarDataNascimento(dataNascimento);
         var escolaridadeValidada = validarEscolaridade(escolaridade);
         validarAceiteTermos(aceitouTermos, versaoTermos);
+        if (termosService != null) {
+            termosService.validarCadastro(aceitouTermos, versaoTermos);
+        }
         validarDeclaracaoMaioridade(declarouMaioridade);
 
         if (usuarioRepository.existsByEmailIgnoreCase(emailNormalizado)) {
@@ -197,7 +208,9 @@ public class UsuarioService {
     }
 
     private void validarAceiteTermos(Boolean aceitouTermos, String versaoTermos) {
-        if (!Boolean.TRUE.equals(aceitouTermos) || !VERSAO_ATUAL_TERMOS.equals(versaoTermos)) {
+        var vigente = termosService == null ? VERSAO_ATUAL_TERMOS
+                : termosService.atual().getVersao();
+        if (!Boolean.TRUE.equals(aceitouTermos) || !vigente.equals(versaoTermos)) {
             throw new IllegalArgumentException("E necessario ler e aceitar os Termos de Uso para criar a conta.");
         }
     }

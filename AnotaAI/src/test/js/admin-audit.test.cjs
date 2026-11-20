@@ -26,7 +26,7 @@ async function adminPage(users = []) {
   vm.runInNewContext(script, {
     URLSearchParams,
     document: {
-      getElementById: get, addEventListener() {}, querySelectorAll: () => [],
+      getElementById: get, addEventListener() { }, querySelectorAll: () => [],
       createElement: () => ({ get innerHTML() { return this.textContent; } })
     },
     Api: {
@@ -85,4 +85,21 @@ test('lista usuários de qualquer data e atualiza a lista mantendo os filtros pr
   await get('dashboard-refresh').handlers.click();
   assert.match(get('users-body').innerHTML, /Cadastro recente/);
   assert.equal(get('users-result-count').textContent, '2 de 4 usuários');
+});
+
+test('oculta o e-mail dos usuários, mas preserva o domínio na lista administrativa', async () => {
+  const users = [
+    { id: 2, nome: 'Pessoa', email: 'carlos.franca@gmail.com', perfil: 'USER' },
+    { id: 3, nome: 'Pessoa 2', email: 'mariana@example.org', perfil: 'USER' },
+    { id: 4, nome: 'Pessoa 3', email: 'ab@outlook.com', perfil: 'USER' }
+  ];
+  const { get } = await adminPage(users);
+  const html = get('users-body').innerHTML;
+  assert.match(html, /car\*\*\*@gmail\.com/);
+  assert.match(html, /mar\*\*\*@example\.org/);
+  assert.match(html, /ab@outlook\.com/);
+  assert.doesNotMatch(html, /carlos\.franca@gmail\.com|mariana@example\.org/);
+  get('users-search').value = 'carlos.franca@gmail.com';
+  get('users-search').handlers.input();
+  assert.equal(get('users-result-count').textContent, '1 de 3 usuários');
 });
