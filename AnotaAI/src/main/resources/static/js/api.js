@@ -37,7 +37,10 @@
     }
     if (!response.ok) {
       const error = await response.json().catch(() => ({ mensagem: 'Erro na requisicao.' }));
-      throw new Error(error.mensagem || 'Erro na requisicao.');
+      const failure = new Error(error.mensagem || 'Erro na requisicao.');
+      failure.codigo = error.codigo;
+      failure.reiniciaEm = error.reiniciaEm;
+      throw failure;
     }
     if (response.status === 204) return null;
     return response.json();

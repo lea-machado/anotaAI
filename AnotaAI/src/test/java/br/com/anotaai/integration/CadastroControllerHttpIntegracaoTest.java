@@ -61,7 +61,12 @@ class CadastroControllerHttpIntegracaoTest {
         private ResponseEntity<Map<String, Object>> cadastrar(
                         Map<String, Object> dados, String csrf, String cookie) {
 
-                return client.post()
+                var link = new java.util.concurrent.atomic.AtomicReference<String>();
+                org.mockito.Mockito.doAnswer(i -> { link.set(i.getArgument(2)); return null; }).when(emailService)
+                        .enviarVerificacaoCadastro(org.mockito.ArgumentMatchers.anyString(),
+                                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(),
+                                org.mockito.ArgumentMatchers.anyInt());
+                var resposta = client.post()
                                 .uri(BASE_PATH)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .header("X-XSRF-TOKEN", csrf)
@@ -70,6 +75,12 @@ class CadastroControllerHttpIntegracaoTest {
                                 .retrieve()
                                 .toEntity(new ParameterizedTypeReference<Map<String, Object>>() {
                                 });
+                if (resposta.getStatusCode() != HttpStatus.ACCEPTED) return resposta;
+                assertThat(usuarioRepository.findByEmailIgnoreCase((String) dados.get("email"))).isEmpty();
+                return client.post().uri(BASE_PATH + "/confirmar").contentType(MediaType.APPLICATION_JSON)
+                        .header("X-XSRF-TOKEN", csrf).header("Cookie", cookie)
+                        .body(Map.of("token", link.get().split("#token=", 2)[1])).retrieve()
+                        .toEntity(new ParameterizedTypeReference<Map<String, Object>>() { });
         }
 
         private String[] obterCsrf() {

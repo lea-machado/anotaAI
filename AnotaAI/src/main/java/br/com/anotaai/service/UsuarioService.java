@@ -55,6 +55,13 @@ public class UsuarioService {
             Boolean aceitouTermos,
             Boolean declarouMaioridade,
             String versaoTermos) {
+        return salvarCadastroVerificado(prepararCadastro(nome, email, senha, dataNascimento, escolaridade,
+                aceitouTermos, declarouMaioridade, versaoTermos));
+    }
+
+    // Valida e prepara em memória, sem persistir os dados.
+    public Usuario prepararCadastro(String nome, String email, String senha, LocalDate dataNascimento,
+            String escolaridade, Boolean aceitouTermos, Boolean declarouMaioridade, String versaoTermos) {
         var nomeValidado = validarNome(nome);
         var emailNormalizado = validarEmail(email);
         validarSenha(senha);
@@ -81,6 +88,17 @@ public class UsuarioService {
         usuario.setTermosAceitosEm(LocalDateTime.now());
         usuario.setMaioridadeDeclaradaEm(LocalDateTime.now());
         usuario.setVersaoTermos(versaoTermos);
+        return usuario;
+    }
+
+    Usuario salvarCadastroVerificado(Usuario usuario) {
+        validarAceiteTermos(true, usuario.getVersaoTermos());
+        if (termosService != null) {
+            termosService.validarCadastro(true, usuario.getVersaoTermos());
+        }
+        if (usuarioRepository.existsByEmailIgnoreCase(usuario.getEmail())) {
+            throw new IllegalArgumentException("Ja existe uma conta cadastrada com este e-mail.");
+        }
         return usuarioRepository.save(usuario);
     }
 

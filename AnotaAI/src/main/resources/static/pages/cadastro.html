@@ -27,15 +27,21 @@
         </section>
         <section class="auth-panel-wrap">
             <div class="panel auth-panel auth-panel-register">
-                <h2>Criar conta</h2>
-                <p>Preencha seus dados. Todas as novas contas são criadas como usuário comum.</p>
+                <div class="register-intro" id="register-intro">
+                    <h2>Criar conta</h2>
+                    <p>Preencha seus dados e confirme seu e-mail para concluir o cadastro.</p>
+                </div>
                 <form class="auth-form" id="register-form">
                     <div class="field"><label for="nome">Nome completo</label><input autocomplete="name" class="input"
                             id="nome" maxlength="120" minlength="3" placeholder="Seu nome" required type="text" /></div>
                     <div class="field"><label for="email">E-mail</label><input autocomplete="email" class="input"
                             id="email" maxlength="180" placeholder="seuemail@exemplo.com" required type="email" /></div>
-                    <div class="field"><label for="data-nascimento">Data de nascimento</label><input autocomplete="bday"
-                            class="input" id="data-nascimento" name="dataNascimento" required type="date" /></div>
+                    <div class="field birth-date-field">
+                        <label for="data-nascimento">Data de nascimento</label>
+                        <input autocomplete="bday" class="input" id="data-nascimento" name="dataNascimento"
+                            aria-describedby="birth-date-help" required type="date" />
+                        <small class="birth-date-help" id="birth-date-help">Informe sua data de nascimento para confirmarmos que você possui 18 anos ou mais, conforme os termos da plataforma</small>
+                    </div>
                     <div class="field">
                         <label for="escolaridade">Escolaridade (obrigatória)</label>
                         <select class="input" id="escolaridade" name="escolaridade" required>
@@ -61,10 +67,36 @@
                     <p class="auth-consent">Documento aceito para este cadastro: <a class="auth-link"
                             href="privacidade.html" target="_blank" rel="noopener noreferrer">Termos de Uso e Política
                             de Privacidade</a>.</p>
-                    <p class="auth-feedback" hidden id="register-feedback" role="alert"></p>
+
                     <button class="button button-primary" id="register-button" type="submit">Criar conta</button>
                 </form>
-                <p class="auth-footer-text">Já possui uma conta? <a class="auth-link" href="login.html">Entrar</a></p>
+                <div class="registration-verification" id="verification-pending" hidden>
+                    <div class="verification-icon" aria-hidden="true">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="5" width="18" height="14" rx="3" />
+                            <path d="m4 7 8 6 8-6" />
+                        </svg>
+                    </div>
+                    <p class="verification-kicker">ÚLTIMO PASSO</p>
+                    <h2 id="verification-heading" tabindex="-1">Confirme seu e-mail</h2>
+                    <p class="verification-description">Seu espaço de estudos está quase pronto. Enviamos um link de confirmação para o e-mail informado.</p>
+                    <div class="verification-instructions">
+                        <p>Abra a mensagem e clique em<br /><strong>“Confirmar meu e-mail”</strong></p>
+                        <span class="verification-validity">
+                            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                            Link válido por 10 minutos
+                        </span>
+                    </div>
+                    <p class="verification-help"><strong>Não encontrou a mensagem?</strong><br />Confira a pasta de spam ou lixo eletrônico.</p>
+                    <div class="verification-actions">
+                        <button class="button button-primary" id="resend-email" type="button">Reenviar e-mail de confirmação</button>
+                        <p class="verification-resend-note">Aguarde um minuto entre os envios.</p>
+                        <a class="auth-link verification-restart" href="cadastro.html?novo=1">Usar outro e-mail</a>
+                    </div>
+                    <p class="verification-assurance">Sua conta será criada após a confirmação.</p>
+                </div>
+                <p class="auth-feedback" hidden id="register-feedback" role="alert"></p>
+                <p class="auth-footer-text register-footer">Já possui uma conta? <a class="auth-link" href="login.html">Entrar</a></p>
             </div>
         </section>
     </main>

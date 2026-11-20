@@ -29,15 +29,22 @@ public class OpenRouterService {
     private final ObjectMapper mapper;
     private final String apiKey;
     private final String model;
+    private final LimiteTokensIaService limiteTokens;
     private static final int MAX_RESPOSTA = 120_000;
     private static final int MAX_RESUMO = 40_000;
     private static final int MAX_CAMPO_CARTAO = 3_000;
     private static final int MAX_TITULO = 500;
     private static final int MAX_CAMPO_REVISAO = 4_000;
 
+    public OpenRouterService(RestClient.Builder builder, ObjectMapper mapper, String apiKey, String model) {
+        this(builder, mapper, apiKey, model, null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
     public OpenRouterService(RestClient.Builder builder, ObjectMapper mapper,
             @Value("${openrouter.api-key:}") String apiKey,
-            @Value("${openrouter.model:openai/gpt-4o-mini-2024-07-18}") String model) {
+            @Value("${openrouter.model:openai/gpt-4o-mini-2024-07-18}") String model,
+            LimiteTokensIaService limiteTokens) {
         var factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(10));
         factory.setReadTimeout(Duration.ofSeconds(90));
@@ -46,6 +53,7 @@ public class OpenRouterService {
         this.mapper = mapper;
         this.apiKey = apiKey;
         this.model = model;
+        this.limiteTokens = limiteTokens;
     }
 
     public JsonNode gerar(String conteudo, String tipo) {
@@ -178,6 +186,8 @@ public class OpenRouterService {
             throw erroOpenRouter(exception);
         } catch (RestClientException exception) {
             throw new OpenRouterException("A busca do OpenRouter está indisponível. A anotação foi preservada.");
+        } catch (LimiteTokensIaException exception) {
+            throw exception;
         } catch (Exception exception) {
             throw new OpenRouterException(
                     "A verificação não retornou fontes ou sugestões válidas. A anotação foi preservada.");
@@ -191,6 +201,7 @@ public class OpenRouterService {
         var body = new LinkedHashMap<String, Object>();
         body.put("model", model);
         body.put("messages", messages);
+        body.put("max_completion_tokens", limiteTokens == null ? 4096 : limiteTokens.maxTokensSaida());
         if (busca) {
             body.put("tools", List.of(Map.of("type", "openrouter:web_search")));
             body.put("response_format", Map.of("type", "json_object"));
@@ -202,12 +213,29 @@ public class OpenRouterService {
             body.put("response_format", Map.of("type", "json_schema", "json_schema", jsonSchema));
             body.put("provider", Map.of("require_parameters", true));
         }
-        return client.post().uri("/chat/completions")
+        LimiteTokensIaService.Reserva reserva = null;
+        if (limiteTokens != null) {
+            try {
+                // UTF-8 do corpo completo fornece uma estimativa conservadora, sem depender do modelo.
+                var estimativa = mapper.writeValueAsBytes(body).length + (busca ? 8192L : 1024L);
+                reserva = limiteTokens.reservar(estimativa);
+            } catch (JsonProcessingException exception) {
+                throw new OpenRouterException("Não foi possível preparar a solicitação de IA.");
+            }
+        }
+        var resposta = client.post().uri("/chat/completions")
                 .header("Authorization", "Bearer " + apiKey)
                 .header("HTTP-Referer", "https://anotaai.local")
                 .header("X-Title", "AnotaAI")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(body).retrieve().body(JsonNode.class);
+        if (limiteTokens != null && resposta != null) {
+            var total = resposta.path("usage").path("total_tokens");
+            if (total.isIntegralNumber() && total.canConvertToLong() && total.longValue() >= 0) {
+                limiteTokens.concluir(reserva, total.longValue());
+            }
+        }
+        return resposta;
     }
 
     private Map<String, Object> esquema(String tipo) {

@@ -12,6 +12,20 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    @ExceptionHandler(br.com.anotaai.service.LimiteTokensIaException.class)
+    org.springframework.http.ResponseEntity<Map<String, Object>> limiteTokens(
+            br.com.anotaai.service.LimiteTokensIaException exception) {
+        var segundos = Math.max(1, java.time.Duration.between(java.time.Instant.now(), exception.getReiniciaEm())
+                .getSeconds() + 1);
+        return org.springframework.http.ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", Long.toString(segundos))
+                .body(Map.of("codigo", "LIMITE_TOKENS_IA", "mensagem", exception.getMessage() + " Nova cota em "
+                        + java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm")
+                                .withZone(java.time.ZoneId.of("America/Sao_Paulo"))
+                                .format(exception.getReiniciaEm()) + " (horário de Brasília).",
+                        "reiniciaEm", exception.getReiniciaEm().toString(), "momento", LocalDateTime.now()));
+    }
+
     @ExceptionHandler({ org.springframework.dao.OptimisticLockingFailureException.class,
             org.springframework.dao.DuplicateKeyException.class })
     @ResponseStatus(HttpStatus.CONFLICT)

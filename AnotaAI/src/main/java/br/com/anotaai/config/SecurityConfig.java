@@ -27,16 +27,17 @@ public class SecurityConfig {
                 http
                                 .authorizeHttpRequests(regras -> regras
                                                 .requestMatchers(
-                                                                "/pages/login.html", "/pages/cadastro.html",
+                                                                "/pages/login.html", "/pages/cadastro.html", "/pages/verificar-email.html",
                                                                 "/pages/privacidade.html",
                                                                 "/pages/conta-em-exclusao.html",
                                                                 "/js/conta-em-exclusao.js",
                                                                 "/js/aceite-termos.js", "/js/admin-termos.js",
                                                                 "/css/**", "/assets/**", "/js/api.js", "/js/login.js",
-                                                                "/js/cadastro.js", "/js/password-visibility.js",
+                                                                "/js/cadastro.js", "/js/verificar-email.js", "/js/password-visibility.js",
                                                                 "/js/termos.js",
                                                                 "/api/auth/login", "/api/auth/2fa/verify",
-                                                                "/api/auth/cadastro", "/api/auth/csrf",
+                                                                "/api/auth/cadastro", "/api/auth/cadastro/confirmar",
+                                                                "/api/auth/cadastro/reenviar", "/api/auth/csrf",
                                                                 "/error",
                                                                 "/api/termos/atuais", "/api/termos/versoes",
                                                                 "/api/termos/versoes/**",
@@ -180,3 +181,4 @@ public class SecurityConfig {
                 return configuration.getAuthenticationManager();
         }
 }
+

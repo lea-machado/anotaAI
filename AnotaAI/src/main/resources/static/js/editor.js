@@ -128,6 +128,7 @@
           generationStatus.textContent = 'Verificando possíveis erros factuais em fontes externas…';
           review = await Api.checkNoteInconsistencies(noteId);
         } catch (checkError) {
+          if (checkError.codigo === 'LIMITE_TOKENS_IA') throw checkError;
           if (revision !== contentRevision) return;
           pendingFactCheck = null;
           verificationUnavailable = true;

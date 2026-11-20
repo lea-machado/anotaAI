@@ -58,12 +58,7 @@ class CadastroIntegracaoTest {
                 }
                 """.formatted(email);
 
-        mockMvc.perform(
-                post("/api/auth/cadastro")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isCreated())
+        CadastroTestSupport.cadastrarConfirmado(mockMvc, emailService, json).andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.nome")
                         .value("Usuario Integracao"))
@@ -151,12 +146,7 @@ class CadastroIntegracaoTest {
 
         long quantidadeAntes = usuarioRepository.count();
 
-        mockMvc.perform(
-                post("/api/auth/cadastro")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isCreated());
+        CadastroTestSupport.cadastrarConfirmado(mockMvc, emailService, json).andExpect(status().isCreated());
 
         mockMvc.perform(
                 post("/api/auth/cadastro")
@@ -172,3 +162,4 @@ class CadastroIntegracaoTest {
                 usuarioRepository.count());
     }
 }
+

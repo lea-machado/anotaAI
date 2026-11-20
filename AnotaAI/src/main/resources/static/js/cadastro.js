@@ -19,6 +19,19 @@
   const form = document.getElementById('register-form');
   const feedback = document.getElementById('register-feedback');
   const button = document.getElementById('register-button');
+  const pendingPanel = document.getElementById('verification-pending');
+  const resendButton = document.getElementById('resend-email');
+  const PENDING_KEY = 'anotaai.cadastroPendente';
+  let pending = null;
+  try {
+    pending = JSON.parse(sessionStorage.getItem(PENDING_KEY) || 'null');
+    if (new URLSearchParams(window.location.search).has('novo') || !pending || pending.expiraEm <= Date.now()) {
+      pending = null;
+      sessionStorage.removeItem(PENDING_KEY);
+    }
+  } catch (_) { pending = null; }
+  if (pending) showPending();
+
   const birthDateInput = document.getElementById('data-nascimento');
   const educationInput = document.getElementById('escolaridade');
   const today = new Date();
@@ -50,7 +63,7 @@
     }
 
     button.disabled = true;
-    button.textContent = 'Criando conta...';
+    button.textContent = 'Enviando verificação...';
 
     try {
       const csrfResponse = await fetch('/api/auth/csrf', { credentials: 'same-origin' });
@@ -76,13 +89,42 @@
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.mensagem || 'Não foi possível criar a conta.');
-      sessionStorage.removeItem(TERMS_ACCEPTANCE_KEY);
-      window.location.replace('/pages/login.html?cadastro=sucesso');
+      pending = { desafioId: data.desafioId, expiraEm: Date.now() + data.expiraEmSegundos * 1000 };
+      try { sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending)); } catch (_) { }
+      document.getElementById('senha').value = '';
+      document.getElementById('confirmar-senha').value = '';
+      showPending();
     } catch (error) {
       showFeedback(error.message);
       button.disabled = false;
       button.textContent = 'Criar conta';
     }
+  });
+
+  function showPending() {
+    form.hidden = true;
+    document.getElementById('register-intro').hidden = true;
+    pendingPanel.hidden = false;
+    document.getElementById('verification-heading').focus?.();
+  }
+
+  resendButton.addEventListener('click', async () => {
+    resendButton.disabled = true;
+    feedback.hidden = true;
+    try {
+      const csrfResponse = await fetch('/api/auth/csrf', { credentials: 'same-origin' });
+      if (!csrfResponse.ok) throw new Error('Não foi possível iniciar a verificação. Tente novamente.');
+      const csrf = await csrfResponse.json();
+      const response = await fetch('/api/auth/cadastro/reenviar', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', [csrf.headerName]: csrf.token },
+        body: JSON.stringify({ desafioId: pending.desafioId })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.mensagem || 'Não foi possível reenviar o e-mail.');
+      showFeedback(data.mensagem);
+    } catch (error) { showFeedback(error.message); }
+    finally { resendButton.disabled = false; }
   });
 
   function showFeedback(message) {

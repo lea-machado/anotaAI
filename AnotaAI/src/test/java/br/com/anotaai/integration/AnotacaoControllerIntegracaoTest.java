@@ -53,12 +53,7 @@ class AnotacaoControllerIntegracaoTest {
 
                 email = "anotacao-" + UUID.randomUUID() + "@teste.com";
 
-                mockMvc.perform(
-                                post("/api/auth/cadastro")
-                                                .with(csrf())
-                                                .contentType(MediaType.APPLICATION_JSON)
-                                                .content(cadastroJson(email)))
-                                .andExpect(status().isCreated());
+                CadastroTestSupport.cadastrarConfirmado(mockMvc, emailService, cadastroJson(email)).andExpect(status().isCreated());
         }
 
         private String cadastroJson(String email) {
@@ -304,12 +299,7 @@ class AnotacaoControllerIntegracaoTest {
 
                 String outro = "outro-" + UUID.randomUUID() + "@teste.com";
 
-                mockMvc.perform(
-                                post("/api/auth/cadastro")
-                                                .with(csrf())
-                                                .contentType(MediaType.APPLICATION_JSON)
-                                                .content(cadastroJson(outro)))
-                                .andExpect(status().isCreated());
+                CadastroTestSupport.cadastrarConfirmado(mockMvc, emailService, cadastroJson(outro)).andExpect(status().isCreated());
 
                 mockMvc.perform(
                                 get(BASE_PATH)

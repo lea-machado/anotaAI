@@ -125,3 +125,34 @@ test('explica a falha de verificação e só tenta o resumo sem busca quando sol
   assert.equal(e.element('generation-status').textContent, creditError);
   assert.equal(e.element('note-content').value, 'Meu texto');
 });
+test('cota esgotada interrompe a geração sem oferecer outra chamada de IA', async () => {
+  const e = await editor();
+  e.element('note-title').value = 'Título';
+  e.element('note-content').value = 'Meu texto';
+  let chamadas = 0;
+  e.api.checkNoteInconsistencies = async () => {
+    const error = new Error('Cota de tokens insuficiente. Aguarde a renovação.');
+    error.codigo = 'LIMITE_TOKENS_IA';
+    throw error;
+  };
+  e.api.generateStudyMaterial = async () => { chamadas++; return { resumo: 'Resumo' }; };
+  await e.click('generate-summary');
+  assert.equal(chamadas, 0);
+  assert.equal(e.element('generation-status').dataset.state, 'error');
+  assert.match(e.element('generation-status').textContent, /Cota de tokens/);
+});
+
+const apiCode = fs.readFileSync(path.join(__dirname, '../../main/resources/static/js/api.js'), 'utf8');
+test('API preserva o código da cota e o prazo de renovação para a interface', async () => {
+  const window = { location: {} };
+  vm.runInNewContext(apiCode, { window, fetch: async url => url === '/api/auth/csrf'
+    ? { status: 200, ok: true, json: async () => ({ headerName: 'X-XSRF-TOKEN', token: 'csrf' }) }
+    : ({ status: 429, ok: false,
+    json: async () => ({ codigo: 'LIMITE_TOKENS_IA', mensagem: 'Cota insuficiente.', reiniciaEm: '2026-11-21T00:00:00Z' }) }) });
+  await assert.rejects(window.Api.generateStudyMaterial('resumo', 1), error => {
+    assert.equal(error.codigo, 'LIMITE_TOKENS_IA');
+    assert.equal(error.reiniciaEm, '2026-11-21T00:00:00Z');
+    assert.equal(error.message, 'Cota insuficiente.');
+    return true;
+  });
+});

@@ -42,6 +42,21 @@ public class GmailApiEmailService {
         enviarCodigo(destinatario, nome, codigo, minutosValidade, true);
     }
 
+    public void enviarVerificacaoCadastro(String destinatario, String nome, String link, int minutosValidade) {
+        validarConfiguracao();
+        var html = """
+                <html><body style="font-family:Arial,sans-serif;color:#122838">
+                <h2>Confirme seu cadastro no AnotaAI</h2>
+                <p>Olá, %s.</p>
+                <p>Clique no botão abaixo para confirmar seu e-mail e concluir o cadastro:</p>
+                <p><a href="%s" style="display:inline-block;padding:14px 24px;background:#125b75;color:#fff;text-decoration:none;border-radius:8px">Confirmar meu e-mail</a></p>
+                <p>Este link é válido por até %d minutos. Sua conta só será salva após a confirmação.</p>
+                <p>Se você não solicitou este cadastro, ignore esta mensagem.</p>
+                </body></html>
+                """.formatted(escaparHtml(nome), escaparHtml(link), minutosValidade);
+        enviarHtml(destinatario, "Confirme seu cadastro - AnotaAI", html);
+    }
+
     public void enviarConfirmacaoExclusao(String destinatario, String nome) {
         validarConfiguracao();
         var html = """
@@ -217,3 +232,4 @@ public class GmailApiEmailService {
     private record TokenResponse(String access_token, long expires_in) {
     }
 }
+

@@ -125,6 +125,17 @@ class RotasComplementaresTest {
                                                                 "concorrência"), 409));
         }
 
+        @Test
+        void cotaDeTokensRetorna429ComPrazoDeRenovacao() throws Exception {
+                when(cards.buscar(9L)).thenThrow(new LimiteTokensIaException(java.time.Instant.now().plusSeconds(120)));
+                mvc.perform(get("/api/flashcards/9"))
+                        .andExpect(status().isTooManyRequests())
+                        .andExpect(header().exists("Retry-After"))
+                        .andExpect(jsonPath("$.codigo").value("LIMITE_TOKENS_IA"))
+                        .andExpect(jsonPath("$.reiniciaEm").isString())
+                        .andExpect(jsonPath("$.mensagem").value(org.hamcrest.Matchers.containsString("Nova cota em")));
+        }
+
         @ParameterizedTest
         @MethodSource("erros")
         void excecoesTemStatusECorpoConsistentes(RuntimeException erro, int status) throws Exception {

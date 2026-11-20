@@ -67,6 +67,26 @@ class GmailApiEmailServiceTest {
     }
 
     @Test
+    void enviaBotaoDeConfirmacaoDeCadastroComNomeEscapado() {
+        token("{\"access_token\":\"token-test\",\"expires_in\":3600}");
+        enviarExpectativaCadastro();
+        service.enviarVerificacaoCadastro("pessoa@example.com", "<Ana>",
+                "https://anotaai.example/pages/verificar-email.html#token=secreto", 10);
+        server.verify();
+    }
+
+    private void enviarExpectativaCadastro() {
+        server.expect(requestTo("https://gmail.googleapis.com/gmail/v1/users/me/messages/send"))
+                .andExpect(request -> {
+                    var body = ((MockClientHttpRequest) request).getBodyAsString();
+                    var raw = new ObjectMapper().readTree(body).get("raw").asText();
+                    var html = new String(Base64.getUrlDecoder().decode(raw), StandardCharsets.UTF_8);
+                    assertThat(html).contains("Confirmar meu e-mail", "&lt;Ana&gt;", "até 10 minutos",
+                            "href=\"https://anotaai.example/pages/verificar-email.html#token=secreto\"");
+                }).andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+    }
+
+    @Test
     void enviaCodigoEscapandoHtmlEReutilizaToken() {
         token("{\"access_token\":\"token-test\",\"expires_in\":3600}");
         envio("&lt;Ana&gt;&amp;&quot;&#39;");

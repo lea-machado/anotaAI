@@ -122,6 +122,7 @@ public class AdminService {
                 .unset("enderecoIp").unset("userAgent"), RegistroAuditoria.class);
         mongoTemplate.updateMulti(Query.query(Criteria.where("usuarioId").is(usuarioId)),
                 new Update().unset("usuarioId"), RegistroUsoIa.class);
+        mongoTemplate.remove(Query.query(Criteria.where("usuarioId").is(usuarioId)), LimiteTokensIaService.COLECAO);
 
         usuarioRepository.delete(usuario);
         solicitacaoExclusaoRepository.delete(pedido);
