@@ -46,6 +46,15 @@ class VerificacaoCadastroServiceTest {
                 .withProperty("app.public-url", properties.getProperty("app.public-url"))
                 .withProperty("server.port", "8080");
         assertThat(environment.getProperty("app.public-url")).isEqualTo("https://anotaai-ctsf.onrender.com");
+        for (var configuracao : java.util.Map.of(
+                "ia.limite.tokens-por-periodo", "50000",
+                "ia.limite.periodo-segundos", "86400",
+                "ia.limite.max-tokens-saida", "4096").entrySet()) {
+            environment.setProperty(configuracao.getKey(), properties.getProperty(configuracao.getKey()));
+            assertThat(environment.getProperty(configuracao.getKey())).isEqualTo(configuracao.getValue());
+        }
+        environment.setProperty("IA_TOKENS_POR_PERIODO", "20000");
+        assertThat(environment.getProperty("ia.limite.tokens-por-periodo", Long.class)).isEqualTo(20000L);
         environment.setProperty("ANOTAAI_PUBLIC_URL", "http://localhost:8080");
         assertThat(environment.getProperty("app.public-url")).isEqualTo("http://localhost:8080");
         environment.setProperty("ANOTAAI_PUBLIC_URL", "https://anotaai.example");

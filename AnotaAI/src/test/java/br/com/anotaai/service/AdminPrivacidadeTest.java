@@ -68,6 +68,11 @@ class AdminPrivacidadeTest {
         assertThat(query.getValue().getQueryObject().get("usuarioId")).isEqualTo(2L);
         assertThat(update.getValue().getUpdateObject().get("$unset", Document.class)).containsKey("usuarioId");
 
+        verify(mongo).remove(query.capture(), eq(LimiteTokensIaService.COLECAO));
+        assertThat(query.getValue().getQueryObject()).containsEntry("usuarioId", 2L).hasSize(1);
+        var cotaQuery = ArgumentCaptor.forClass(Query.class);
+        verify(mongo).remove(cotaQuery.capture(), eq(LimiteTokensIaService.COLECAO));
+        assertThat(cotaQuery.getValue().getQueryObject()).containsEntry("usuarioId", 2L).hasSize(1);
         verifyNoMoreInteractions(mongo);
     }
 
