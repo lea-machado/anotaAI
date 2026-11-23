@@ -223,7 +223,7 @@
     }
     const search = document.getElementById('audit-search').value.trim().toLocaleLowerCase('pt-BR');
     const items = auditCache.get(query).filter(item => {
-      const text = `${item.email} ${item.acao ?? ''} ${item.recurso ?? ''} ${item.enderecoIp}`.toLocaleLowerCase('pt-BR');
+      const text = `${item.usuarioId ?? ''} ${item.email} ${item.acao ?? ''} ${item.recurso ?? ''}`.toLocaleLowerCase('pt-BR');
       return text.includes(search);
     });
     document.getElementById('audit-body').innerHTML = items.length ? items.map(auditRow).join('')
@@ -250,7 +250,9 @@
   }
 
   function auditRow(item) {
-    return `<tr><td>${item.criadoEm ? new Date(item.criadoEm).toLocaleString('pt-BR') : '—'}</td><td>${escapeHtml(item.email)}</td><td>${escapeHtml(formatAction(item.acao ?? '') || '—')}</td><td>${escapeHtml(item.recurso ?? '—')}</td><td>${escapeHtml(item.enderecoIp)}</td><td><span class="status-badge ${item.sucesso ? 'success' : 'failure'}">${item.sucesso ? 'Sucesso' : 'Falha'}</span></td></tr>`;
+    const accountId = typeof item.usuarioId === 'string' ? item.usuarioId : '';
+    const shortId = accountId ? accountId.slice(0, 8) + '…' : '—';
+    return `<tr><td>${item.criadoEm ? new Date(item.criadoEm).toLocaleString('pt-BR') : '—'}</td><td class="audit-user-id" title="${escapeHtml(accountId)}">${escapeHtml(shortId)}</td><td>${escapeHtml(formatAction(item.acao ?? '') || '—')}</td><td>${escapeHtml(item.recurso ?? '—')}</td><td class="audit-account-id">${escapeHtml(item.email)}</td><td><span class="status-badge ${item.sucesso ? 'success' : 'failure'}">${item.sucesso ? 'Sucesso' : 'Falha'}</span></td></tr>`;
   }
 
   async function alterarPerfil(event) {
@@ -278,6 +280,17 @@
   }
 
   async function executarAcao(event) {
+    const emailButton = event.target.closest('[data-email-user-id]');
+    if (emailButton) {
+      const user = allUsers.find(user => String(user.id) === emailButton.dataset.emailUserId);
+      if (!user || user.anonimizado === true || typeof user.email !== 'string' || !user.email.includes('@')) return;
+      const wasVisible = emailButton.getAttribute('aria-pressed') === 'true';
+      emailButton.textContent = wasVisible ? maskEmail(user.email) : user.email;
+      emailButton.setAttribute('aria-pressed', String(!wasVisible));
+      emailButton.setAttribute('aria-label', wasVisible ? 'Mostrar e-mail completo' : 'Ocultar e-mail completo');
+      emailButton.title = wasVisible ? 'Clique para mostrar o e-mail' : 'Clique para ocultar o e-mail';
+      return;
+    }
     const button = event.target.closest('[data-user-action]');
     if (!button || button.disabled) return;
     const id = button.dataset.userId;
@@ -306,11 +319,14 @@
   function userRow(user, currentUserId) {
     const isCurrentUser = user.id === currentUserId;
     const anonymized = user.anonimizado === true;
+    const emailContent = !anonymized && typeof user.email === 'string' && user.email.includes('@')
+      ? `<button type="button" class="user-email-toggle" data-email-user-id="${escapeHtml(user.id)}" aria-pressed="false" aria-label="Mostrar e-mail completo" title="Clique para mostrar o e-mail">${escapeHtml(maskEmail(user.email))}</button>`
+      : escapeHtml(maskEmail(user.email));
     const ativo = user.ativo !== false;
     return `
       <tr>
         <td>${escapeHtml(user.nome)}${isCurrentUser ? '<span class="current-user-label">Você</span>' : ''}${anonymized ? '<span class="current-user-label">Anonimizado</span>' : ''}</td>
-        <td>${escapeHtml(maskEmail(user.email))}</td>
+        <td>${emailContent}</td>
         <td>
           <select class="role-select" data-current-role="${user.perfil}" data-role-select data-user-id="${user.id}"
                   aria-label="Perfil de ${escapeHtml(user.nome)}" ${isCurrentUser || anonymized ? 'disabled title="Conta anonimizada"' : ''}>

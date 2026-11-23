@@ -34,6 +34,7 @@ public class AuditoriaService {
         registro.setAcao(limitar(acao, 60));
         registro.setRecurso(limitar(recurso, 255));
         registro.setSucesso(sucesso);
+        registro.setEnderecoIp(request == null ? null : limitar(request.getRemoteAddr(), 45));
         registro.setCriadoEm(LocalDateTime.now());
         registroRepository.save(registro);
     }

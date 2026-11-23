@@ -80,3 +80,10 @@
 .admin-legal-preview { max-height: 420px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 18px; }
 .admin-legal-preview .legal-heading { margin: 22px 0 12px; padding-top: 12px; font-size: 18px; }
 @media (max-width: 940px) { .admin-legal-grid { grid-template-columns: 1fr; } }
+.audit-account-id { min-width: 170px; max-width: 230px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+
+.audit-user-id { white-space: nowrap; font-family: Consolas, monospace; }
+
+.user-email-toggle { border: 0; padding: 5px 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.user-email-toggle:hover { color: var(--blue-700); text-decoration: underline; text-underline-offset: 3px; }
+.user-email-toggle:focus-visible { outline: 2px solid var(--blue-700); outline-offset: 3px; border-radius: 3px; }

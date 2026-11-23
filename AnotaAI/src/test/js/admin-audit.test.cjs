@@ -7,7 +7,7 @@ const { setImmediate } = require('node:timers/promises');
 
 const script = fs.readFileSync(path.join(__dirname, '../../main/resources/static/js/admin.js'), 'utf8');
 
-async function adminPage(users = []) {
+async function adminPage(users = [], currentUserId = 1) {
   const values = {
     'dashboard-period': 'custom', 'dashboard-start': '2026-11-15', 'dashboard-end': '2026-11-15',
     'audit-status-filter': 'all', 'users-role-filter': 'all', 'users-status-filter': 'all'
@@ -30,14 +30,14 @@ async function adminPage(users = []) {
       createElement: () => ({ get innerHTML() { return this.textContent; } })
     },
     Api: {
-      getCurrentUser: async () => ({ id: 1 }),
+      getCurrentUser: async () => ({ id: currentUserId }),
       getAdminUsers: async () => users,
       getAdminDeletionRequests: async () => [],
       getAdminSummary: async () => ({ usuarios: 0 }),
       getAdminAudit: async query => {
         queries.push(query);
         return new URLSearchParams(query).get('sucesso') === 'false' ? [] : [{
-          criadoEm: '2026-11-15T23:59:00', acao: null, email: 'Conta 1', sucesso: true
+          criadoEm: '2026-11-15T23:59:00', acao: null, email: 'joa***@example.com', usuarioId: 'ae3ef3f1-654c-4326-a2db-a81a8c9c9937', enderecoIp: '203.0.113.7', sucesso: true
         }];
       }
     }
@@ -48,8 +48,14 @@ async function adminPage(users = []) {
 
 test('solicita a auditoria do período selecionado e exibe registros sem ação', async () => {
   const { get, queries } = await adminPage();
-  assert.match(get('audit-body').innerHTML, /Conta 1.*—.*Sucesso/);
+  assert.match(get('audit-body').innerHTML, /ae3ef3f1….*—.*joa\*\*\*@example\.com.*Sucesso/);
   assert.equal(queries[0], 'inicio=2026-11-15&fim=2026-11-15');
+  assert.match(get('audit-body').innerHTML, /title="ae3ef3f1-654c-4326-a2db-a81a8c9c9937"/);
+  assert.doesNotMatch(get('audit-body').innerHTML, /203\.0\.113\.7/);
+  get('audit-search').value = 'ae3ef3f1';
+  await get('audit-search').handlers.input();
+  assert.match(get('audit-body').innerHTML, /joa\*\*\*@example\.com/);
+  get('audit-search').value = '';
 
   get('audit-status-filter').value = 'failure';
   await get('audit-status-filter').handlers.change();
@@ -102,4 +108,41 @@ test('oculta o e-mail dos usuários, mas preserva o domínio na lista administra
   get('users-search').value = 'carlos.franca@gmail.com';
   get('users-search').handlers.input();
   assert.equal(get('users-result-count').textContent, '1 de 3 usuários');
+});
+
+test('identificadores UUID são preservados nas ações e na proteção da própria conta', async () => {
+  const id = 'ae3ef3f1-654c-4326-a2db-a81a8c9c9937';
+  const { get } = await adminPage([{ id, nome: 'Administrador', email: 'admin@example.com', perfil: 'ADMIN' }], id);
+  const html = get('users-body').innerHTML;
+  assert.match(html, new RegExp('data-user-id="' + id + '"'));
+  assert.match(html, /disabled/);
+  assert.doesNotMatch(html, /data-user-id="NaN"/);
+});
+
+
+test('clicar no e-mail revela o endereço e clicar novamente volta a mascarar', async () => {
+  const id = 'ae3ef3f1-654c-4326-a2db-a81a8c9c9937';
+  const { get } = await adminPage([{ id, nome: 'Pessoa', email: 'carlos.franca@gmail.com', perfil: 'USER' }]);
+  assert.match(get('users-body').innerHTML, /data-email-user-id=/);
+  assert.doesNotMatch(get('users-body').innerHTML, /carlos\.franca@gmail\.com/);
+  const attributes = { 'aria-pressed': 'false' };
+  const button = {
+    dataset: { emailUserId: id }, textContent: 'car***@gmail.com',
+    getAttribute: key => attributes[key], setAttribute: (key, value) => { attributes[key] = value; }
+  };
+  const event = { target: { closest: selector => selector === '[data-email-user-id]' ? button : null } };
+  await get('users-body').handlers.click(event);
+  assert.equal(button.textContent, 'carlos.franca@gmail.com');
+  assert.equal(attributes['aria-pressed'], 'true');
+  assert.equal(attributes['aria-label'], 'Ocultar e-mail completo');
+  await get('users-body').handlers.click(event);
+  assert.equal(button.textContent, 'car***@gmail.com');
+  assert.equal(attributes['aria-pressed'], 'false');
+});
+
+test('conta anonimizada não tem botão para revelar o e-mail', async () => {
+  const { get } = await adminPage([{ id: 'conta-removida', nome: 'Usuário anonimizado',
+    email: 'anonimizado', perfil: 'USER', anonimizado: true }]);
+  assert.doesNotMatch(get('users-body').innerHTML, /data-email-user-id=/);
+  assert.match(get('users-body').innerHTML, /anonimizado/);
 });

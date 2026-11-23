@@ -121,7 +121,7 @@ public class AdminController {
                                 .map(pedido -> pedido.getUsuarioId()).collect(Collectors.toSet());
                 return usuarioRepository.findAll().stream().map(usuario -> {
                         Map<String, Object> dados = new LinkedHashMap<>();
-                        dados.put("id", usuario.getId());
+                        dados.put("id", usuario.getIdPublico());
                         dados.put("nome", usuario.getNome());
                         dados.put("email", usuario.isAnonimizado() ? "anonimizado" : usuario.getEmail());
                         dados.put("anonimizado", usuario.isAnonimizado());
@@ -139,7 +139,8 @@ public class AdminController {
                 return solicitacaoExclusaoRepository.findAllByOrderBySolicitadaEmAsc().stream().map(pedido -> {
                         Map<String, Object> dados = new LinkedHashMap<>();
                         dados.put("id", pedido.getId());
-                        dados.put("usuarioId", pedido.getUsuarioId());
+                        dados.put("usuarioId", usuarioRepository.findById(pedido.getUsuarioId())
+                                        .map(usuario -> usuario.getIdPublico()).orElse(null));
                         dados.put("nome", pedido.getNome());
                         dados.put("email", pedido.getEmail());
                         dados.put("solicitadaEm", pedido.getSolicitadaEm());
@@ -173,25 +174,27 @@ public class AdminController {
         }
 
         @PatchMapping("/usuarios/{id}/status")
-        public Map<String, Object> alternarStatus(@PathVariable Long id, HttpServletRequest request) {
-                if (solicitacaoExclusaoRepository.findByUsuarioId(id).isPresent()) {
+        public Map<String, Object> alternarStatus(@PathVariable String id, HttpServletRequest request) {
+                var usuarioId = buscarConta(id).getId();
+                if (solicitacaoExclusaoRepository.findByUsuarioId(usuarioId).isPresent()) {
                         throw new IllegalStateException(
                                         "A conta tem um pedido de exclusão pendente e não pode ser reativada.");
                 }
                 var administrador = usuarioAtualService.obter();
-                var usuario = adminService.alternarAtivo(id, administrador);
+                var usuario = adminService.alternarAtivo(usuarioId, administrador);
                 auditoriaService.registrar(administrador.getEmail(), "ALTERACAO_STATUS_USUARIO",
                                 "/api/admin/usuarios/" + id + "/status", true,
                                 "Usuário " + usuario.getEmail() + (usuario.isAtivo() ? " ativado." : " desativado."),
                                 request);
-                return Map.of("id", usuario.getId(), "ativo", usuario.isAtivo(),
+                return Map.of("id", usuario.getIdPublico(), "ativo", usuario.isAtivo(),
                                 "mensagem",
                                 usuario.isAtivo() ? "Usuário ativado com sucesso." : "Usuário desativado com sucesso.");
         }
 
         @DeleteMapping("/usuarios/{id}")
-        public Map<String, Object> excluirUsuario(@PathVariable Long id, HttpServletRequest request) {
-                var pedido = solicitacaoExclusaoRepository.findByUsuarioId(id)
+        public Map<String, Object> excluirUsuario(@PathVariable String id, HttpServletRequest request) {
+                var usuarioId = buscarConta(id).getId();
+                var pedido = solicitacaoExclusaoRepository.findByUsuarioId(usuarioId)
                                 .orElseThrow(() -> new IllegalStateException(
                                                 "A exclusão só pode ser concluída após um pedido do próprio usuário."));
                 var administrador = usuarioAtualService.obter();
@@ -215,19 +218,19 @@ public class AdminController {
         }
 
         @PutMapping("/usuarios/{id}/perfil")
-        public Map<String, Object> alterarPerfil(@PathVariable Long id,
+        public Map<String, Object> alterarPerfil(@PathVariable String id,
                         @RequestBody PerfilRequest dados,
                         HttpServletRequest request) {
                 var administrador = usuarioAtualService.obter();
                 try {
-                        var usuario = adminService.alterarPerfil(id, dados.perfil(), administrador);
+                        var usuario = adminService.alterarPerfil(buscarConta(id).getId(), dados.perfil(), administrador);
                         auditoriaService.registrar(administrador.getEmail(), "ALTERACAO_PERFIL_USUARIO",
                                         "/api/admin/usuarios/" + id + "/perfil", true,
                                         "Perfil de " + usuario.getEmail() + " alterado para " + usuario.getPerfil()
                                                         + ".",
                                         request);
                         return Map.of(
-                                        "id", usuario.getId(),
+                                        "id", usuario.getIdPublico(),
                                         "email", usuario.getEmail(),
                                         "perfil", usuario.getPerfil(),
                                         "mensagem", "Perfil atualizado com sucesso.");
@@ -249,17 +252,37 @@ public class AdminController {
         private Map<String, Object> mapearAuditoria(RegistroAuditoria registro) {
                 var dados = new LinkedHashMap<String, Object>();
                 dados.put("id", registro.getId());
+                dados.put("usuarioId", registro.getUsuario() == null || registro.getUsuario().isAnonimizado()
+                                || registro.getUsuario().getId() == null ? null : registro.getUsuario().getIdPublico());
                 dados.put("email", registro.getUsuario() != null && registro.getUsuario().isAnonimizado()
                                 ? "Conta anonimizada"
                                 : registro.getUsuario() == null || registro.getUsuario().getId() == null
                                                 ? "Não identificado"
-                                                : "Conta " + registro.getUsuario().getId());
+                                                : mascararEmail(registro.getUsuario().getEmail()));
                 dados.put("acao", registro.getAcao());
                 dados.put("recurso", registro.getRecurso());
                 dados.put("sucesso", registro.isSucesso());
-                dados.put("enderecoIp", "-");
+                dados.put("enderecoIp", registro.getEnderecoIp() == null || registro.getEnderecoIp().isBlank()
+                                ? "-" : registro.getEnderecoIp());
                 dados.put("criadoEm", registro.getCriadoEm());
                 return dados;
+        }
+
+        private String mascararEmail(String email) {
+                if (email == null || email.isBlank()) return "Não identificado";
+                var partes = email.split("@", 2);
+                if (partes.length != 2 || partes[0].isEmpty() || partes[1].isEmpty()) return "Não identificado";
+                int visiveis = Math.min(3, Math.max(1, partes[0].length() - 1));
+                return partes[0].substring(0, visiveis) + "***@" + partes[1];
+        }
+
+        private br.com.anotaai.model.Usuario buscarConta(String id) {
+                if (id == null || !id.matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")) {
+                        throw new br.com.anotaai.service.RecursoNaoEncontradoException("Conta não encontrada.");
+                }
+                return usuarioRepository.findByIdPublico(id)
+                                .orElseThrow(() -> new br.com.anotaai.service.RecursoNaoEncontradoException(
+                                                "Conta não encontrada."));
         }
 
         public record PerfilRequest(String perfil) {

@@ -126,13 +126,13 @@ class AdminSegurancaIntegracaoTest {
                 HttpSession sessao = autenticar(emailAdmin);
                 var usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario).orElseThrow();
 
-                mockMvc.perform(put("/api/admin/usuarios/{id}/perfil", usuario.getId())
+                mockMvc.perform(put("/api/admin/usuarios/{id}/perfil", usuario.getIdPublico())
                                 .session((org.springframework.mock.web.MockHttpSession) sessao)
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"perfil\":\"ADMIN\"}"))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.id").value(usuario.getId()))
+                                .andExpect(jsonPath("$.id").value(usuario.getIdPublico()))
                                 .andExpect(jsonPath("$.email").value(emailUsuario))
                                 .andExpect(jsonPath("$.perfil").value("ADMIN"))
                                 .andExpect(jsonPath("$.mensagem").value("Perfil atualizado com sucesso."));
@@ -148,13 +148,15 @@ class AdminSegurancaIntegracaoTest {
                 var administrador = usuarioRepository.findByEmailIgnoreCase(emailAdmin).orElseThrow();
                 var usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario).orElseThrow();
 
-                mockMvc.perform(put("/api/admin/usuarios/{id}/perfil", usuario.getId())
+                mockMvc.perform(put("/api/admin/usuarios/{id}/perfil", usuario.getIdPublico())
                                 .session((org.springframework.mock.web.MockHttpSession) sessao)
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"perfil\":\"ADMIN\"}"))
                                 .andExpect(status().isOk());
 
+                var alteracao = "$[?(@.acao == 'ALTERACAO_PERFIL_USUARIO' && @.usuarioId == '"
+                                + administrador.getIdPublico() + "')]";
                 var hoje = LocalDate.now();
                 mockMvc.perform(get("/api/admin/auditoria")
                                 .param("inicio", hoje.minusDays(1).toString())
@@ -164,6 +166,11 @@ class AdminSegurancaIntegracaoTest {
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$[*].sucesso", everyItem(is(true))))
                                 .andExpect(content().string(containsString("ALTERACAO_PERFIL_USUARIO")))
-                                .andExpect(content().string(containsString("Conta " + administrador.getId())));
+                                .andExpect(jsonPath(alteracao).value(org.hamcrest.Matchers.hasSize(1)))
+                                .andExpect(jsonPath(alteracao + ".email").value(everyItem(is("adm***@teste.com"))))
+                                .andExpect(jsonPath(alteracao + ".recurso").value(everyItem(is(
+                                                "/api/admin/usuarios/" + usuario.getIdPublico() + "/perfil"))))
+                                .andExpect(content().string(org.hamcrest.Matchers.not(containsString(emailAdmin))))
+                                .andExpect(content().string(org.hamcrest.Matchers.not(containsString(emailUsuario))));
         }
 }
