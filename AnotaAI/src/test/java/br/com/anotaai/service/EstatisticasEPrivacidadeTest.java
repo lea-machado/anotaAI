@@ -140,4 +140,18 @@ class EstatisticasEPrivacidadeTest {
         verify(repo).findTop100BySucessoAndCriadoEmBetweenOrderByCriadoEmDesc(false, periodo);
         verifyNoMoreInteractions(repo);
     }
+
+    @Test
+    void auditoriaRegistraIpDaConexaoSemPersistirEmailOuConfiarEmCabecalhoDoCliente() {
+        var repo = mock(RegistroAuditoriaRepository.class);
+        var service = new AuditoriaService(repo, mock(UsuarioRepository.class));
+        var request = new org.springframework.mock.web.MockHttpServletRequest();
+        request.setRemoteAddr("2001:db8::1");
+        request.addHeader("X-Forwarded-For", "203.0.113.99");
+        service.registrar(null, "LOGIN", "/api/auth/login", false, null, request);
+        var captor = ArgumentCaptor.forClass(RegistroAuditoria.class);
+        verify(repo).save(captor.capture());
+        assertThat(captor.getValue().getEnderecoIp()).isEqualTo("2001:db8::1");
+        assertThat(captor.getValue().getEmail()).isNull();
+    }
 }

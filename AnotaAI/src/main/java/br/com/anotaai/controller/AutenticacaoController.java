@@ -162,7 +162,7 @@ public class AutenticacaoController {
 
         private Map<String, Object> dadosDoPerfil(Usuario usuario) {
                 var dados = new java.util.LinkedHashMap<String, Object>();
-                dados.put("id", usuario.getId());
+                dados.put("id", usuario.getIdPublico());
                 dados.put("nome", usuario.getNome());
                 dados.put("email", usuario.getEmail());
                 dados.put("perfil", usuario.getPerfil());

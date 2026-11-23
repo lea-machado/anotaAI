@@ -58,7 +58,7 @@ class CadastroControllerTest {
         var token = link.get().split("#token=", 2)[1];
         mvc.perform(post("/api/auth/cadastro/confirmar").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"token\":\"" + token + "\"}"))
-                .andExpect(status().isCreated()).andExpect(jsonPath("$.id").value(1))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.id").value(org.hamcrest.Matchers.matchesPattern("[0-9a-f-]{36}")))
                 .andExpect(jsonPath("$.perfil").value("USER"));
         verify(repository).save(any());
         verify(auditoria).registrar(eq("estudante@example.com"), eq("CADASTRO_USUARIO"), anyString(),

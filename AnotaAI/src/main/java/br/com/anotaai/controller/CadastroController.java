@@ -37,7 +37,7 @@ public class CadastroController {
         var usuario = verificacaoService.confirmar(dados.token());
         auditoriaService.registrar(usuario.getEmail(), "CADASTRO_USUARIO", "/api/auth/cadastro/confirmar",
                 true, "Conta criada após verificação do e-mail.", request);
-        return Map.of("id", usuario.getId(), "nome", usuario.getNome(), "email", usuario.getEmail(),
+        return Map.of("id", usuario.getIdPublico(), "nome", usuario.getNome(), "email", usuario.getEmail(),
                 "perfil", usuario.getPerfil(), "mensagem", "Conta criada com sucesso.");
     }
 

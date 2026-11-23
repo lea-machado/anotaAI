@@ -126,13 +126,13 @@ class AdminSegurancaIntegracaoTest {
                 HttpSession sessao = autenticar(emailAdmin);
                 var usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario).orElseThrow();
 
-                mockMvc.perform(put("/api/admin/usuarios/{id}/perfil", usuario.getId())
+                mockMvc.perform(put("/api/admin/usuarios/{id}/perfil", usuario.getIdPublico())
                                 .session((org.springframework.mock.web.MockHttpSession) sessao)
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"perfil\":\"ADMIN\"}"))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.id").value(usuario.getId()))
+                                .andExpect(jsonPath("$.id").value(usuario.getIdPublico()))
                                 .andExpect(jsonPath("$.email").value(emailUsuario))
                                 .andExpect(jsonPath("$.perfil").value("ADMIN"))
                                 .andExpect(jsonPath("$.mensagem").value("Perfil atualizado com sucesso."));
@@ -148,7 +148,7 @@ class AdminSegurancaIntegracaoTest {
                 var administrador = usuarioRepository.findByEmailIgnoreCase(emailAdmin).orElseThrow();
                 var usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario).orElseThrow();
 
-                mockMvc.perform(put("/api/admin/usuarios/{id}/perfil", usuario.getId())
+                mockMvc.perform(put("/api/admin/usuarios/{id}/perfil", usuario.getIdPublico())
                                 .session((org.springframework.mock.web.MockHttpSession) sessao)
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)

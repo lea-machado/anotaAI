@@ -28,6 +28,7 @@ class AdminControllerTest {
 
     @BeforeEach
     void preparar() {
+        usuario(2L);
         admin = usuario(1L);
         admin.setPerfil("ADMIN");
         when(atual.obter()).thenReturn(admin);
@@ -36,10 +37,17 @@ class AdminControllerTest {
     Usuario usuario(Long id) {
         var u = new Usuario();
         org.springframework.test.util.ReflectionTestUtils.setField(u, "id", id);
+        org.springframework.test.util.ReflectionTestUtils.setField(u, "idPublico", publico(id));
+        when(usuarios.findById(id)).thenReturn(Optional.of(u));
+        when(usuarios.findByIdPublico(u.getIdPublico())).thenReturn(Optional.of(u));
         u.setPerfil("USER");
         u.setNome("Pessoa");
         u.setEmail("pessoa" + id + "@example.com");
         return u;
+    }
+
+    String publico(Long id) {
+        return UUID.nameUUIDFromBytes(("teste-conta-" + id).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
     }
 
     SolicitacaoExclusao pedido() {
@@ -99,7 +107,7 @@ class AdminControllerTest {
                 .containsEntry("pedidoExclusao", false);
         var p = pedido();
         when(pedidos.findAllByOrderBySolicitadaEmAsc()).thenReturn(List.of(p));
-        assertThat(controller.pedidosExclusao().get(0)).containsEntry("id", 9L).containsEntry("usuarioId", 2L)
+        assertThat(controller.pedidosExclusao().get(0)).containsEntry("id", 9L).containsEntry("usuarioId", publico(2L))
                 .containsEntry("solicitadaEm", p.getSolicitadaEm());
     }
 
@@ -119,14 +127,14 @@ class AdminControllerTest {
 
     @Test
     void exclusaoDiretaExigePedidoDoTitular() {
-        assertThatThrownBy(() -> controller.excluirUsuario(2L, request)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> controller.excluirUsuario(publico(2L), request)).isInstanceOf(IllegalStateException.class);
         verifyNoInteractions(adminService, email);
         var p = pedido();
         when(pedidos.findByUsuarioId(2L)).thenReturn(Optional.of(p));
-        assertThat(controller.excluirUsuario(2L, request)).containsEntry("emailEnviado", true).containsEntry("id", 2L);
+        assertThat(controller.excluirUsuario(publico(2L), request)).containsEntry("emailEnviado", true).containsEntry("id", publico(2L));
         verify(adminService).excluirConta(p, admin);
         doThrow(new ServicoEmailException("falhou")).when(email).enviarConfirmacaoExclusao(p.getEmail(), p.getNome());
-        assertThat(controller.excluirUsuario(2L, request)).containsEntry("emailEnviado", false);
+        assertThat(controller.excluirUsuario(publico(2L), request)).containsEntry("emailEnviado", false);
     }
 
     @Test
@@ -142,11 +150,11 @@ class AdminControllerTest {
     void statusRespeitaPedidoPendente() {
         var u = usuario(2L);
         when(adminService.alternarAtivo(2L, admin)).thenReturn(u);
-        assertThat(controller.alternarStatus(2L, request)).containsEntry("ativo", true);
+        assertThat(controller.alternarStatus(publico(2L), request)).containsEntry("ativo", true);
         u.setAtivo(false);
-        assertThat(controller.alternarStatus(2L, request)).containsEntry("ativo", false);
+        assertThat(controller.alternarStatus(publico(2L), request)).containsEntry("ativo", false);
         when(pedidos.findByUsuarioId(2L)).thenReturn(Optional.of(pedido()));
-        assertThatThrownBy(() -> controller.alternarStatus(2L, request)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> controller.alternarStatus(publico(2L), request)).isInstanceOf(IllegalStateException.class);
         verify(adminService, times(2)).alternarAtivo(2L, admin);
     }
 
@@ -154,10 +162,10 @@ class AdminControllerTest {
     void alteracaoDePerfilRegistraSucessoEFalha() {
         var u = usuario(2L);
         when(adminService.alterarPerfil(2L, "USER", admin)).thenReturn(u);
-        assertThat(controller.alterarPerfil(2L, new AdminController.PerfilRequest("USER"), request))
+        assertThat(controller.alterarPerfil(publico(2L), new AdminController.PerfilRequest("USER"), request))
                 .containsEntry("perfil", "USER");
         when(adminService.alterarPerfil(2L, "USER", admin)).thenThrow(new IllegalArgumentException("bloqueado"));
-        assertThatThrownBy(() -> controller.alterarPerfil(2L, new AdminController.PerfilRequest("USER"), request))
+        assertThatThrownBy(() -> controller.alterarPerfil(publico(2L), new AdminController.PerfilRequest("USER"), request))
                 .hasMessage("bloqueado");
         verify(auditoria).registrar(eq(admin.getEmail()), eq("ALTERACAO_PERFIL_USUARIO"), anyString(), eq(false),
                 eq("bloqueado"), eq(request));
@@ -175,9 +183,53 @@ class AdminControllerTest {
         }
         when(auditoria.listarTodos(null, null, null)).thenReturn(lista);
         var result = controller.auditoria(null, null, null);
-        assertThat(result.get(0)).containsEntry("email", "Conta anonimizada");
+        assertThat(result.get(0)).containsEntry("email", "Conta anonimizada").containsEntry("usuarioId", null);
         assertThat(result.get(1)).containsEntry("email", "Não identificado");
         assertThat(result.get(2)).containsEntry("email", "Não identificado");
-        assertThat(result.get(3)).containsEntry("email", "Conta 1").containsEntry("enderecoIp", "-");
+        assertThat(result.get(3)).containsEntry("email", "pes***@example.com").containsEntry("enderecoIp", "-");
+    }
+
+    @Test
+    void rotasAdministrativasUsamUuidERecusamNumeroSequencial() throws Exception {
+        var mvc = org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new ApiExceptionHandler()).build();
+        var u = usuario(2L);
+        when(adminService.alternarAtivo(2L, admin)).thenReturn(u);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch(
+                "/api/admin/usuarios/" + u.getIdPublico() + "/status"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.id")
+                        .value(u.getIdPublico()));
+        verify(adminService).alternarAtivo(2L, admin);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch(
+                "/api/admin/usuarios/2/status"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isNotFound());
+        verify(adminService, times(1)).alternarAtivo(anyLong(), any());
+    }
+
+    @Test
+    void contasListadasExibemIdPublicoSemAlterarVinculosInternos() {
+        var u = usuario(2L);
+        when(usuarios.findAll()).thenReturn(List.of(u));
+        when(pedidos.findAll()).thenReturn(List.of());
+        assertThat(controller.usuarios().get(0)).containsEntry("id", u.getIdPublico());
+        verify(notas).countByUsuarioId(2L);
+    }
+
+    @Test
+    void auditoriaExibeIpEEmailMascaradoInclusiveEmEnderecosCurtos() {
+        var conta = usuario(2L);
+        conta.setEmail("joana@example.com");
+        var registro = new RegistroAuditoria();
+        registro.setUsuario(conta);
+        registro.setEnderecoIp("2001:db8::1");
+        when(auditoria.listarTodos(null, null, null)).thenReturn(List.of(registro));
+        assertThat(controller.auditoria(null, null, null).get(0))
+                .containsEntry("email", "joa***@example.com").containsEntry("enderecoIp", "2001:db8::1")
+                .containsEntry("usuarioId", conta.getIdPublico());
+        conta.setEmail("ab@example.com");
+        assertThat(controller.auditoria(null, null, null).get(0)).containsEntry("email", "a***@example.com");
+        conta.setAnonimizado(true);
+        assertThat(controller.auditoria(null, null, null).get(0)).containsEntry("email", "Conta anonimizada");
     }
 }

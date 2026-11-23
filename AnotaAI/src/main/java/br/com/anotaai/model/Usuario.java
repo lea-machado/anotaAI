@@ -16,6 +16,9 @@ public class Usuario {
     @Id
     private Long id;
 
+    @Indexed(unique = true, sparse = true)
+    private String idPublico = java.util.UUID.randomUUID().toString();
+
     @Version
     @JsonIgnore
     private Long versao;
@@ -48,8 +51,13 @@ public class Usuario {
 
     private String versaoTermos;
 
+    @JsonIgnore
     public Long getId() {
         return id;
+    }
+
+    public String getIdPublico() {
+        return idPublico;
     }
 
     public String getNome() {

@@ -59,7 +59,7 @@ class CadastroIntegracaoTest {
                 """.formatted(email);
 
         CadastroTestSupport.cadastrarConfirmado(mockMvc, emailService, json).andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.id").isString())
                 .andExpect(jsonPath("$.nome")
                         .value("Usuario Integracao"))
                 .andExpect(jsonPath("$.email").value(email))

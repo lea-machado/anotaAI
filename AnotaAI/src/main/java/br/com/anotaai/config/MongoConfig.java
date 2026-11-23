@@ -55,7 +55,7 @@ public class MongoConfig {
                     mongo.createCollection(type);
             }
             mongo.updateMulti(new Query(), new Update().unset("email").unset("detalhes")
-                    .unset("enderecoIp").unset("userAgent"), RegistroAuditoria.class);
+                    .unset("userAgent"), RegistroAuditoria.class);
             if (!mongo.collectionExists("sequencias"))
                 mongo.createCollection("sequencias");
             for (var name : List.of("anotacoes", "baralhos", "codigos_autenticacao", "codigos_recuperacao",

@@ -134,4 +134,25 @@ class MongoPersistenceIT {
         duplicate.setEmail(usuario.getEmail());
         assertThrows(org.springframework.dao.DuplicateKeyException.class, () -> usuarios.save(duplicate));
     }
+
+    @Test
+    void adicionaIdPublicoLegadoPreservandoAsReferencias() {
+        var nota = data("Conteúdo da conta existente");
+        nota.setUsuario(usuario);
+        nota = notas.save(nota);
+        mongo.updateFirst(org.springframework.data.mongodb.core.query.Query.query(
+                org.springframework.data.mongodb.core.query.Criteria.where("_id").is(usuario.getId())),
+                new org.springframework.data.mongodb.core.query.Update().unset("idPublico"), Usuario.class);
+        var inicializador = new br.com.anotaai.config.IdentificadoresContaInicializador(mongo);
+        inicializador.afterPropertiesSet();
+        var atualizada = usuarios.findById(usuario.getId()).orElseThrow();
+        assertEquals(4, UUID.fromString(atualizada.getIdPublico()).version());
+        assertEquals(usuario.getId(), atualizada.getId());
+        assertEquals(usuario.getEmail(), atualizada.getEmail());
+        assertEquals(atualizada.getIdPublico(), usuarios.findByIdPublico(atualizada.getIdPublico())
+                .orElseThrow().getIdPublico());
+        assertEquals(usuario.getId(), notas.findById(nota.getId()).orElseThrow().getUsuario().getId());
+        inicializador.afterPropertiesSet();
+        assertEquals(atualizada.getIdPublico(), usuarios.findById(usuario.getId()).orElseThrow().getIdPublico());
+    }
 }
