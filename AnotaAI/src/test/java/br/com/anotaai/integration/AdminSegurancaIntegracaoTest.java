@@ -155,6 +155,8 @@ class AdminSegurancaIntegracaoTest {
                                 .content("{\"perfil\":\"ADMIN\"}"))
                                 .andExpect(status().isOk());
 
+                var alteracao = "$[?(@.acao == 'ALTERACAO_PERFIL_USUARIO' && @.usuarioId == '"
+                                + administrador.getIdPublico() + "')]";
                 var hoje = LocalDate.now();
                 mockMvc.perform(get("/api/admin/auditoria")
                                 .param("inicio", hoje.minusDays(1).toString())
@@ -164,6 +166,11 @@ class AdminSegurancaIntegracaoTest {
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$[*].sucesso", everyItem(is(true))))
                                 .andExpect(content().string(containsString("ALTERACAO_PERFIL_USUARIO")))
-                                .andExpect(content().string(containsString("Conta " + administrador.getId())));
+                                .andExpect(jsonPath(alteracao).value(org.hamcrest.Matchers.hasSize(1)))
+                                .andExpect(jsonPath(alteracao + ".email").value(everyItem(is("adm***@teste.com"))))
+                                .andExpect(jsonPath(alteracao + ".recurso").value(everyItem(is(
+                                                "/api/admin/usuarios/" + usuario.getIdPublico() + "/perfil"))))
+                                .andExpect(content().string(org.hamcrest.Matchers.not(containsString(emailAdmin))))
+                                .andExpect(content().string(org.hamcrest.Matchers.not(containsString(emailUsuario))));
         }
 }
