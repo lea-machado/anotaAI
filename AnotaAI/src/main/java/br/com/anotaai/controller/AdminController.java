@@ -86,7 +86,7 @@ public class AdminController {
                                 .mapToLong(b -> b.getFlashcards() == null ? 0 : b.getFlashcards().size()).sum();
                 long ativos = usuariosPeriodo.stream().filter(u -> u.isAtivo()).count();
                 var periodoAuditoria = periodoAplicado
-                                ? Range.rightOpen(inicioPeriodo, fim.plusDays(1).atStartOfDay()) : null;
+                                ? AuditoriaService.periodoBrasilia(inicio, fim) : null;
                 long registrosAuditoria = periodoAplicado
                                 ? auditoriaRepository.countByCriadoEmBetween(periodoAuditoria)
                                 : auditoriaRepository.count();
@@ -264,7 +264,7 @@ public class AdminController {
                 dados.put("sucesso", registro.isSucesso());
                 dados.put("enderecoIp", registro.getEnderecoIp() == null || registro.getEnderecoIp().isBlank()
                                 ? "-" : registro.getEnderecoIp());
-                dados.put("criadoEm", registro.getCriadoEm());
+                dados.put("criadoEm", registro.getCriadoEm() == null ? null : registro.getCriadoEm().toString());
                 return dados;
         }
 

@@ -200,7 +200,7 @@ class RotasComplementaresTest {
                 org.springframework.test.util.ReflectionTestUtils.setField(registro, "id", 1L);
                 registro.setAcao("LOGIN");
                 registro.setRecurso("/api");
-                registro.setCriadoEm(LocalDateTime.now());
+                registro.setCriadoEm(java.time.Instant.now());
                 when(auditoria.listarDoUsuario(7L)).thenReturn(List.of(registro));
                 mvc.perform(get("/api/auditoria")).andExpect(status().isOk())
                                 .andExpect(jsonPath("$[0].acao").value("LOGIN"))

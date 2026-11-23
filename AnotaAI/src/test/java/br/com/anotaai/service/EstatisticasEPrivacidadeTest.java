@@ -131,8 +131,8 @@ class EstatisticasEPrivacidadeTest {
         var repo = mock(RegistroAuditoriaRepository.class);
         var service = new AuditoriaService(repo, mock(UsuarioRepository.class));
         var dia = java.time.LocalDate.of(2026, 11, 15);
-        var periodo = org.springframework.data.domain.Range.rightOpen(dia.atStartOfDay(),
-                dia.plusDays(1).atStartOfDay());
+        var periodo = org.springframework.data.domain.Range.rightOpen(java.time.Instant.parse("2026-11-15T03:00:00Z"),
+                java.time.Instant.parse("2026-11-16T03:00:00Z"));
         var falha = new RegistroAuditoria();
         when(repo.findTop100BySucessoAndCriadoEmBetweenOrderByCriadoEmDesc(false, periodo)).thenReturn(List.of(falha));
 

@@ -6,7 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Document(collection = "registros_auditoria")
 public class RegistroAuditoria {
@@ -34,7 +34,7 @@ public class RegistroAuditoria {
 
     private String userAgent;
 
-    private LocalDateTime criadoEm;
+    private Instant criadoEm;
 
     public Long getId() {
         return id;
@@ -104,11 +104,11 @@ public class RegistroAuditoria {
         this.userAgent = userAgent;
     }
 
-    public LocalDateTime getCriadoEm() {
+    public Instant getCriadoEm() {
         return criadoEm;
     }
 
-    public void setCriadoEm(LocalDateTime criadoEm) {
+    public void setCriadoEm(Instant criadoEm) {
         this.criadoEm = criadoEm;
     }
 }

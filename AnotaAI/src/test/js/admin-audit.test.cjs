@@ -7,7 +7,7 @@ const { setImmediate } = require('node:timers/promises');
 
 const script = fs.readFileSync(path.join(__dirname, '../../main/resources/static/js/admin.js'), 'utf8');
 
-async function adminPage(users = [], currentUserId = 1) {
+async function adminPage(users = [], currentUserId = 1, auditDate = '2026-11-15T23:59:00Z') {
   const values = {
     'dashboard-period': 'custom', 'dashboard-start': '2026-11-15', 'dashboard-end': '2026-11-15',
     'audit-status-filter': 'all', 'users-role-filter': 'all', 'users-status-filter': 'all'
@@ -37,7 +37,7 @@ async function adminPage(users = [], currentUserId = 1) {
       getAdminAudit: async query => {
         queries.push(query);
         return new URLSearchParams(query).get('sucesso') === 'false' ? [] : [{
-          criadoEm: '2026-11-15T23:59:00', acao: null, email: 'joa***@example.com', usuarioId: 'ae3ef3f1-654c-4326-a2db-a81a8c9c9937', enderecoIp: '203.0.113.7', sucesso: true
+          criadoEm: auditDate, acao: null, email: 'joa***@example.com', usuarioId: 'ae3ef3f1-654c-4326-a2db-a81a8c9c9937', enderecoIp: '203.0.113.7', sucesso: true
         }];
       }
     }
@@ -145,4 +145,15 @@ test('conta anonimizada não tem botão para revelar o e-mail', async () => {
     email: 'anonimizado', perfil: 'USER', anonimizado: true }]);
   assert.doesNotMatch(get('users-body').innerHTML, /data-email-user-id=/);
   assert.match(get('users-body').innerHTML, /anonimizado/);
+});
+
+
+test('auditoria mostra Brasília mesmo quando o instante UTC já está no dia seguinte', async () => {
+  const { get } = await adminPage([], 1, '2026-11-16T01:30:00Z');
+  assert.match(get('audit-body').innerHTML, /15\/11\/2026,\s*22:30:00/);
+});
+
+test('data com fuso explícito não recebe desconto de horas duas vezes', async () => {
+  const { get } = await adminPage([], 1, '2026-11-15T22:30:00-03:00');
+  assert.match(get('audit-body').innerHTML, /15\/11\/2026,\s*22:30:00/);
 });

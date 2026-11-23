@@ -9,7 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class AuditoriaService {
         registro.setRecurso(limitar(recurso, 255));
         registro.setSucesso(sucesso);
         registro.setEnderecoIp(request == null ? null : limitar(request.getRemoteAddr(), 45));
-        registro.setCriadoEm(LocalDateTime.now());
+        registro.setCriadoEm(Instant.now());
         registroRepository.save(registro);
     }
 
@@ -52,10 +53,16 @@ public class AuditoriaService {
             return sucesso == null ? registroRepository.findTop100ByOrderByCriadoEmDesc()
                     : registroRepository.findTop100BySucessoOrderByCriadoEmDesc(sucesso);
         }
-        var periodo = Range.rightOpen(inicio.atStartOfDay(), fim.plusDays(1).atStartOfDay());
+        var periodo = periodoBrasilia(inicio, fim);
         return sucesso == null
                 ? registroRepository.findTop100ByCriadoEmBetweenOrderByCriadoEmDesc(periodo)
                 : registroRepository.findTop100BySucessoAndCriadoEmBetweenOrderByCriadoEmDesc(sucesso, periodo);
+    }
+
+    public static Range<Instant> periodoBrasilia(LocalDate inicio, LocalDate fim) {
+        var brasilia = ZoneId.of("America/Sao_Paulo");
+        return Range.rightOpen(inicio.atStartOfDay(brasilia).toInstant(),
+                fim.plusDays(1).atStartOfDay(brasilia).toInstant());
     }
 
     private String limitar(String valor, int limite) {

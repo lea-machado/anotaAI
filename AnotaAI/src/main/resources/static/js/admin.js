@@ -252,7 +252,7 @@
   function auditRow(item) {
     const accountId = typeof item.usuarioId === 'string' ? item.usuarioId : '';
     const shortId = accountId ? accountId.slice(0, 8) + '…' : '—';
-    return `<tr><td>${item.criadoEm ? new Date(item.criadoEm).toLocaleString('pt-BR') : '—'}</td><td class="audit-user-id" title="${escapeHtml(accountId)}">${escapeHtml(shortId)}</td><td>${escapeHtml(formatAction(item.acao ?? '') || '—')}</td><td>${escapeHtml(item.recurso ?? '—')}</td><td class="audit-account-id">${escapeHtml(item.email)}</td><td><span class="status-badge ${item.sucesso ? 'success' : 'failure'}">${item.sucesso ? 'Sucesso' : 'Falha'}</span></td></tr>`;
+    return `<tr><td>${item.criadoEm ? new Date(item.criadoEm).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—'}</td><td class="audit-user-id" title="${escapeHtml(accountId)}">${escapeHtml(shortId)}</td><td>${escapeHtml(formatAction(item.acao ?? '') || '—')}</td><td>${escapeHtml(item.recurso ?? '—')}</td><td class="audit-account-id">${escapeHtml(item.email)}</td><td><span class="status-badge ${item.sucesso ? 'success' : 'failure'}">${item.sucesso ? 'Sucesso' : 'Falha'}</span></td></tr>`;
   }
 
   async function alterarPerfil(event) {
